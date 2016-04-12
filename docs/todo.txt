@@ -1,0 +1,52 @@
+A) root-structure
+    - simple Xboard protocol                            DONE
+    - FEN loader                                        DONE
+    - time control                                      DONE
+    - internal test suite                                       TODO
+    - three fold repetition rule                        DONE
+    - performance tuning                                        TODO
+        - incremental hash                              DONE
+        - legal move generator via pinned peices                TODO
+    - opening book                                      DONE
+    - draw by repetition                                DONE
+    - fifty moves rule                                          TODO
+    - pondering                                                 TODO
+    - SMP, mutlicore                                            TODO
+
+
+B) BoardPresentation
+4*8 Bytes QuatBitbaord board presentation               DONE
++ 1*8 Byte hash                                         DONE
++ 1*8 Byte lastmove+castlerights+halfmoveclock          DONE
+
+C) MovGenerator (Board)
+    - generalized Kogge-Stone move gen                          TODO
+    - precalculated AttackTables 
+      for white pawns, black pawns and knights                  TODO
+    - en passant                                        DONE
+    - castling moves                                    DONE    
+    - pawn promotion                                    DONE
+    - pieceincheck function                             DONE
+    - cleanup & performance tuning                              TODO
+
+D) DoMove, UnDoMove
+    - normal moves                                      DONE
+    - castle moves                                      DONE
+
+E) Evaluation
+    - simple piece values                               DONE
+    - piece square tables                               DONE
+    - simple pawn structure                             DONE
+
+F) Search Algorithm
+    - root-search                                       DONE
+    - AlphaBeta w. move ordering via MVV-LVA            DONE
+    - Quiscence-Search                                  DONE
+    - Iterative Deepening Framwork                      DONE
+    - PV-Search, Nullwindows                            DONE
+    - Null Move Pruning                                 DONE
+    - Late Move Reductions                                      TODO
+    - Transposition/Hash-Tables                         DONE
+    - Move Ordering SEE                                 DEP
+    - Aspiration Windows                                DEP
+

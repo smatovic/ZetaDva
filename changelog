@@ -1,0 +1,31 @@
+ZetaDva (0301) alpha; urgency=low
+
+  * code cleanup and fixes
+  * protocol fixes
+  * eval fixes
+  * switch to ANSI C style, C89
+  * switch to GPL version 2
+  * generalized Kogge-Stone move generator
+  * QuadBitboard board presentation
+
+ -- Srdja Matovic <s.matovic@app26.de>  Wed, 13 Jul 2013 13:07:16 +0200
+
+ZetaDva (0220) alpha; urgency=low
+
+  * fix in castle move generation
+  * added evaluation terms
+
+ -- Srdja Matovic <s.matovic@app26.de>  Sat, 06 Jul 2013 06:07:13 +0200
+
+ZetaDva (0210) alpha; urgency=low
+
+  * basic engine running
+  * support for basic xboard commands
+  * alphabeta search with QS,MVV-LVA,IID,TT,Nullwindows,Nullmove,LMR,etc.
+  * magic bitboard move generator
+  * polyglot book support
+  * time control for conventional clock mode
+  * simplified evaluation
+
+ -- Srdja Matovic <s.matovic@app26.de>  Tue, 10 Jan 2012 10:01:12 +0100
+
