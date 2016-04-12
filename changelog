@@ -4,7 +4,7 @@ ZetaDva (0301) alpha; urgency=low
   * protocol fixes
   * eval fixes
   * switch to ANSI C style, C89
-  * switch to GPL version 2
+  * switch to GPL v2 || GPL v3
   * generalized Kogge-Stone move generator
   * QuadBitboard board presentation
 
