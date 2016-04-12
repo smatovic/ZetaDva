@@ -3,6 +3,7 @@ ZetaDva (0301) alpha; urgency=low
   * code cleanup and fixes
   * protocol fixes
   * eval fixes
+  * time control fixes
   * switch to ANSI C style, C89
   * switch to GPL v2 || GPL v3
   * generalized Kogge-Stone move generator
