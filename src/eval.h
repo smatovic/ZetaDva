@@ -19,3 +19,11 @@
   GNU General Public License for more details.
 */
 
+#ifndef EVAL_H_INCLUDED
+#define EVAL_H_INCLUDED
+
+#include "types.h"      /* custom types, board defs, data structures, macros */
+
+
+#endif /* EVAL_H_INCLUDED */
+

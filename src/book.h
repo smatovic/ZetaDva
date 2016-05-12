@@ -19,3 +19,11 @@
   GNU General Public License for more details.
 */
 
+#ifndef BOOK_H_INCLUDED
+#define BOOK_H_INCLUDED
+
+#include "types.h"      /* custom types, board defs, data structures, macros */
+
+
+#endif /* BOOK_H_INCLUDED */
+

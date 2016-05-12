@@ -26,8 +26,8 @@
 #include <time.h>       /* for time measurent */
 #include <sys/time.h>   /* for gettimeofday */
 
-double get_time(void);
-void get_time_string(char *string);
+double get_time (void);
+void get_time_string (char *string);
 
 #endif /* TIMER_H_INCLUDED */
 

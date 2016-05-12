@@ -23,13 +23,13 @@
 #include <time.h>       /* for time measurent */
 #include <sys/time.h>   /* for gettimeofday */
 
-double get_time(void) 
+double get_time (void) 
 {
   struct timeval t;
-  gettimeofday(&t, NULL);
+  gettimeofday (&t, NULL);
   return t.tv_sec*1000 + t.tv_usec/1000;
 }
-void get_time_string(char *string)
+void get_time_string (char *string)
 {
   time_t t;
   struct tm *local;
@@ -37,12 +37,12 @@ void get_time_string(char *string)
   char * tempstring;
 
   t = time(NULL);
-  local = localtime(&t);
-  tempstring = asctime(local);
-  if ((ptr = strchr(tempstring, '\n')) != NULL)
+  local = localtime (&t);
+  tempstring = asctime (local);
+  if ((ptr = strchr (tempstring, '\n')) != NULL)
     *ptr = '\0';
 
-  memcpy(string,tempstring, sizeof(char)*256);
+  memcpy (string, tempstring, sizeof(char)*256);
 }
 
 

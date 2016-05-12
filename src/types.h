@@ -41,15 +41,17 @@ typedef int32_t         s32;
 typedef uint32_t        u32;
 typedef uint64_t        u64;
 /* custom typedefs */
-typedef s16 Score;
-typedef u64 Bitboard;
-typedef u64 Cr;
-typedef u64 Hmc;
-typedef u64 Square;
-typedef u64 Piece;
-typedef u64 PieceType;
-typedef u64 Move;
-#define VERSION "0301"
+typedef s16             Score;
+typedef u64             Bitboard;
+typedef u64             Cr;
+typedef u64             Hmc;
+typedef u64             Square;
+typedef u64             Piece;
+typedef u64             PieceType;
+typedef u64             Move;
+
+#define VERSION         "0301"
+
 /* quad bitboard array index definition
   0   pieces white
   1   piece type first bit
@@ -88,50 +90,58 @@ typedef u64 Move;
 #define BISHOP  4
 #define ROOK    5
 #define QUEEN   6
+/* bitboard masks, computation prefered over lookup */
+#define SETMASKBB(sq)       (1ULL<<(sq))
+#define CLRMASKBB(sq)       (~(1ULL<<(sq)))
 /* set masks */
-#define SMEP              0x0000000FC0000000
-#define SMHMC             0x00000FF000000000
-#define SMCRALL           0x0000F00000000000
-#define SMSCORE           0xFFFF000000000000
+#define SMEP                0x0000000FC0000000ULL
+#define SMHMC               0x00000FF000000000ULL
+#define SMCRALL             0x0000F00000000000ULL
+#define SMSCORE             0xFFFF000000000000ULL
 /* clear masks */
-#define CMEP              0xFFFFFFF03FFFFFFF
-#define CMHMC             0xFFFFF00FFFFFFFFF
-#define CMCRALL           0xFFFF0FFFFFFFFFFF
-#define CMSCORE           0x0000FFFFFFFFFFFF
+#define CMEP                0xFFFFFFF03FFFFFFFULL
+#define CMHMC               0xFFFFF00FFFFFFFFFULL
+#define CMCRALL             0xFFFF0FFFFFFFFFFFULL
+#define CMSCORE             0x0000FFFFFFFFFFFFULL
 /* castle right set masks big endian */
-#define SMCRWHITE         0x0000300000000000
-#define SMCRWHITEQ        0x0000100000000000
-#define SMCRWHITEK        0x0000200000000000
-#define SMCRBLACK         0x0000C00000000000
-#define SMCRBLACKQ        0x0000400000000000
-#define SMCRBLACKK        0x0000800000000000
+#define SMCRWHITE           0x0000300000000000ULL
+#define SMCRWHITEQ          0x0000100000000000ULL
+#define SMCRWHITEK          0x0000200000000000ULL
+#define SMCRBLACK           0x0000C00000000000ULL
+#define SMCRBLACKQ          0x0000400000000000ULL
+#define SMCRBLACKK          0x0000800000000000ULL
 /* castle right clear masks big endian */
-#define CMCRWHITE         0xFFFFCFFFFFFFFFFF
-#define CMCRWHITEQ        0xFFFFEFFFFFFFFFFF
-#define CMCRWHITEK        0xFFFFDFFFFFFFFFFF
-#define CMCRBLACK         0xFFFF3FFFFFFFFFFF
-#define CMCRBLACKQ        0xFFFFBFFFFFFFFFFF
-#define CMCRBLACKK        0xFFFF7FFFFFFFFFFF
+#define CMCRWHITE           0xFFFFCFFFFFFFFFFFULL
+#define CMCRWHITEQ          0xFFFFEFFFFFFFFFFFULL
+#define CMCRWHITEK          0xFFFFDFFFFFFFFFFFULL
+#define CMCRBLACK           0xFFFF3FFFFFFFFFFFULL
+#define CMCRBLACKQ          0xFFFFBFFFFFFFFFFFULL
+#define CMCRBLACKK          0xFFFF7FFFFFFFFFFFULL
 /* move helpers */
-#define GETSQFROM(mv)     ((mv)&0x3F)         /* 6 bit square */
-#define GETSQTO(mv)       (((mv)>>6)&0xF)     /* 6 bit square */
-#define GETSQCAPTURE(mv)  (((mv)>>12)&0x3F)   /* 6 bit square */
-#define GETPFROM(mv)      (((mv)>>18)&0x3F)   /* 4 bit piece type */
-#define GETPTO(mv)        (((mv)>>22)&0xF)    /* 4 bit piece type */
-#define GETPCPT(mv)       (((mv)>>26)&0xF)    /* 4 bit piece type */
-#define GETSQEP(mv)       (((mv)>>30)&0x3F)   /* 6 bit square */
-#define GETHMC(mv)        (((mv)>>36)&0xFF)   /* 8 bit halfmove clock */
-#define GETCR(mv)         (((mv)>>44)&0xF)    /* 4 bit castle rights */
-#define SETCR(mv,cr)      ((mv&CMCRALL)|cr)   /* 4 bit castle rights */
-#define GETSCORE(mv)      (((mv)>>48)&0xFFFF) /* signed 16 bit score */
-#define SETSCORE(mv,score)(((mv)&CMSCORE)|(((score)&0xFFFF)<<48)) 
+#define GETSQFROM (mv)      ((mv)&0x3F)         /* 6 bit square */
+#define GETSQTO (mv)        (((mv)>>6)&0xF)     /* 6 bit square */
+#define GETSQCAPTURE (mv)   (((mv)>>12)&0x3F)   /* 6 bit square */
+#define GETPFROM (mv)       (((mv)>>18)&0x3F)   /* 4 bit piece type */
+#define GETPTO (mv)         (((mv)>>22)&0xF)    /* 4 bit piece type */
+#define GETPCPT (mv)        (((mv)>>26)&0xF)    /* 4 bit piece type */
+#define GETSQEP (mv)        (((mv)>>30)&0x3F)   /* 6 bit square */
+#define GETHMC (mv)         (((mv)>>36)&0xFF)   /* 8 bit halfmove clock */
+#define GETCR (mv)          (((mv)>>44)&0xF)    /* 4 bit castle rights */
+#define SETCR (mv,cr)       ((mv&CMCRALL)|cr)   /* 4 bit castle rights */
+#define GETSCORE (mv)       (((mv)>>48)&0xFFFF) /* signed 16 bit score */
+#define SETSCORE (mv,score) (((mv)&CMSCORE)|(((score)&0xFFFF)<<48)) 
 /* pack move into 64 bits */
-#define MAKEMOVE(sqfrom, sqto, sqcpt, pfrom, pto, pcpt, sqep, hmc, cr, score) \
+#define MAKEMOVE (sqfrom, sqto, sqcpt, pfrom, pto, pcpt, sqep, hmc, cr, score) \
 ( \
      sqfrom      | (sqto<<6)  | (sqcpt<<12) \
   | (pfrom<<18)  | (pto<<22)  | (pcpt<<26) \
   | (sqep<<30)   | (hmc<<36)  | (cr<<44) | (score<<48) \
 )
+/* square helpers */
+#define MAKESQ(file,rank)   ((rank)<<3|(file))
+#define GETRANK(sq)         ((sq)>>3)
+#define GETFILE(sq)         ((sq)&7)
+#define GETRRANK(sq,color)  ((color)?(((sq)>>3)^7):((sq)>>3))
 /* file enumeration */
 enum Files
 {
@@ -156,5 +166,4 @@ enum Squares
 };
 
 #endif /* TYPES_H_INCLUDED */
-
 

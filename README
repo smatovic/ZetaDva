@@ -1,19 +1,19 @@
 /*
-  Name: ZetaDva
-  Description: Amateur level chess engine
-  Author: Srdja Matovic <s.matovic@app26.de>
-  Created at: 2011-01-15
-  Updated at: 2016-07-13
-  License: GPL >= v2
+  Name:         Zeta Dva
+  Description:  Amateur level chess engine
+  Author:       Srdja Matovic <s.matovic@app26.de>
+  Created at:   2011-01-15
+  Updated at:   2016-07-13
+  License:      GPL >= v2
 
   Copyright (C) 2011-2016 Srdja Matovic
 
-  ZetaDva is free software: you can redistribute it and/or modify
+  Zeta Dva is free software: you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
   the Free Software Foundation, either version 2 of the License, or
   (at your option) any later version.
 
-  ZetaDva is distributed in the hope that it will be useful,
+  Zeta Dva is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
   GNU General Public License for more details.
@@ -27,8 +27,8 @@ For Linux gcc, and for Windows mingw, did the job.
 To play against the engine use an UCI protocol capable chess GUI like
 Arena, Winboard or Xboard with Polyglot adapter
 
-Alternatively you can use UCI commmand directly on commman line, e.g.
-
+Alternatively you can use UCI commmands directly on commmand line, e.g.
+...
 
 ### Opening Book ###
 The delivered opening book lies in the doc folder and is by Dann Corbit.
@@ -39,12 +39,15 @@ the same directory like the engine.
 The source code and a Makefile are placed in src folder.
 
 ### Thanks To ###
-- CCC, http://www.talkchess.com/
+- All CCC members, http://www.talkchess.com/
 - CPW Team, http://chessprogramming.wikispaces.com/
-- Dann Corbit, for all his chess related stuff on his website.
+- Dann Corbit, for his help in many cases.
 - Harm Gert Muller, for publishing such a detailed documentation of MicroMax.
 - Jim Ablett, for commpiling all the Zeta versions.
 - Marcel van Kervinck, for his smart Chess Programm MSCP.
+- Michel Van den Bergh for the Polyglot probing code,
+  http://hardy.uhasselt.be/Toga/book_format.html
 - Stockfish Team for their great engine.
-- Tomasz Michniewski, for his Piece Square Tables.
+- Tomasz Michniewski, for his Piece Square Tables,
+  https://chessprogramming.wikispaces.com/Simplified+evaluation+function
 

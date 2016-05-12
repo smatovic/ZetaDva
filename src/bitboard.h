@@ -19,3 +19,12 @@
   GNU General Public License for more details.
 */
 
+#ifndef BITBOARD_H_INCLUDED
+#define BITBOARD_H_INCLUDED
+
+#include "types.h"      /* custom types, board defs, data structures, macros */
+
+int pop_count (u64 x);
+
+#endif /* BITBOARD_H_INCLUDED */
+

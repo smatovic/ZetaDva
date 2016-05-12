@@ -19,3 +19,5 @@
   GNU General Public License for more details.
 */
 
+#include "types.h"      /* custom types, board defs, data structures, macros */
+
