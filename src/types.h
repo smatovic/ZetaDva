@@ -157,3 +157,4 @@ enum Squares
 
 #endif /* TYPES_H_INCLUDED */
 
+
