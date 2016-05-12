@@ -1,10 +1,10 @@
 ZetaDva (0301) alpha; urgency=low
 
   * code cleanup and fixes
-  * protocol fixes
+  * switch from CECP2 (Winboard/Xboard) to UCI
   * eval fixes
   * time control fixes
-  * switch to ANSI C style, C89
+  * switch to ANSI C89 style
   * switch to GPL >=v2
   * generalized Kogge-Stone move generator
   * QuadBitboard board presentation
