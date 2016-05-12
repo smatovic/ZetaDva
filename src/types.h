@@ -1,19 +1,19 @@
 /*
-  Name: ZetaDva
-  Description: Amateur level chess engine
-  Author: Srdja Matovic <s.matovic@app26.de>
-  Created at: 2011-01-15
-  Updated at: 2016-07-13
-  License: GPL >= v2
+  Name:         Zeta Dva
+  Description:  Amateur level chess engine
+  Author:       Srdja Matovic <s.matovic@app26.de>
+  Created at:   2011-01-15
+  Updated at:   2016-07-13
+  License:      GPL >= v2
 
   Copyright (C) 2011-2016 Srdja Matovic
 
-  ZetaDva is free software: you can redistribute it and/or modify
+  Zeta Dva is free software: you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
   the Free Software Foundation, either version 2 of the License, or
   (at your option) any later version.
 
-  ZetaDva is distributed in the hope that it will be useful,
+  Zeta Dva is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
   GNU General Public License for more details.
@@ -22,8 +22,7 @@
 #ifndef TYPES_H_INCLUDED
 #define TYPES_H_INCLUDED
 
-/* C89 styla
-
+/* C89 style typedefs
 typedef unsigned char bool;
 typedef unsigned char u8;
 typedef signed short s16;
@@ -32,18 +31,16 @@ typedef unsigned int u32;
 typedef unsigned long long u64;
 #define false   0
 #define true    1
-
 */
-
+/* C99 headers */
 #include <stdint.h>
 #include <stdbool.h>
-
 typedef uint8_t         u8;
 typedef int16_t         s16;
 typedef int32_t         s32;
 typedef uint32_t        u32;
 typedef uint64_t        u64;
-
+/* custom typedefs */
 typedef s16 Score;
 typedef u64 Bitboard;
 typedef u64 Cr;
@@ -52,9 +49,7 @@ typedef u64 Square;
 typedef u64 Piece;
 typedef u64 PieceType;
 typedef u64 Move;
-
 #define VERSION "0301"
-
 /* quad bitboard array index definition
   0   pieces white
   1   piece type first bit
@@ -75,7 +70,6 @@ typedef u64 Move;
   36  - 43  halfmove clock for fity move rule, last capture/castle/pawn move
   44  - 47  castle rights
   48  - 63  move score
-
 */
 /* castle right encoding mask in 4 bits
   0 white queenside

@@ -1,4 +1,4 @@
-#	Makefile for zetadva
+#	Makefile for zeta dva
 
 CC=gcc
 #CC=/usr/bin/i686-w64-mingw32-gcc
