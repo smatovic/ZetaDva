@@ -43,12 +43,15 @@ typedef uint64_t        u64;
 /* custom typedefs */
 typedef s16             Score;
 typedef u64             Bitboard;
+typedef u64             Hash;
 typedef u64             Cr;
 typedef u64             Hmc;
 typedef u64             Square;
 typedef u64             Piece;
 typedef u64             PieceType;
 typedef u64             Move;
+typedef u64             File;
+typedef u64             Rank;
 
 #define VERSION         "0301"
 
@@ -60,6 +63,12 @@ typedef u64             Move;
   4   64 bit board hash, for future use
   5   lastmove + ep target + halfmove clock + castle rights + move score
 */
+#define QBBWHITE  0
+#define QBBP1     1
+#define QBBP2     2
+#define QBBP3     3
+#define QBBHASH   4
+#define QBBLAST   5
 /* move encoding 
 
    0  -  5  square from
@@ -97,13 +106,16 @@ typedef u64             Move;
 /* bitboard masks, computation prefered over lookup */
 #define SETMASKBB(sq)       (1ULL<<(sq))
 #define CLRMASKBB(sq)       (~(1ULL<<(sq)))
+#define BBEMPTY             0x0000000000000000ULL
+#define BBFULL              0xFFFFFFFFFFFFFFFFULL
+#define MOVENONE            0x0000000000000000ULL
 /* set masks */
-#define SMEP                0x0000000FC0000000ULL
+#define SMSQEP              0x0000000FC0000000ULL
 #define SMHMC               0x00000FF000000000ULL
 #define SMCRALL             0x0000F00000000000ULL
 #define SMSCORE             0xFFFF000000000000ULL
 /* clear masks */
-#define CMEP                0xFFFFFFF03FFFFFFFULL
+#define CMSQEP              0xFFFFFFF03FFFFFFFULL
 #define CMHMC               0xFFFFF00FFFFFFFFFULL
 #define CMCRALL             0xFFFF0FFFFFFFFFFFULL
 #define CMSCORE             0x0000FFFFFFFFFFFFULL
@@ -122,18 +134,21 @@ typedef u64             Move;
 #define CMCRBLACKQ          0xFFFFBFFFFFFFFFFFULL
 #define CMCRBLACKK          0xFFFF7FFFFFFFFFFFULL
 /* move helpers */
-#define GETSQFROM (mv)      ((mv)&0x3F)         /* 6 bit square */
-#define GETSQTO (mv)        (((mv)>>6)&0xF)     /* 6 bit square */
-#define GETSQCAPTURE (mv)   (((mv)>>12)&0x3F)   /* 6 bit square */
-#define GETPFROM (mv)       (((mv)>>18)&0x3F)   /* 4 bit piece type */
-#define GETPTO (mv)         (((mv)>>22)&0xF)    /* 4 bit piece type */
-#define GETPCPT (mv)        (((mv)>>26)&0xF)    /* 4 bit piece type */
-#define GETSQEP (mv)        (((mv)>>30)&0x3F)   /* 6 bit square */
-#define GETHMC (mv)         (((mv)>>36)&0xFF)   /* 8 bit halfmove clock */
-#define GETCR (mv)          (((mv)>>44)&0xF)    /* 4 bit castle rights */
-#define SETCR (mv,cr)       ((mv&CMCRALL)|cr)   /* 4 bit castle rights */
-#define GETSCORE (mv)       (((mv)>>48)&0xFFFF) /* signed 16 bit score */
-#define SETSCORE (mv,score) (((mv)&CMSCORE)|(((score)&0xFFFF)<<48)) 
+#define GETSQFROM(mv)      ((mv)&0x3F)         /* 6 bit square */
+#define GETSQTO(mv)        (((mv)>>6)&0xF)     /* 6 bit square */
+#define GETSQCAPTURE(mv)   (((mv)>>12)&0x3F)   /* 6 bit square */
+#define GETPFROM(mv)       (((mv)>>18)&0x3F)   /* 4 bit piece type */
+#define GETPTO(mv)         (((mv)>>22)&0xF)    /* 4 bit piece type */
+#define GETPCPT(mv)        (((mv)>>26)&0xF)    /* 4 bit piece type */
+#define GETSQEP(mv)        (((mv)>>30)&0x3F)   /* 6 bit square */
+#define SETSQEP(mv,sq)     (((mv)&CMSQEP)|(((sq)&0x3F)<<30))
+#define GETHMC(mv)         (((mv)>>36)&0xFF)   /* 8 bit halfmove clock */
+#define SETHMC(mv,hmc)     (((mv)&CMHMC)|(((hmc)&0xFF)<<36))
+#define GETCR(mv)          (((mv)>>44)&0xF)    /* 4 bit castle rights */
+#define SETCR(mv,cr)       ((mv&CMCRALL)|cr)   /* 4 bit castle rights */
+#define GETSCORE(mv)       (((mv)>>48)&0xFFFF) /* signed 16 bit score */
+#define SETSCORE(mv,score) (((mv)&CMSCORE)|(((score)&0xFFFF)<<48)) 
+#define SETSCORE(mv,score) (((mv)&CMSCORE)|(((score)&0xFFFF)<<48)) 
 /* pack move into 64 bits */
 #define MAKEMOVE (sqfrom, sqto, sqcpt, pfrom, pto, pcpt, sqep, hmc, cr, score) \
 ( \
@@ -149,12 +164,12 @@ typedef u64             Move;
 /* file enumeration */
 enum Files
 {
-  FILE_A, FILE_B, FILE_C, FILE_D, FILE_E, FILE_F, FILE_G, FILE_H
+  FILE_A, FILE_B, FILE_C, FILE_D, FILE_E, FILE_F, FILE_G, FILE_H, FILE_NONE
 };
 /* rank enumeration */
 enum Ranks
 {
-  RANK_1, RANK_2, RANK_3, RANK_4, RANK_5, RANK_6, RANK_7, RANK_8
+  RANK_1, RANK_2, RANK_3, RANK_4, RANK_5, RANK_6, RANK_7, RANK_8, RANK_NONE
 };
 /* square enumeration */
 enum Squares

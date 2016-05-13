@@ -31,8 +31,11 @@
 /* Global variables  */
 FILE 	*log_file;
 bool log_flag       = false;
-
-/* xboard io */
+/* io vars */
+char *line;
+char *command;
+char *fen;
+/* xboard states */
 bool xboard_mode    = false;
 bool xboard_force   = false;
 bool xboard_post    = false;
@@ -40,12 +43,15 @@ u32 SD              = MAXPLY;
 s32 xboard_protover = 0;
 /* game state */
 bool STM            = WHITE;
-u32 PLY             = 0;
+u32 GAMEPLY         = 0;  /* total ply, considering depth via fen string */
+u32 PLY             = 0;  /* engine specifix ply counter */
+Move *MoveHistory;  /* last game moves indexed by ply */
+Hash *HashHistory;  /* last game hashes indexed by ply */
 
 /* Quad Bitboard */
 /* based on http://chessprogramming.wikispaces.com/Quad-Bitboards */
 /* by Gerd Isenberg */
-Bitboard board[6];
+Bitboard *BOARD; /* six elements */
 /* quad bitboard array index definition
   0   pieces white
   1   piece type first bit
@@ -55,6 +61,167 @@ Bitboard board[6];
   5   lastmove + ep target + halfmove clock + castle rights + move score
 */
 
+bool inits(void)
+{
+  /* memory allocation */
+  line        = malloc(1024       * sizeof (char));
+  command     = malloc(1024       * sizeof (char));
+  fen         = malloc(1024       * sizeof (char));
+  BOARD       = malloc(   6       * sizeof (Bitboard));
+  MoveHistory = malloc(MAXGAMEPLY * sizeof (Move));
+  HashHistory = malloc(MAXGAMEPLY * sizeof (Hash));
+
+  if (command == NULL) 
+  {
+    printf ("Error (memory allocation failed): char command[1024]");
+    return false;
+  }
+  if (fen == NULL) 
+  {
+    printf ("Error (memory allocation failed): char fen[1024]");
+    return false;
+  }
+  if (BOARD == NULL) 
+  {
+    printf ("Error (memory allocation failed): u64 BOARD[6]");
+    return false;
+  }
+  if (MoveHistory == NULL) 
+  {
+    printf ("Error (memory allocation failed): u64 MoveHistory[%u]", MAXGAMEPLY);
+    return false;
+  }
+  if (HashHistory == NULL) 
+  {
+    printf ("Error (memory allocation failed): u64 HashHistory[%u]", MAXGAMEPLY);
+    return false;
+  }
+  return true;
+}
+/* set internal chess board presentation to fen string */
+void setboard(char *fen) {
+
+  char tempchar;
+  char cstm[2];
+  char cep[3];
+  char castle[5];
+  char position[255];
+  char fencharstring[24] = {" PNKBRQ pnkbrq/12345678"};
+  int i;
+  int j;
+  int side;
+  u64 hmc;
+  u64 fendepth;
+  File file;
+  Rank rank;
+  Piece piece;
+  Square sq;
+  Cr cr = BBEMPTY;
+  Move lastmove = MOVENONE;
+
+  /* get data from fen string */
+	sscanf(fen, "%s %c %s %s %llu %llu", position, cstm, castle, cep, &hmc, &fendepth);
+
+  /* empty the board */
+  BOARD[QBBWHITE] = 0x0ULL;
+  BOARD[QBBP1]    = 0x0ULL;
+  BOARD[QBBP2]    = 0x0ULL;
+  BOARD[QBBP3]    = 0x0ULL;
+  BOARD[QBBHASH]  = 0x0ULL;
+  BOARD[QBBLAST]  = 0x0ULL;
+
+  /* parse position from fen string */
+  file = FILE_A;
+  rank = RANK_8;
+  i=  0;
+  while (!(rank <= RANK_1 && file >= FILE_NONE))
+  {
+    tempchar = position[i++];
+    for (j = 0; j <= 23; j++) 
+    {
+  		if (tempchar == fencharstring[j])
+      {
+        /* delimeter / */
+        if (j == 14)
+        {
+            rank--;
+            file = FILE_A;
+        }
+        /* empty squares*/
+        else if (j >= 15)
+        {
+            file+=j-14;
+        }
+        else
+        {
+            sq        = MAKESQ (rank, file);
+            side      = (j > 6)? BLACK : WHITE;
+            piece     = side? j-7 : j;
+            piece<<=1;
+            piece    |= side;
+            BOARD[0] |= piece&0x1;
+            BOARD[1] |= ((piece>>1)&0x1)<<sq;
+            BOARD[2] |= ((piece>>2)&0x1)<<sq;
+            BOARD[3] |= ((piece>>3)&0x1)<<sq;
+            file++;
+        }
+        break;                
+      } 
+    }
+  }
+  /* site to move */
+  STM = WHITE;
+  if (cstm[0] == 'b' || cstm[0] == 'B')
+  {
+    STM = BLACK;
+  }
+  /* castle rights */
+  tempchar = castle[0];
+  if (tempchar != '-')
+  {
+    i = 0;
+    while (tempchar != '\0')
+    {
+      /* white queenside */
+      if (tempchar == 'Q')
+        cr |= SMCRWHITEQ;
+      /* white kingside */
+      if (tempchar == 'K')
+        cr |= SMCRWHITEK;
+      /* black queenside */
+      if (tempchar == 'q')
+        cr |= SMCRBLACKQ;
+      /* black kingside */
+      if (tempchar == 'k')
+        cr |= SMCRBLACKK;
+      i++;
+      tempchar = castle[i];
+    }
+  }
+  /* store castle rights into lastmove */
+  lastmove = SETHMC (lastmove, hmc);
+  
+
+  /* set en passant target square */
+  tempchar = cep[0];
+  if (tempchar != '-')
+  {
+    rank  = (Rank)cep[1] -49;
+    file  = (File)cep[0] -97;
+    sq    = MAKESQ (rank,file);
+    lastmove = SETSQEP (lastmove, sq);
+  }
+  PLY = 0;
+  GAMEPLY = fendepth*2+STM;
+
+  /* TODO: compute set hash
+  HashHistory[PLY] = compute_hash(BOARD);
+  */
+}
+void createfen(char *fen, Bitboard *board, int gameply)
+{
+
+}
 void self_test (void) 
 {
   return;
@@ -95,6 +262,7 @@ void print_help (void)
   printf ("Non-xboard commands:\n");
   printf ("perft n        // perform a performance test to depth n\n");
   printf ("selftest       // run an internal selftest\n");
+  printf ("help           // print usage hints\n");
   printf ("\n");
 }
 void print_version (void)
@@ -103,17 +271,9 @@ void print_version (void)
   printf ("Copyright (C) 2011-2016 Srdja Matovic\n");
   printf ("This is free software, licensed under GPL >= v2\n");
 }
-/* set internal chess board presentation to fen string */
-void set_board (char *fen)
-{
-  printf ("%s\n",fen);
-}
 /* Zeta Dva, amateur level chess engine  */
 int main (int argc, char* argv[]) {
 
-  char line[1024];
-  char command[1024];
-  char fen[1024];
   s32 c;
   static struct option long_options[] = 
   {
@@ -124,6 +284,10 @@ int main (int argc, char* argv[]) {
     {NULL, 0, NULL, 0}
   };
   s32 option_index = 0;
+
+  /* init memory and tables */
+  if (!inits())
+    exit (EXIT_FAILURE);
 
   /* no buffers */
   setbuf(stdout, NULL);
@@ -256,7 +420,7 @@ int main (int argc, char* argv[]) {
     /* initialize new game */
 		if (!strcmp (command, "new"))
     {
-      set_board ("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
+      setboard ("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
       PLY = 0;
       xboard_force  = false;
 			continue;
@@ -265,7 +429,7 @@ int main (int argc, char* argv[]) {
 		if (!strcmp (command, "setboard"))
     {
       sscanf (line, "setboard %1023[0-9a-zA-Z /-]", fen);
-      set_board (fen);
+      setboard (fen);
       PLY =0;
       continue;
 		}
@@ -282,6 +446,22 @@ int main (int argc, char* argv[]) {
       STM = !STM;
       continue;
     }		
+    /* set xboard force mode, no thinking just apply moves */
+		if (!strcmp (command, "force"))
+    {
+      xboard_force = true;
+      continue;
+		}
+    /* set time control */
+		if (!strcmp (command, "level"))
+    {
+      continue;
+		}
+    /* set time control to n seconds per move */
+		if (!strcmp (command, "st"))
+    {
+      continue;
+		}
     if (!strcmp(command, "usermove"))
     {
       /* zeta supports only xboard CECP >= v2 */
@@ -299,12 +479,6 @@ int main (int argc, char* argv[]) {
     {
       break;
     }
-    /* set xboard force mode, no thinking just apply moves */
-		if (!strcmp (command, "force"))
-    {
-      xboard_force = true;
-      continue;
-		}
     /* set search depth */
     if (!strcmp (command, "sd"))
     {
@@ -387,6 +561,12 @@ int main (int argc, char* argv[]) {
     {
       continue;
     }
+    /* print help */
+    if (!xboard_mode && !strcmp (command, "help"))
+    {
+      print_help();
+      continue;
+    }
     /* not supported xboard commands...tell user */
 		if (!strcmp (command, "edit"))
     {
@@ -438,6 +618,6 @@ int main (int argc, char* argv[]) {
   if (log_flag)
     fclose (log_file);
 
-  return 0;
+  exit (EXIT_SUCCESS);
 }
 
