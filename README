@@ -31,7 +31,7 @@ Alternatively you can use UCI commmands directly on commmand line, e.g.
 ...
 
 ### Opening Book ###
-The delivered opening book lies in the doc folder and is by Dann Corbit.
+The delivered opening book by Dann Corbit lies in the doc folder.
 Zeta supports Polyglot .bin books, just name the file "book.bin" and put it in
 the same directory like the engine.
 
@@ -42,10 +42,12 @@ The source code and a Makefile are placed in src folder.
 - All CCC members, http://www.talkchess.com/
 - CPW Team, http://chessprogramming.wikispaces.com/
 - Dann Corbit, for his help in many cases.
+- Gerd Isenberg, for the Quad-Bitboard idea.
+  http://chessprogramming.wikispaces.com/search/view/Quad-Bitboard
 - Harm Gert Muller, for publishing such a detailed documentation of MicroMax.
 - Jim Ablett, for commpiling all the Zeta versions.
 - Marcel van Kervinck, for his smart Chess Programm MSCP.
-- Michel Van den Bergh for the Polyglot probing code,
+- Michel Van den Bergh for the Polyglot probing code.
   http://hardy.uhasselt.be/Toga/book_format.html
 - Stockfish Team for their great engine.
 - Tomasz Michniewski, for his Piece Square Tables,
