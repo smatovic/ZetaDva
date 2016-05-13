@@ -24,11 +24,25 @@ Linux 64 bit and Windows 32/64 bit binaries are placed in bin folder.
 For Linux gcc, and for Windows mingw, did the job.
 
 ### Play ### 
-To play against the engine use an UCI protocol capable chess GUI like
-Arena, Winboard or Xboard with Polyglot adapter
+To play against the engine use an CECP v2 protocol capable chess GUI
+like Arena, Winboard or Xboard.
 
-Alternatively you can use UCI commmands directly on commmand line, e.g.
-...
+Alternatively you can use xboard commmands directly on commman line,
+e.g.
+new            // init new game from start position
+level 40 4 0   // set time control to 40 moves in 4 minutes
+go             // let engine play site to move
+usermove d7d5  // let engine apply usermove and start thinking
+
+Not supported xboard commands:
+analyze        // enter analyze mode
+undo/remove    // take back last moves
+?              // move now
+draw           // handle draw offers
+hard/easy      // turn on pondering
+hint           // give user a hint move
+bk             // book lines
+pause/resume   // pause the engine
 
 ### Opening Book ###
 The delivered opening book by Dann Corbit lies in the doc folder.

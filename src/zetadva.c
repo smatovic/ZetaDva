@@ -30,7 +30,17 @@
 
 /* Global variables  */
 FILE 	*log_file;
-bool log_flag = false;
+bool log_flag       = false;
+
+/* xboard io */
+bool xboard_mode    = false;
+bool xboard_force   = false;
+bool xboard_post    = false;
+u32 SD              = MAXPLY;
+s32 xboard_protover = 0;
+/* game state */
+bool STM            = WHITE;
+u32 PLY             = 0;
 
 /* Quad Bitboard */
 /* based on http://chessprogramming.wikispaces.com/Quad-Bitboards */
@@ -51,8 +61,10 @@ void self_test (void)
 }
 void print_help (void)
 {
-  printf ("Zeta Dva, yet another amateur level chess engine.\n");
-  printf ("\n");
+  printf ("Zeta Dva, version %s\n",VERSION);
+  printf ("Yet another amateur level chess engine.\n");
+  printf ("Copyright (C) 2011-2016 Srdja Matovic\n");
+  printf ("This is free software, licensed under GPL >= v2\n");
   printf ("\n");
   printf ("Options:\n");
   printf (" -l, --log          Write output/debug to file zetadva.log\n");
@@ -60,19 +72,29 @@ void print_help (void)
   printf (" -h, --help         Print Zeta Dva program usage help.\n");
   printf (" -s, --selftest     Run an internal test, usefull after compile.\n");
   printf ("\n");
-  printf ("To play against the engine use an UCI protocol capable chess GUI");
-  printf ("like Arena, Winboard or Xboard with Polyglot adapter\n");
+  printf ("To play against the engine use an CECP v2 protocol capable chess GUI\n");
+  printf ("like Arena, Winboard or Xboard.\n");
   printf ("\n");
-  printf ("Alternatively you can use UCI commmand directly on commman line,\n"); 
+  printf ("Alternatively you can use xboard commmands directly on commman line,\n"); 
   printf ("e.g.\n");
-  printf ("uci\n");
-  printf ("isready\n");
-  printf ("ucinewgame\n");
-  printf ("position startpos\n");
-  printf ("go infinite\n");
-  printf ("stop\n");
+  printf ("new            // init new game from start position\n");
+  printf ("level 40 4 0   // set time control to 40 moves in 4 minutes\n");
+  printf ("go             // let engine play site to move\n");
+  printf ("usermove d7d5  // let engine apply usermove and start thinking\n");
   printf ("\n");
-  printf ("License: GPL >= v2\n");
+  printf ("Not supported xboard commands:\n");
+  printf ("analyze        // enter analyze mode\n");
+  printf ("undo/remove    // take back last moves\n");
+  printf ("?              // move now\n");
+  printf ("draw           // handle draw offers\n");
+  printf ("hard/easy      // turn on pondering\n");
+  printf ("hint           // give user a hint move\n");
+  printf ("bk             // book lines\n");
+  printf ("pause/resume   // pause the engine\n");
+  printf ("\n");
+  printf ("Non-xboard commands:\n");
+  printf ("perft n        // perform a performance test to depth n\n");
+  printf ("selftest       // run an internal selftest\n");
   printf ("\n");
 }
 void print_version (void)
@@ -90,6 +112,7 @@ void set_board (char *fen)
 int main (int argc, char* argv[]) {
 
   char line[1024];
+  char command[1024];
   char fen[1024];
   s32 c;
   static struct option long_options[] = 
@@ -101,8 +124,10 @@ int main (int argc, char* argv[]) {
     {NULL, 0, NULL, 0}
   };
   s32 option_index = 0;
-  s32 cores           = 1;
-  s32 ply             = 4;
+
+  /* no buffers */
+  setbuf(stdout, NULL);
+  setbuf(stdin, NULL);
 
   /* getopt loop */
   while ((c = getopt_long_only (argc, argv, "",
@@ -118,7 +143,7 @@ int main (int argc, char* argv[]) {
         return 0;
         break;
       case 2:
-        log_flag=true;
+        log_flag =true;
         break;
       case 3:
         self_test ();
@@ -133,16 +158,281 @@ int main (int argc, char* argv[]) {
       log_flag=false;
     else
     {
-      /* print binary call to log */
       char timestring[256];
+      /* no buffers */
+      setbuf(log_file, NULL);
+      /* print binary call to log */
       get_time_string (timestring);
-      fprintf (log_file, "%s", timestring);
+      fprintf (log_file, "%s, ", timestring);
       for (c=0;c<argc;c++)
       {
         fprintf (log_file, "%s ",argv[c]);
       }
       fprintf (log_file, "\n");
     }
+  }
+
+  printf ("Zeta Dva, version %s\n",VERSION);
+  printf ("Yet another amateur level chess engine.\n");
+  printf ("Copyright (C) 2011-2016 Srdja Matovic\n");
+  printf ("This is free software, licensed under GPL >= v2\n");
+
+
+  /* xboard command loop */
+  for (;;)
+  {
+    /* console mode */
+    if (!xboard_mode)
+      printf ("> ");
+    /* just to be sure, flush the output...*/
+    fflush (stdout);
+    /* get line */
+    if (!fgets (line, 1023, stdin)) {}
+    /* ignore empty lines */
+    if (line[0] == '\n')
+      continue;
+    /* print io to log file */
+    if (log_flag)
+    {
+      char timestring[256];
+      get_time_string (timestring);
+      fprintf (log_file, "%s, ", timestring);
+      fprintf (log_file, "%s\n",line);
+    }
+    /* get command */
+    sscanf (line, "%s", command);
+
+    /* xboard commands */
+    /* set xboard mode */
+    if (!strcmp (command, "xboard"))
+    {
+      printf("feature done=0\n");  
+      xboard_mode = true;
+      continue;
+    }
+    if (!strcmp(command, "protover")) 
+    {
+
+      sscanf (line, "protover %d", &xboard_protover);
+
+      /* zeta supports only xboard CECP >= v2 */
+      if (xboard_mode && xboard_protover<2)
+      {
+        printf("Error (unsupported xboard protocoll version): < v2\n");
+        printf("tellusererror (unsupported xboard protocoll version): < v2\n");
+      }
+      else
+      {
+        printf ("feature myname=\"Zeta Dva %s\"\n",VERSION);
+        printf ("feature ping=0\n");
+        printf ("feature setboard=1\n");
+        printf ("feature playother=0\n");
+        printf ("feature san=0\n");
+        printf ("feature usermove=1\n");
+        printf ("feature time=1\n");
+        printf ("feature draw=0\n");
+        printf ("feature sigint=0\n");
+        printf ("feature reuse=1\n");
+        printf ("feature analyze=0\n");
+        printf ("feature variants=normal\n");
+        printf ("feature colors=0\n");
+        printf ("feature ics=0\n");
+        printf ("feature name=0\n");
+        printf ("feature pause=0\n");
+        printf ("feature nps=0\n");
+        printf ("feature debug=0\n");
+        printf ("feature memory=1\n");
+        printf ("feature smp=0\n");
+        printf ("feature san=0\n");
+        printf ("feature debug=0\n");
+        printf ("feature exclude=0\n");
+        printf ("feature setscore=0\n");
+        printf ("feature highlight=0\n");
+        printf ("feature setscore=0\n");
+        printf ("feature done=1\n");
+      }
+      continue;
+    }        
+    /* initialize new game */
+		if (!strcmp (command, "new"))
+    {
+      set_board ("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
+      PLY = 0;
+      xboard_force  = false;
+			continue;
+		}
+    /* set board to position in FEN */
+		if (!strcmp (command, "setboard"))
+    {
+      sscanf (line, "setboard %1023[0-9a-zA-Z /-]", fen);
+      set_board (fen);
+      PLY =0;
+      continue;
+		}
+    if (!strcmp(command, "go"))
+    {
+      /* zeta supports only xboard CECP >= v2 */
+      if (xboard_mode && xboard_protover<2)
+      {
+        printf("Error (unsupported xboard protocoll version): < v2\n");
+        printf("tellusererror (unsupported xboard protocoll version): < v2\n");
+      }
+      xboard_force = false;
+      PLY++;
+      STM = !STM;
+      continue;
+    }		
+    if (!strcmp(command, "usermove"))
+    {
+      /* zeta supports only xboard CECP >= v2 */
+      if (xboard_mode && xboard_protover<2)
+      {
+        printf("Error (unsupported xboard protocoll version): < v2\n");
+        printf("tellusererror (unsupported xboard protocoll version): < v2\n");
+      }
+      PLY++;
+      STM = !STM;
+      continue;
+    }		
+    /* exit program */
+		if (!strcmp (command, "quit"))
+    {
+      break;
+    }
+    /* set xboard force mode, no thinking just apply moves */
+		if (!strcmp (command, "force"))
+    {
+      xboard_force = true;
+      continue;
+		}
+    /* set search depth */
+    if (!strcmp (command, "sd"))
+    {
+      sscanf (line, "sd %u", &SD);
+      continue;
+    }
+    /* turn on thinking output */
+		if (!strcmp (command, "post"))
+    {
+      xboard_post = true;
+      continue;
+		}
+    /* turn off thinking output */
+		if (!strcmp (command, "nopost"))
+    {
+      xboard_post = false;
+      continue;
+		}
+    /* xboard commands to ignore */
+		if (!strcmp (command, "white"))
+    {
+      continue;
+		}
+		if (!strcmp (command, "black"))
+    {
+      continue;
+		}
+		if (!strcmp (command, "draw"))
+    {
+      continue;
+		}
+		if (!strcmp (command, "ping"))
+    {
+      continue;
+		}
+		if (!strcmp (command, "result"))
+    {
+      continue;
+		}
+		if (!strcmp (command, "hint"))
+    {
+      continue;
+		}
+		if (!strcmp (command, "bk"))
+    {
+      continue;
+		}
+		if (!strcmp (command, "hard"))
+    {
+      continue;
+		}
+		if (!strcmp (command, "easy"))
+    {
+      continue;
+		}
+		if (!strcmp (command, "name"))
+    {
+      continue;
+		}
+		if (!strcmp (command, "rating"))
+    {
+      continue;
+		}
+		if (!strcmp (command, "ics"))
+    {
+      continue;
+		}
+		if (!strcmp (command, "computer"))
+    {
+      continue;
+		}
+    /* non xboard commands */
+    /* do an node count to depth defined via sd  */
+    if (!xboard_mode && !strcmp (command, "perft"))
+    {
+      continue;
+    }
+    /* do an internal self test */
+    if (!xboard_mode && !strcmp (command, "selftest"))
+    {
+      continue;
+    }
+    /* not supported xboard commands...tell user */
+		if (!strcmp (command, "edit"))
+    {
+      printf("Error (unsupported command): %s\n",command);
+      printf("tellusererror (unsupported command): %s\n",command);
+      printf("tellusererror engine supports only CECP version >=2\n");
+      continue;
+		}
+		if (!strcmp (command, "undo"))
+    {
+      printf("Error (unsupported command): %s\n",command);
+      printf("tellusererror (unsupported command): %s\n",command);
+      continue;
+		}
+		if (!strcmp (command, "remove"))
+    {
+      printf("Error (unsupported command): %s\n",command);
+      printf("tellusererror (unsupported command): %s\n",command);
+      continue;
+		}
+		if (!strcmp (command, "remove"))
+    {
+      printf("Error (unsupported command): %s\n",command);
+      printf("tellusererror (unsupported command): %s\n",command);
+      continue;
+		}
+		if (!strcmp (command, "analyze"))
+    {
+      printf("Error (unsupported command): %s\n",command);
+      printf("tellusererror (unsupported command): %s\n",command);
+      continue;
+		}
+		if (!strcmp (command, "pause"))
+    {
+      printf("Error (unsupported command): %s\n",command);
+      printf("tellusererror (unsupported command): %s\n",command);
+      continue;
+		}
+		if (!strcmp (command, "resume"))
+    {
+      printf("Error (unsupported command): %s\n",command);
+      printf("tellusererror (unsupported command): %s\n",command);
+      continue;
+		}
+    /* unknown command...tell user*/
+    printf("Error (unsupported command): %s\n",command);
   }
   /* close log file */
   if (log_flag)

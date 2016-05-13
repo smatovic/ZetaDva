@@ -34,7 +34,7 @@ void get_time_string (char *string)
   time_t t;
   struct tm *local;
   char *ptr;
-  char * tempstring;
+  char *tempstring;
 
   t = time(NULL);
   local = localtime (&t);

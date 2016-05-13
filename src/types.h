@@ -79,17 +79,21 @@ typedef u64             Move;
   2 black queenside
   3 black kingside
 */
+/* engine defaults */
+#define MAXPLY      128
+#define MAXGAMEPLY  1024
+#define MAXMOVES    256
 /* colors */
-#define WHITE   0
-#define BLACK   1
+#define WHITE       0
+#define BLACK       1
 /* piece type enumeration */
-#define PNONE   0
-#define PAWN    1
-#define KNIGHT  2
-#define KING    3
-#define BISHOP  4
-#define ROOK    5
-#define QUEEN   6
+#define PNONE       0
+#define PAWN        1
+#define KNIGHT      2
+#define KING        3
+#define BISHOP      4
+#define ROOK        5
+#define QUEEN       6
 /* bitboard masks, computation prefered over lookup */
 #define SETMASKBB(sq)       (1ULL<<(sq))
 #define CLRMASKBB(sq)       (~(1ULL<<(sq)))
