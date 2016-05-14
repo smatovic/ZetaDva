@@ -29,20 +29,20 @@
 #include "types.h"      /* custom types, board defs, data structures, macros */
 
 /* Global variables  */
-FILE 	*log_file;
-bool log_flag       = false;
+FILE 	*log_file;              /* logfile for debug */
+bool log_flag       = false;  /* log flag */
 /* xboard states */
-bool xboard_mode    = false;
-bool xboard_force   = false;
-bool xboard_post    = false;
-u32 SD              = MAXPLY;
-s32 xboard_protover = 0;
+bool xboard_mode    = false;  /* chess GUI sets to true */
+bool xboard_force   = false;  /* if true aplly only moves, do not think */
+bool xboard_post    = false;  /* post search thinking output */
+s32 xboard_protover = 0;      /* Zeta works with protocoll version >= v2 */
 /* game state */
-bool STM            = WHITE;
-u32 GAMEPLY         = 0;  /* total ply, considering depth via fen string */
-u32 PLY             = 0;  /* engine specifix ply counter */
-Move *MoveHistory;  /* last game moves indexed by ply */
-Hash *HashHistory;  /* last game hashes indexed by ply */
+bool STM            = WHITE;  /* site to move */
+u32 SD              = MAXPLY; /* max search depth*/
+u32 GAMEPLY         = 0;      /* total ply, considering depth via fen string */
+u32 PLY             = 0;      /* engine specifix ply counter */
+Move *MoveHistory;            /* last game moves indexed by ply */
+Hash *HashHistory;            /* last game hashes indexed by ply */
 
 /* Quad Bitboard */
 /* based on http://chessprogramming.wikispaces.com/Quad-Bitboards */
@@ -56,7 +56,7 @@ Bitboard BOARD[6];
   4   64 bit board Zobrist hash
   5   lastmove + ep target + halfmove clock + castle rights + move score
 */
-
+/* initialize engine, history and hash table */
 bool inits(void)
 {
   /* memory allocation */
@@ -195,14 +195,17 @@ void setboard(char *fen) {
   HashHistory[PLY] = compute_hash(BOARD);
   */
 }
+/* create fen string from board state */
 void createfen(char *fen, Bitboard *board, int gameply)
 {
 
 }
+/* run internal selftest */
 void self_test (void) 
 {
   return;
 }
+/* engine options and usage */
 void print_help (void)
 {
   printf ("Zeta Dva, version %s\n",VERSION);
@@ -242,6 +245,7 @@ void print_help (void)
   printf ("help           // print usage hints\n");
   printf ("\n");
 }
+/* version info */
 void print_version (void)
 {
   printf ("Zeta Dva, version %s\n",VERSION);
@@ -251,9 +255,9 @@ void print_version (void)
 /* Zeta Dva, amateur level chess engine  */
 int main (int argc, char* argv[]) {
 
-  char line[1024];
-  char command[1024];
-  char fen[1024];
+  char line[1024];    /* for fgetting the input on stdin */
+  char command[1024]; /* for pasring the xboard command */
+  char fen[1024];     /* for storing the fen chess baord string */
   s32 c;
   static struct option long_options[] = 
   {
@@ -264,10 +268,6 @@ int main (int argc, char* argv[]) {
     {NULL, 0, NULL, 0}
   };
   s32 option_index = 0;
-
-  /* init memory and tables */
-  if (!inits())
-    exit (EXIT_FAILURE);
 
   /* no buffers */
   setbuf(stdout, NULL);
@@ -280,11 +280,11 @@ int main (int argc, char* argv[]) {
     {
       case 0:
         print_help ();
-        return 0;
+        exit (EXIT_SUCCESS);
         break;
       case 1:
         print_version ();
-        return 0;
+        exit (EXIT_SUCCESS);
         break;
       case 2:
         log_flag =true;
@@ -294,6 +294,11 @@ int main (int argc, char* argv[]) {
         break;
     }
   }
+
+  /* init memory and tables */
+  if (!inits())
+    exit (EXIT_FAILURE);
+
   /* open log file */
   if (log_flag)
   {
@@ -316,11 +321,11 @@ int main (int argc, char* argv[]) {
     }
   }
 
+  /* print engine info to console */
   printf ("Zeta Dva, version %s\n",VERSION);
   printf ("Yet another amateur level chess engine.\n");
   printf ("Copyright (C) 2011-2016 Srdja Matovic\n");
   printf ("This is free software, licensed under GPL >= v2\n");
-
 
   /* xboard command loop */
   for (;;)
@@ -356,10 +361,9 @@ int main (int argc, char* argv[]) {
     }
     if (!strcmp(command, "protover")) 
     {
-
+      /* get xboard protocoll version */
       sscanf (line, "protover %d", &xboard_protover);
-
-      /* zeta supports only xboard CECP >= v2 */
+      /* zeta supports only CECP >= v2 */
       if (xboard_mode && xboard_protover<2)
       {
         printf("Error (unsupported xboard protocoll version): < v2\n");
@@ -367,6 +371,7 @@ int main (int argc, char* argv[]) {
       }
       else
       {
+        /* send feature list to xboard */
         printf ("feature myname=\"Zeta Dva %s\"\n",VERSION);
         printf ("feature ping=0\n");
         printf ("feature setboard=1\n");
@@ -415,7 +420,7 @@ int main (int argc, char* argv[]) {
 		}
     if (!strcmp(command, "go"))
     {
-      /* zeta supports only xboard CECP >= v2 */
+      /* zeta supports only CECP >= v2 */
       if (xboard_mode && xboard_protover<2)
       {
         printf("Error (unsupported xboard protocoll version): < v2\n");
@@ -444,7 +449,7 @@ int main (int argc, char* argv[]) {
 		}
     if (!strcmp(command, "usermove"))
     {
-      /* zeta supports only xboard CECP >= v2 */
+      /* zeta supports only CECP >= v2 */
       if (xboard_mode && xboard_protover<2)
       {
         printf("Error (unsupported xboard protocoll version): < v2\n");
@@ -591,7 +596,7 @@ int main (int argc, char* argv[]) {
       printf("tellusererror (unsupported command): %s\n",command);
       continue;
 		}
-    /* unknown command...tell user*/
+    /* unknown command...*/
     printf("Error (unsupported command): %s\n",command);
   }
   /* close log file */
