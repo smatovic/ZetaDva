@@ -33,11 +33,6 @@ FILE 	*Log_File = NULL;       /* logfile for debug */
 char *Line;                   /* for fgetting the input on stdin */
 char *Command;                /* for pasring the xboard command */
 char *Fen;                    /* for storing the fen chess baord string */
-/* xboard states */
-bool xboard_mode    = false;  /* chess GUI sets to true */
-bool xboard_force   = false;  /* if true aplly only moves, do not think */
-bool xboard_post    = false;  /* post search thinking output */
-s32 xboard_protover = 0;      /* Zeta works with protocoll version >= v2 */
 /* game state */
 bool STM            = WHITE;  /* site to move */
 u32 SD              = MAXPLY; /* max search depth*/
@@ -325,6 +320,12 @@ void print_version (void)
 /* Zeta Dva, amateur level chess engine  */
 int main (int argc, char* argv[])
 {
+  /* xboard states */
+  bool xboard_mode    = false;  /* chess GUI sets to true */
+  bool xboard_force   = false;  /* if true aplly only moves, do not think */
+  bool xboard_post    = false;  /* post search thinking output */
+  s32 xboard_protover = 0;      /* Zeta works with protocoll version >= v2 */
+  /* for get opt */
   s32 c;
   static struct option long_options[] = 
   {
