@@ -31,6 +31,10 @@
 /* Global variables  */
 FILE 	*log_file;              /* logfile for debug */
 bool log_flag       = false;  /* log flag */
+char *line;                   /* for fgetting the input on stdin */
+char *command;                /* for pasring the xboard command */
+char *fen;                    /* for storing the fen chess baord string */
+
 /* xboard states */
 bool xboard_mode    = false;  /* chess GUI sets to true */
 bool xboard_force   = false;  /* if true aplly only moves, do not think */
@@ -60,9 +64,27 @@ Bitboard BOARD[6];
 bool inits(void)
 {
   /* memory allocation */
+  line        = malloc(1024       * sizeof (char));
+  command     = malloc(1024       * sizeof (char));
+  fen         = malloc(1024       * sizeof (char));
   MoveHistory = malloc(MAXGAMEPLY * sizeof (Move));
   HashHistory = malloc(MAXGAMEPLY * sizeof (Hash));
 
+  if (line == NULL) 
+  {
+    printf ("Error (memory allocation failed): char line[%u]", 1024);
+    return false;
+  }
+  if (command == NULL) 
+  {
+    printf ("Error (memory allocation failed): char command[%u]", 1024);
+    return false;
+  }
+  if (fen == NULL) 
+  {
+    printf ("Error (memory allocation failed): char fen[%u]", 1024);
+    return false;
+  }
   if (MoveHistory == NULL) 
   {
     printf ("Error (memory allocation failed): u64 MoveHistory[%u]", MAXGAMEPLY);
@@ -76,13 +98,14 @@ bool inits(void)
   return true;
 }
 /* set internal chess board presentation to fen string */
-void setboard(char *fen) {
+bool setboard(char *fenstring) {
 
   char tempchar;
-  char cstm[2];
-  char cep[3];
-  char castle[5];
-  char position[255];
+  char *position;
+  char *cstm;
+  char *castle;
+  char *cep;
+  char *tempstring;
   char fencharstring[24] = {" PNKBRQ pnkbrq/12345678"};
   int i;
   int j;
@@ -96,8 +119,34 @@ void setboard(char *fen) {
   Cr cr = BBEMPTY;
   Move lastmove = MOVENONE;
 
+  /* memory, fen ist max 1023 char in size */
+  position  = malloc(1024 * sizeof (char));
+  if (position == NULL) 
+  {
+    printf ("Error (memory allocation failed): char position[%u]", 1024);
+    return false;
+  }
+  cstm  = malloc(1024 * sizeof (char));
+  if (cstm == NULL) 
+  {
+    printf ("Error (memory allocation failed): char cstm[%u]", 1024);
+    return false;
+  }
+  castle  = malloc(1024 * sizeof (char));
+  if (cstm == NULL) 
+  {
+    printf ("Error (memory allocation failed): char castle[%u]", 1024);
+    return false;
+  }
+  cep  = malloc(1024 * sizeof (char));
+  if (cstm == NULL) 
+  {
+    printf ("Error (memory allocation failed): char cep[%u]", 1024);
+    return false;
+  }
+
   /* get data from fen string */
-	sscanf(fen, "%s %c %s %s %llu %llu", position, cstm, castle, cep, &hmc, &fendepth);
+	sscanf(fenstring, "%s %s %s %s %llu %llu", position, cstm, castle, cep, &hmc, &fendepth);
 
   /* empty the board */
   BOARD[QBBWHITE] = 0x0ULL;
@@ -194,6 +243,10 @@ void setboard(char *fen) {
   /* TODO: compute set hash
   HashHistory[PLY] = compute_hash(BOARD);
   */
+
+  /* TODO: validity check for two kings present on board */
+
+  return true;
 }
 /* create fen string from board state */
 void createfen(char *fen, Bitboard *board, int gameply)
@@ -255,9 +308,6 @@ void print_version (void)
 /* Zeta Dva, amateur level chess engine  */
 int main (int argc, char* argv[])
 {
-  char line[1024];    /* for fgetting the input on stdin */
-  char command[1024]; /* for pasring the xboard command */
-  char fen[1024];     /* for storing the fen chess baord string */
   s32 c;
   static struct option long_options[] = 
   {
