@@ -31,10 +31,6 @@
 /* Global variables  */
 FILE 	*log_file;
 bool log_flag       = false;
-/* io vars */
-char *line;
-char *command;
-char *fen;
 /* xboard states */
 bool xboard_mode    = false;
 bool xboard_force   = false;
@@ -51,7 +47,7 @@ Hash *HashHistory;  /* last game hashes indexed by ply */
 /* Quad Bitboard */
 /* based on http://chessprogramming.wikispaces.com/Quad-Bitboards */
 /* by Gerd Isenberg */
-Bitboard *BOARD; /* six elements */
+Bitboard BOARD[6];
 /* quad bitboard array index definition
   0   pieces white
   1   piece type first bit
@@ -64,28 +60,9 @@ Bitboard *BOARD; /* six elements */
 bool inits(void)
 {
   /* memory allocation */
-  line        = malloc(1024       * sizeof (char));
-  command     = malloc(1024       * sizeof (char));
-  fen         = malloc(1024       * sizeof (char));
-  BOARD       = malloc(   6       * sizeof (Bitboard));
   MoveHistory = malloc(MAXGAMEPLY * sizeof (Move));
   HashHistory = malloc(MAXGAMEPLY * sizeof (Hash));
 
-  if (command == NULL) 
-  {
-    printf ("Error (memory allocation failed): char command[1024]");
-    return false;
-  }
-  if (fen == NULL) 
-  {
-    printf ("Error (memory allocation failed): char fen[1024]");
-    return false;
-  }
-  if (BOARD == NULL) 
-  {
-    printf ("Error (memory allocation failed): u64 BOARD[6]");
-    return false;
-  }
   if (MoveHistory == NULL) 
   {
     printf ("Error (memory allocation failed): u64 MoveHistory[%u]", MAXGAMEPLY);
@@ -274,6 +251,9 @@ void print_version (void)
 /* Zeta Dva, amateur level chess engine  */
 int main (int argc, char* argv[]) {
 
+  char line[1024];
+  char command[1024];
+  char fen[1024];
   s32 c;
   static struct option long_options[] = 
   {
