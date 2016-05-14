@@ -110,7 +110,7 @@ bool inits (void)
 bool setboard (Bitboard *board, char *fenstring)
 {
   char tempchar;
-  char *position; /* piece types and position  row 8, sq 56 to, row 1, sq 7 */
+  char *position; /* piece types and position, row_8, file_a, to row_1, file_h*/
   char *cstm;     /* site to move */
   char *castle;   /* castle rights */
   char *cep;      /* en passant target square */
@@ -166,7 +166,7 @@ bool setboard (Bitboard *board, char *fenstring)
   board[QBBHASH]  = 0x0ULL;
   board[QBBLAST]  = 0x0ULL;
 
-  /* parse position from fen string */
+  /* parse piece types and position from fen string */
   file = FILE_A;
   rank = RANK_8;
   i=  0;
@@ -236,6 +236,7 @@ bool setboard (Bitboard *board, char *fenstring)
   }
   /* store castle rights into lastmove */
   lastmove = SETHMC (lastmove, hmc);
+
   /* set en passant target square */
   tempchar = cep[0];
   if (tempchar != '-')
@@ -245,7 +246,10 @@ bool setboard (Bitboard *board, char *fenstring)
     sq    = MAKESQ (rank,file);
     lastmove = SETSQEP (lastmove, sq);
   }
+
+  /* ply starts at zero */
   PLY = 0;
+  /* game ply can be more */
   GAMEPLY = fendepth*2+STM;
 
   /* TODO: compute  hash
