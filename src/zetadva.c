@@ -253,8 +253,8 @@ void print_version (void)
   printf ("This is free software, licensed under GPL >= v2\n");
 }
 /* Zeta Dva, amateur level chess engine  */
-int main (int argc, char* argv[]) {
-
+int main (int argc, char* argv[])
+{
   char line[1024];    /* for fgetting the input on stdin */
   char command[1024]; /* for pasring the xboard command */
   char fen[1024];     /* for storing the fen chess baord string */
