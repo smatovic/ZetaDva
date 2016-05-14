@@ -31,7 +31,7 @@
 /* global variables */
 FILE 	*Log_File = NULL;       /* logfile for debug */
 char *Line;                   /* for fgetting the input on stdin */
-char *Command;                /* for pasring the xboard Command */
+char *Command;                /* for pasring the xboard command */
 char *Fen;                    /* for storing the fen chess baord string */
 /* xboard states */
 bool xboard_mode    = false;  /* chess GUI sets to true */
@@ -408,7 +408,6 @@ int main (int argc, char* argv[])
     }
     /* get command */
     sscanf (Line, "%s", Command);
-
     /* xboard commands */
     /* set xboard mode */
     if (!strcmp (Command, "xboard"))
