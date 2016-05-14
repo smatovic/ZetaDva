@@ -99,12 +99,14 @@ bool inits (void)
   }
   if (Move_History == NULL) 
   {
-    printf ("Error (memory allocation failed): u64 Move_History[%d]", MAXGAMEPLY);
+    printf ("Error (memory allocation failed): u64 Move_History[%d]",
+             MAXGAMEPLY);
     return false;
   }
   if (Hash_History == NULL) 
   {
-    printf ("Error (memory allocation failed): u64 Hash_History[%d]", MAXGAMEPLY);
+    printf ("Error (memory allocation failed): u64 Hash_History[%d]",
+            MAXGAMEPLY);
     return false;
   }
   return true;
@@ -158,7 +160,8 @@ bool setboard (char *fenstring)
   }
 
   /* get data from fen string */
-	sscanf (fenstring, "%s %s %s %s %llu %llu", position, cstm, castle, cep, &hmc, &fendepth);
+	sscanf (fenstring, "%s %s %s %s %llu %llu", 
+          position, cstm, castle, cep, &hmc, &fendepth);
 
   /* empty the board */
   BOARD[QBBWHITE] = 0x0ULL;
