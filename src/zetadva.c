@@ -222,14 +222,14 @@ void print_help (void)
   printf ("To play against the engine use an CECP v2 protocol capable chess GUI\n");
   printf ("like Arena, Winboard or Xboard.\n");
   printf ("\n");
-  printf ("Alternatively you can use xboard commmands directly on commman line,\n"); 
+  printf ("Alternatively you can use Xboard commmands directly on commman line,\n"); 
   printf ("e.g.\n");
   printf ("new            // init new game from start position\n");
   printf ("level 40 4 0   // set time control to 40 moves in 4 minutes\n");
   printf ("go             // let engine play site to move\n");
   printf ("usermove d7d5  // let engine apply usermove and start thinking\n");
   printf ("\n");
-  printf ("Not supported xboard commands:\n");
+  printf ("Not supported Xboard commands:\n");
   printf ("analyze        // enter analyze mode\n");
   printf ("undo/remove    // take back last moves\n");
   printf ("?              // move now\n");
@@ -239,7 +239,7 @@ void print_help (void)
   printf ("bk             // book lines\n");
   printf ("pause/resume   // pause the engine\n");
   printf ("\n");
-  printf ("Non-xboard commands:\n");
+  printf ("Non-Xboard commands:\n");
   printf ("perft n        // perform a performance test to depth n\n");
   printf ("selftest       // run an internal selftest\n");
   printf ("help           // print usage hints\n");
@@ -423,8 +423,8 @@ int main (int argc, char* argv[])
       /* zeta supports only CECP >= v2 */
       if (xboard_mode && xboard_protover<2)
       {
-        printf("Error (unsupported xboard protocoll version): < v2\n");
-        printf("tellusererror (unsupported xboard protocoll version): < v2\n");
+        printf("Error (unsupported Xboard protocoll version): < v2\n");
+        printf("tellusererror (unsupported Xboard protocoll version): < v2\n");
       }
       xboard_force = false;
       PLY++;
@@ -452,8 +452,8 @@ int main (int argc, char* argv[])
       /* zeta supports only CECP >= v2 */
       if (xboard_mode && xboard_protover<2)
       {
-        printf("Error (unsupported xboard protocoll version): < v2\n");
-        printf("tellusererror (unsupported xboard protocoll version): < v2\n");
+        printf("Error (unsupported Xboard protocoll version): < v2\n");
+        printf("tellusererror (unsupported Xboard protocoll version): < v2\n");
       }
       PLY++;
       STM = !STM;
@@ -557,7 +557,7 @@ int main (int argc, char* argv[])
     {
       printf("Error (unsupported command): %s\n",command);
       printf("tellusererror (unsupported command): %s\n",command);
-      printf("tellusererror engine supports only CECP version >=2\n");
+      printf("tellusererror engine supports only CECP (Xboard) version >=2\n");
       continue;
 		}
 		if (!strcmp (command, "undo"))
