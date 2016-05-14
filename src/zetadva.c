@@ -29,10 +29,10 @@
 #include "types.h"      /* custom types, board defs, data structures, macros */
 
 /* global variables */
-FILE 	*log_file = NULL;       /* logfile for debug */
-char *line;                   /* for fgetting the input on stdin */
-char *command;                /* for pasring the xboard command */
-char *fen;                    /* for storing the fen chess baord string */
+FILE 	*Log_File = NULL;       /* logfile for debug */
+char *Line;                   /* for fgetting the input on stdin */
+char *Command;                /* for pasring the xboard Command */
+char *Fen;                    /* for storing the fen chess baord string */
 /* xboard states */
 bool xboard_mode    = false;  /* chess GUI sets to true */
 bool xboard_force   = false;  /* if true aplly only moves, do not think */
@@ -43,8 +43,8 @@ bool STM            = WHITE;  /* site to move */
 u32 SD              = MAXPLY; /* max search depth*/
 u32 GAMEPLY         = 0;      /* total ply, considering depth via fen string */
 u32 PLY             = 0;      /* engine specifix ply counter */
-Move *MoveHistory;            /* last game moves indexed by ply */
-Hash *HashHistory;            /* last game hashes indexed by ply */
+Move *Move_History;           /* last game moves indexed by ply */
+Hash *Hash_History;           /* last game hashes indexed by ply */
 /* Quad Bitboard */
 /* based on http://chessprogramming.wikispaces.com/Quad-Bitboards */
 /* by Gerd Isenberg */
@@ -57,54 +57,54 @@ Bitboard BOARD[6];
   4   64 bit board Zobrist hash
   5   lastmove + ep target + halfmove clock + castle rights + move score
 */
-/* initialize engine memory, io buffer, history and hash table */
+/* release memory, io buffer, history and hash table */
 bool release_inits (void)
 {
-  if (line != NULL) 
-    free(line);
-  if (command != NULL) 
-    free(command);
-  if (fen != NULL) 
-    free(fen);
-  if (MoveHistory != NULL) 
-    free(MoveHistory);
-  if (HashHistory != NULL) 
-    free(HashHistory);
+  if (Line != NULL) 
+    free(Line);
+  if (Command != NULL) 
+    free(Command);
+  if (Fen != NULL) 
+    free(Fen);
+  if (Move_History != NULL) 
+    free(Move_History);
+  if (Hash_History != NULL) 
+    free(Hash_History);
   return true;
 }
 /* initialize engine memory, io buffer, history and hash table */
 bool inits (void)
 {
   /* memory allocation */
-  line        = malloc (1024       * sizeof (char));
-  command     = malloc (1024       * sizeof (char));
-  fen         = malloc (1024       * sizeof (char));
-  MoveHistory = malloc (MAXGAMEPLY * sizeof (Move));
-  HashHistory = malloc (MAXGAMEPLY * sizeof (Hash));
+  Line        = malloc (1024       * sizeof (char));
+  Command     = malloc (1024       * sizeof (char));
+  Fen         = malloc (1024       * sizeof (char));
+  Move_History = malloc (MAXGAMEPLY * sizeof (Move));
+  Hash_History = malloc (MAXGAMEPLY * sizeof (Hash));
 
-  if (line == NULL) 
+  if (Line == NULL) 
   {
-    printf ("Error (memory allocation failed): char line[%d]", 1024);
+    printf ("Error (memory allocation failed): char Line[%d]", 1024);
     return false;
   }
-  if (command == NULL) 
+  if (Command == NULL) 
   {
-    printf ("Error (memory allocation failed): char command[%d]", 1024);
+    printf ("Error (memory allocation failed): char Command[%d]", 1024);
     return false;
   }
-  if (fen == NULL) 
+  if (Fen == NULL) 
   {
-    printf ("Error (memory allocation failed): char fen[%d]", 1024);
+    printf ("Error (memory allocation failed): char Fen[%d]", 1024);
     return false;
   }
-  if (MoveHistory == NULL) 
+  if (Move_History == NULL) 
   {
-    printf ("Error (memory allocation failed): u64 MoveHistory[%d]", MAXGAMEPLY);
+    printf ("Error (memory allocation failed): u64 Move_History[%d]", MAXGAMEPLY);
     return false;
   }
-  if (HashHistory == NULL) 
+  if (Hash_History == NULL) 
   {
-    printf ("Error (memory allocation failed): u64 HashHistory[%d]", MAXGAMEPLY);
+    printf ("Error (memory allocation failed): u64 Hash_History[%d]", MAXGAMEPLY);
     return false;
   }
   return true;
@@ -251,7 +251,7 @@ bool setboard (char *fenstring)
   GAMEPLY = fendepth*2+STM;
 
   /* TODO: compute  hash
-  HashHistory[PLY] = compute_hash(BOARD);
+  Hash_History[PLY] = compute_hash(BOARD);
   */
 
   /* TODO: validity check for two opposing kings present on board */
@@ -285,7 +285,7 @@ void print_help (void)
   printf ("To play against the engine use an CECP v2 protocol capable chess GUI\n");
   printf ("like Arena, Winboard or Xboard.\n");
   printf ("\n");
-  printf ("Alternatively you can use Xboard commmands directly on commman line,\n"); 
+  printf ("Alternatively you can use Xboard commmands directly on commman Line,\n"); 
   printf ("e.g.\n");
   printf ("new            // init new game from start position\n");
   printf ("level 40 4 0   // set time control to 40 moves in 4 minutes\n");
@@ -299,7 +299,7 @@ void print_help (void)
   printf ("draw           // handle draw offers\n");
   printf ("hard/easy      // turn on pondering\n");
   printf ("hint           // give user a hint move\n");
-  printf ("bk             // book lines\n");
+  printf ("bk             // book Lines\n");
   printf ("pause/resume   // pause the engine\n");
   printf ("\n");
   printf ("Non-Xboard commands:\n");
@@ -348,7 +348,7 @@ int main (int argc, char* argv[])
         break;
       case 2:
         /* open/create log file */
-        log_file = fopen ("zetadva.log", "a");
+        Log_File = fopen ("zetadva.log", "a");
         break;
       case 3:
         self_test ();
@@ -361,19 +361,19 @@ int main (int argc, char* argv[])
     exit (EXIT_FAILURE);
 
   /* open log file */
-  if (log_file != NULL)
+  if (Log_File != NULL)
   {
     char timestring[256];
     /* no buffers */
-    setbuf(log_file, NULL);
+    setbuf(Log_File, NULL);
     /* print binary call to log */
     get_time_string (timestring);
-    fprintf (log_file, "%s, ", timestring);
+    fprintf (Log_File, "%s, ", timestring);
     for (c=0;c<argc;c++)
     {
-      fprintf (log_file, "%s ",argv[c]);
+      fprintf (Log_File, "%s ",argv[c]);
     }
-    fprintf (log_file, "\n");
+    fprintf (Log_File, "\n");
   }
 
   /* print engine info to console */
@@ -390,34 +390,34 @@ int main (int argc, char* argv[])
       printf ("> ");
     /* just to be sure, flush the output...*/
     fflush (stdout);
-    /* get line */
-    if (!fgets (line, 1023, stdin)) {}
-    /* ignore empty lines */
-    if (line[0] == '\n')
+    /* get Line */
+    if (!fgets (Line, 1023, stdin)) {}
+    /* ignore empty Lines */
+    if (Line[0] == '\n')
       continue;
     /* print io to log file */
-    if (log_file != NULL)
+    if (Log_File != NULL)
     {
       char timestring[256];
       get_time_string (timestring);
-      fprintf (log_file, "%s, ", timestring);
-      fprintf (log_file, "%s\n",line);
+      fprintf (Log_File, "%s, ", timestring);
+      fprintf (Log_File, "%s\n",Line);
     }
     /* get command */
-    sscanf (line, "%s", command);
+    sscanf (Line, "%s", Command);
 
     /* xboard commands */
     /* set xboard mode */
-    if (!strcmp (command, "xboard"))
+    if (!strcmp (Command, "xboard"))
     {
       printf("feature done=0\n");  
       xboard_mode = true;
       continue;
     }
     /* get xboard protocoll version */
-    if (!strcmp(command, "protover")) 
+    if (!strcmp(Command, "protover")) 
     {
-      sscanf (line, "protover %d", &xboard_protover);
+      sscanf (Line, "protover %d", &xboard_protover);
       /* zeta supports only CECP >= v2 */
       if (xboard_mode && xboard_protover<2)
       {
@@ -458,7 +458,7 @@ int main (int argc, char* argv[])
       continue;
     }
     /* initialize new game */
-		if (!strcmp (command, "new"))
+		if (!strcmp (Command, "new"))
     {
       if (!setboard ("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"))
       {
@@ -469,17 +469,17 @@ int main (int argc, char* argv[])
 			continue;
 		}
     /* set board to position in FEN */
-		if (!strcmp (command, "setboard"))
+		if (!strcmp (Command, "setboard"))
     {
-      sscanf (line, "setboard %1023[0-9a-zA-Z /-]", fen);
-      if(!setboard (fen))
+      sscanf (Line, "setboard %1023[0-9a-zA-Z /-]", Fen);
+      if(!setboard (Fen))
       {
         printf("Error (in setting chess psotition via fen string): setboard\n");        
       }
       PLY =0;
       continue;
 		}
-    if (!strcmp(command, "go"))
+    if (!strcmp(Command, "go"))
     {
       /* zeta supports only CECP >= v2 */
       if (xboard_mode && xboard_protover<2)
@@ -493,22 +493,22 @@ int main (int argc, char* argv[])
       continue;
     }
     /* set xboard force mode, no thinking just apply moves */
-		if (!strcmp (command, "force"))
+		if (!strcmp (Command, "force"))
     {
       xboard_force = true;
       continue;
     }
     /* set time control */
-		if (!strcmp (command, "level"))
+		if (!strcmp (Command, "level"))
     {
       continue;
     }
     /* set time control to n seconds per move */
-		if (!strcmp (command, "st"))
+		if (!strcmp (Command, "st"))
     {
       continue;
     }
-    if (!strcmp(command, "usermove"))
+    if (!strcmp(Command, "usermove"))
     {
       /* zeta supports only CECP >= v2 */
       if (xboard_mode && xboard_protover<2)
@@ -521,148 +521,148 @@ int main (int argc, char* argv[])
       continue;
     }
     /* exit program */
-		if (!strcmp (command, "quit"))
+		if (!strcmp (Command, "quit"))
     {
       break;
     }
     /* set search depth */
-    if (!strcmp (command, "sd"))
+    if (!strcmp (Command, "sd"))
     {
-      sscanf (line, "sd %u", &SD);
+      sscanf (Line, "sd %u", &SD);
       continue;
     }
     /* turn on thinking output */
-		if (!strcmp (command, "post"))
+		if (!strcmp (Command, "post"))
     {
       xboard_post = true;
       continue;
     }
     /* turn off thinking output */
-		if (!strcmp (command, "nopost"))
+		if (!strcmp (Command, "nopost"))
     {
       xboard_post = false;
       continue;
     }
-    /* xboard commands to ignore */
-		if (!strcmp (command, "white"))
+    /* xboard Commands to ignore */
+		if (!strcmp (Command, "white"))
     {
       continue;
     }
-		if (!strcmp (command, "black"))
+		if (!strcmp (Command, "black"))
     {
       continue;
     }
-		if (!strcmp (command, "draw"))
+		if (!strcmp (Command, "draw"))
     {
       continue;
     }
-		if (!strcmp (command, "ping"))
+		if (!strcmp (Command, "ping"))
     {
       continue;
     }
-		if (!strcmp (command, "result"))
+		if (!strcmp (Command, "result"))
     {
       continue;
     }
-		if (!strcmp (command, "hint"))
+		if (!strcmp (Command, "hint"))
     {
       continue;
     }
-		if (!strcmp (command, "bk"))
+		if (!strcmp (Command, "bk"))
     {
       continue;
     }
-		if (!strcmp (command, "hard"))
+		if (!strcmp (Command, "hard"))
     {
       continue;
     }
-		if (!strcmp (command, "easy"))
+		if (!strcmp (Command, "easy"))
     {
       continue;
     }
-		if (!strcmp (command, "name"))
+		if (!strcmp (Command, "name"))
     {
       continue;
     }
-		if (!strcmp (command, "rating"))
+		if (!strcmp (Command, "rating"))
     {
       continue;
     }
-		if (!strcmp (command, "ics"))
+		if (!strcmp (Command, "ics"))
     {
       continue;
     }
-		if (!strcmp (command, "computer"))
+		if (!strcmp (Command, "computer"))
     {
       continue;
     }
     /* non xboard commands */
     /* do an node count to depth defined via sd  */
-    if (!xboard_mode && !strcmp (command, "perft"))
+    if (!xboard_mode && !strcmp (Command, "perft"))
     {
       continue;
     }
     /* do an internal self test */
-    if (!xboard_mode && !strcmp (command, "selftest"))
+    if (!xboard_mode && !strcmp (Command, "selftest"))
     {
       continue;
     }
     /* print help */
-    if (!xboard_mode && !strcmp (command, "help"))
+    if (!xboard_mode && !strcmp (Command, "help"))
     {
       print_help();
       continue;
     }
     /* not supported xboard commands...tell user */
-		if (!strcmp (command, "edit"))
+		if (!strcmp (Command, "edit"))
     {
-      printf("Error (unsupported command): %s\n",command);
-      printf("tellusererror (unsupported command): %s\n",command);
+      printf("Error (unsupported command): %s\n",Command);
+      printf("tellusererror (unsupported command): %s\n",Command);
       printf("tellusererror engine supports only CECP (Xboard) version >=2\n");
       continue;
     }
-		if (!strcmp (command, "undo"))
+		if (!strcmp (Command, "undo"))
     {
-      printf("Error (unsupported command): %s\n",command);
-      printf("tellusererror (unsupported command): %s\n",command);
+      printf("Error (unsupported command): %s\n",Command);
+      printf("tellusererror (unsupported command): %s\n",Command);
       continue;
     }
-		if (!strcmp (command, "remove"))
+		if (!strcmp (Command, "remove"))
     {
-      printf("Error (unsupported command): %s\n",command);
-      printf("tellusererror (unsupported command): %s\n",command);
+      printf("Error (unsupported command): %s\n",Command);
+      printf("tellusererror (unsupported command): %s\n",Command);
       continue;
     }
-		if (!strcmp (command, "remove"))
+		if (!strcmp (Command, "remove"))
     {
-      printf("Error (unsupported command): %s\n",command);
-      printf("tellusererror (unsupported command): %s\n",command);
+      printf("Error (unsupported command): %s\n",Command);
+      printf("tellusererror (unsupported command): %s\n",Command);
       continue;
     }
-		if (!strcmp (command, "analyze"))
+		if (!strcmp (Command, "analyze"))
     {
-      printf("Error (unsupported command): %s\n",command);
-      printf("tellusererror (unsupported command): %s\n",command);
+      printf("Error (unsupported command): %s\n",Command);
+      printf("tellusererror (unsupported command): %s\n",Command);
       continue;
     }
-		if (!strcmp (command, "pause"))
+		if (!strcmp (Command, "pause"))
     {
-      printf("Error (unsupported command): %s\n",command);
-      printf("tellusererror (unsupported command): %s\n",command);
+      printf("Error (unsupported command): %s\n",Command);
+      printf("tellusererror (unsupported command): %s\n",Command);
       continue;
     }
-		if (!strcmp (command, "resume"))
+		if (!strcmp (Command, "resume"))
     {
-      printf("Error (unsupported command): %s\n",command);
-      printf("tellusererror (unsupported command): %s\n",command);
+      printf("Error (unsupported command): %s\n",Command);
+      printf("tellusererror (unsupported command): %s\n",Command);
       continue;
     }
     /* unknown command...*/
-    printf("Error (unsupported command): %s\n",command);
+    printf("Error (unsupported command): %s\n",Command);
   }
   /* close log file */
-  if (log_file != NULL)
-    fclose (log_file);
+  if (Log_File != NULL)
+    fclose (Log_File);
 
   /* free allocated memory */
   release_inits();
