@@ -42,7 +42,7 @@ void get_time_string (char *string)
   if ((ptr = strchr (tempstring, '\n')) != NULL)
     *ptr = '\0';
 
-  memcpy (string, tempstring, sizeof(char)*256);
+  memcpy (string, tempstring, sizeof(char)*255);
 }
 
 
