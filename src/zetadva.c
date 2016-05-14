@@ -416,8 +416,8 @@ int main (int argc, char* argv[])
       /* zeta supports only CECP >= v2 */
       if (xboard_mode && xboard_protover<2)
       {
-        printf("Error (unsupported xboard protocoll version): < v2\n");
-        printf("tellusererror (unsupported xboard protocoll version): < v2\n");
+        printf("Error (unsupported protocoll version,  < v2): protover\n");
+        printf("tellusererror (unsupported protocoll version, < v2): protover\n");
       }
       else
       {
@@ -455,7 +455,10 @@ int main (int argc, char* argv[])
     /* initialize new game */
 		if (!strcmp (command, "new"))
     {
-      setboard ("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
+      if (!setboard ("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"))
+      {
+        printf("Error (in setting start postition): new\n");        
+      }
       PLY = 0;
       xboard_force  = false;
 			continue;
@@ -464,7 +467,10 @@ int main (int argc, char* argv[])
 		if (!strcmp (command, "setboard"))
     {
       sscanf (line, "setboard %1023[0-9a-zA-Z /-]", fen);
-      setboard (fen);
+      if(!setboard (fen))
+      {
+        printf("Error (in setting chess psotition via fen string): setboard\n");        
+      }
       PLY =0;
       continue;
 		}
@@ -473,8 +479,8 @@ int main (int argc, char* argv[])
       /* zeta supports only CECP >= v2 */
       if (xboard_mode && xboard_protover<2)
       {
-        printf("Error (unsupported Xboard protocoll version): < v2\n");
-        printf("tellusererror (unsupported Xboard protocoll version): < v2\n");
+        printf("Error (unsupported protocoll version, < v2): go\n");
+        printf("tellusererror (unsupported protocoll version. < v2): go\n");
       }
       xboard_force = false;
       PLY++;
@@ -502,8 +508,8 @@ int main (int argc, char* argv[])
       /* zeta supports only CECP >= v2 */
       if (xboard_mode && xboard_protover<2)
       {
-        printf("Error (unsupported Xboard protocoll version): < v2\n");
-        printf("tellusererror (unsupported Xboard protocoll version): < v2\n");
+        printf("Error (unsupported protocoll version, < v2): usermove\n");
+        printf("tellusererror (unsupported protocoll version, <v2): usermove\n");
       }
       PLY++;
       STM = !STM;
