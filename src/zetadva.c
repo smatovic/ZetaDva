@@ -76,9 +76,9 @@ bool release_inits (void)
 bool inits (void)
 {
   /* memory allocation */
-  Line        = malloc (1024       * sizeof (char));
-  Command     = malloc (1024       * sizeof (char));
-  Fen         = malloc (1024       * sizeof (char));
+  Line         = malloc (1024       * sizeof (char));
+  Command      = malloc (1024       * sizeof (char));
+  Fen          = malloc (1024       * sizeof (char));
   Move_History = malloc (MAXGAMEPLY * sizeof (Move));
   Hash_History = malloc (MAXGAMEPLY * sizeof (Hash));
 
@@ -115,7 +115,7 @@ bool inits (void)
 bool setboard (Bitboard *board, char *fenstring)
 {
   char tempchar;
-  char *position; /* piece types and position  row 8, sq 56 to, row 1, sq 0 */
+  char *position; /* piece types and position  row 8, sq 56 to, row 1, sq 7 */
   char *cstm;     /* site to move */
   char *castle;   /* castle rights */
   char *cep;      /* en passant target square */
