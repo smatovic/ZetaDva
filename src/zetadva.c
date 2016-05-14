@@ -345,7 +345,7 @@ int main (int argc, char* argv[])
   setbuf(stdout, NULL);
   setbuf(stdin, NULL);
 
-  /* getopt loop */
+  /* getopt loop, parsing for help, version and logging */
   while ((c = getopt_long_only (argc, argv, "",
                long_options, &option_index)) != -1) {
     switch (option_index) 
@@ -555,7 +555,7 @@ int main (int argc, char* argv[])
       xboard_post = false;
       continue;
     }
-    /* xboard Commands to ignore */
+    /* xboard commands to ignore */
 		if (!strcmp (Command, "white"))
     {
       continue;
