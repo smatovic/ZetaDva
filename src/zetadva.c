@@ -112,20 +112,20 @@ bool inits (void)
   return true;
 }
 /* set internal chess board presentation to fen string */
-bool setboard (char *fenstring)
+bool setboard (Bitboard *board, char *fenstring)
 {
   char tempchar;
-  char *position;
-  char *cstm;
-  char *castle;
-  char *cep;
+  char *position; /* piece types and position  row 8, sq 56 to, row 1, sq 0 */
+  char *cstm;     /* site to move */
+  char *castle;   /* castle rights */
+  char *cep;      /* en passant target square */
   char *tempstring;
-  char fencharstring[24] = {" PNKBRQ pnkbrq/12345678"};
+  char fencharstring[24] = {" PNKBRQ pnkbrq/12345678"}; /* mapping */
   int i;
   int j;
   int side;
-  u64 hmc;
-  u64 fendepth;
+  u64 hmc;        /* half move clock */
+  u64 fendepth;   /* game depth */
   File file;
   Rank rank;
   Piece piece;
@@ -164,12 +164,12 @@ bool setboard (char *fenstring)
           position, cstm, castle, cep, &hmc, &fendepth);
 
   /* empty the board */
-  BOARD[QBBWHITE] = 0x0ULL;
-  BOARD[QBBP1]    = 0x0ULL;
-  BOARD[QBBP2]    = 0x0ULL;
-  BOARD[QBBP3]    = 0x0ULL;
-  BOARD[QBBHASH]  = 0x0ULL;
-  BOARD[QBBLAST]  = 0x0ULL;
+  board[QBBWHITE] = 0x0ULL;
+  board[QBBP1]    = 0x0ULL;
+  board[QBBP2]    = 0x0ULL;
+  board[QBBP3]    = 0x0ULL;
+  board[QBBHASH]  = 0x0ULL;
+  board[QBBLAST]  = 0x0ULL;
 
   /* parse position from fen string */
   file = FILE_A;
@@ -200,10 +200,10 @@ bool setboard (char *fenstring)
             piece     = side? j-7 : j;
             piece<<=1;
             piece    |= side;
-            BOARD[0] |= piece&0x1;
-            BOARD[1] |= ((piece>>1)&0x1)<<sq;
-            BOARD[2] |= ((piece>>2)&0x1)<<sq;
-            BOARD[3] |= ((piece>>3)&0x1)<<sq;
+            board[0] |= piece&0x1;
+            board[1] |= ((piece>>1)&0x1)<<sq;
+            board[2] |= ((piece>>2)&0x1)<<sq;
+            board[3] |= ((piece>>3)&0x1)<<sq;
             file++;
         }
         break;                
@@ -254,10 +254,14 @@ bool setboard (char *fenstring)
   GAMEPLY = fendepth*2+STM;
 
   /* TODO: compute  hash
+  board[QBBHASH] = compute_hash(BOARD);
   Hash_History[PLY] = compute_hash(BOARD);
   */
 
   /* TODO: validity check for two opposing kings present on board */
+
+  /* store lastmove+ in board */
+  board[QBBLAST] = lastmove;
 
   return true;
 }
@@ -462,7 +466,8 @@ int main (int argc, char* argv[])
     /* initialize new game */
 		if (!strcmp (Command, "new"))
     {
-      if (!setboard ("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"))
+      if (!setboard 
+          (BOARD, "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"))
       {
         printf("Error (in setting start postition): new\n");        
       }
@@ -474,7 +479,7 @@ int main (int argc, char* argv[])
 		if (!strcmp (Command, "setboard"))
     {
       sscanf (Line, "setboard %1023[0-9a-zA-Z /-]", Fen);
-      if(!setboard (Fen))
+      if(!setboard (BOARD, Fen))
       {
         printf("Error (in setting chess psotition via fen string): setboard\n");        
       }
