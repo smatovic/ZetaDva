@@ -52,9 +52,13 @@ Bitboard BOARD[6];
   4   64 bit board Zobrist hash
   5   lastmove + ep target + halfmove clock + castle rights + move score
 */
-/* release memory, io buffer, history and hash table */
+/* release memory, files and tables */
 bool release_inits (void)
 {
+  /* close log file */
+  if (Log_File != NULL)
+    fclose (Log_File);
+  /* release memory */
   if (Line != NULL) 
     free(Line);
   if (Command != NULL) 
@@ -65,9 +69,10 @@ bool release_inits (void)
     free(Move_History);
   if (Hash_History != NULL) 
     free(Hash_History);
+
   return true;
 }
-/* initialize engine memory, io buffer, history and hash table */
+/* innitialize memory, files and tables */
 bool inits (void)
 {
   /* memory allocation */
@@ -361,6 +366,11 @@ int main (int argc, char* argv[])
       case 2:
         /* open/create log file */
         Log_File = fopen ("zetadva.log", "a");
+        if (Log_File == NULL) 
+        {
+          printf ("Error (opening logfile zetadva.log): --log");
+          return false;
+        }
         break;
       case 3:
         self_test ();
@@ -368,10 +378,12 @@ int main (int argc, char* argv[])
     }
   }
 
-  /* init memory and tables */
+  /* init memory, files and tables */
   if (!inits())
+  {
+    release_inits();
     exit (EXIT_FAILURE);
-
+  }
   /* open log file */
   if (Log_File != NULL)
   {
@@ -672,11 +684,7 @@ int main (int argc, char* argv[])
     /* unknown command...*/
     printf("Error (unsupported command): %s\n",Command);
   }
-  /* close log file */
-  if (Log_File != NULL)
-    fclose (Log_File);
-
-  /* free allocated memory */
+  /* release memory, files and tables */
   release_inits();
 
   exit (EXIT_SUCCESS);
