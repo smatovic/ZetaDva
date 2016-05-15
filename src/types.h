@@ -35,6 +35,7 @@ typedef unsigned long long u64;
 /* C99 headers */
 #include <stdint.h>
 #include <stdbool.h>
+/* C99 types */
 typedef uint8_t         u8;
 typedef int16_t         s16;
 typedef int32_t         s32;
@@ -164,6 +165,8 @@ typedef u64             Rank;
 #define GETRANK(sq)         ((sq)>>3)
 #define GETFILE(sq)         ((sq)&7)
 #define GETRRANK(sq,color)  ((color)?(((sq)>>3)^7):((sq)>>3))
+#define FLIP(sq)            (((sq)^7))
+#define FLOP(sqe)           (((sq))^56)
 /* file enumeration */
 enum Files
 {

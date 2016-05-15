@@ -19,5 +19,11 @@
   GNU General Public License for more details.
 */
 
+#include "pst.h"        /* piece square tables, wood count, table control */
 #include "types.h"      /* custom types, board defs, data structures, macros */
+
+/* 
+  simple evaluation, based on proposal by Tomasz Michniewski
+  https://chessprogramming.wikispaces.com/Simplified+evaluation+function
+*/
 
