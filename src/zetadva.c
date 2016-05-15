@@ -279,13 +279,18 @@ void self_test (void)
 {
   return;
 }
-/* engine options and usage */
-void print_help (void)
+/* print engine info to console */
+void print_version (void)
 {
   printf ("Zeta Dva, version %s\n",VERSION);
   printf ("Yet another amateur level chess engine.\n");
-  printf ("Copyright (C) 2011-2016 Srdja Matovic\n");
+  printf ("Copyright (C) 2011-2016 Srdja Matovic, Montenegro\n");
   printf ("This is free software, licensed under GPL >= v2\n");
+}
+/* engine options and usage */
+void print_help (void)
+{
+  printf ("Zeta Dva, Yet another amateur level chess engine.\n");
   printf ("\n");
   printf ("Options:\n");
   printf (" -l, --log          Write output/debug to file zetadva.log\n");
@@ -317,14 +322,8 @@ void print_help (void)
   printf ("perft n        // perform a performance test to depth n\n");
   printf ("selftest       // run an internal selftest\n");
   printf ("help           // print usage hints\n");
+  printf ("log            // toggle log flag\n");
   printf ("\n");
-}
-/* version info */
-void print_version (void)
-{
-  printf ("Zeta Dva, version %s\n",VERSION);
-  printf ("Copyright (C) 2011-2016 Srdja Matovic\n");
-  printf ("This is free software, licensed under GPL >= v2\n");
 }
 /* Zeta Dva, amateur level chess engine  */
 int main (int argc, char* argv[])
@@ -401,7 +400,7 @@ int main (int argc, char* argv[])
   /* print engine info to console */
   printf ("Zeta Dva, version %s\n",VERSION);
   printf ("Yet another amateur level chess engine.\n");
-  printf ("Copyright (C) 2011-2016 Srdja Matovic\n");
+  printf ("Copyright (C) 2011-2016 Srdja Matovic, Montenegro\n");
   printf ("This is free software, licensed under GPL >= v2\n");
 
   /* xboard command loop */
@@ -633,6 +632,23 @@ int main (int argc, char* argv[])
     if (!xboard_mode && !strcmp (Command, "help"))
     {
       print_help();
+      continue;
+    }
+    /* toggle log flag */
+    if (!xboard_mode && !strcmp (Command, "log"))
+    {
+      /* close log file */
+      if (Log_File != NULL)
+        fclose (Log_File);
+      /* open/create log file */
+      else if (Log_File == NULL) 
+      {
+        Log_File = fopen ("zetadva.log", "a");
+        if (Log_File == NULL) 
+        {
+          printf ("Error (opening logfile zetadva.log): log");
+        }
+      }
       continue;
     }
     /* not supported xboard commands...tell user */
