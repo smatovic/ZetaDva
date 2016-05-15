@@ -30,6 +30,7 @@
 */
 
 /* static piece values */
+/* pnone, pawn, knight, king, bishop, rook, queen */
 /* const Score EvalPieceValues[9] = {0, 100, 300, 0, 300, 500, 900}; */
 const Score EvalPieceValues[9] = {0, 100, 400, 0, 400, 600, 1200};
 
