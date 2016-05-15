@@ -27,12 +27,18 @@ For Linux gcc, and for Windows mingw, did the job.
 To play against the engine use an CECP v2 protocol capable chess GUI
 like Arena, Winboard or Xboard.
 
-Alternatively you can use xboard commmands directly on commman line,
-e.g.
+Alternatively you can use xboard commmands directly on commmand line,
+e.g.:
 new            // init new game from start position
-level 40 4 0   // set time control to 40 moves in 4 minutes
+level 40 4 0   // set time control to 4 minutes each 40 moves
 go             // let engine play site to move
 usermove d7d5  // let engine apply usermove and start thinking
+
+Non-Xboard commands:
+perft n        // perform a performance test to depth n
+selftest       // run an internal selftest
+help           // print usage hints
+log            // toggle log flag
 
 Not supported xboard commands:
 analyze        // enter analyze mode
@@ -56,7 +62,7 @@ The source code and a GNU/Linux Makefile are placed in src folder.
 - All CCC members, http://www.talkchess.com/
 - CPW Team, http://chessprogramming.wikispaces.com/
 - Dann Corbit, for his help in many cases.
-- Gerd Isenberg, for the Quad-Bitboard idea.
+- Gerd Isenberg, for the Quad-Bitboard idea,
   http://chessprogramming.wikispaces.com/search/view/Quad-Bitboard
 - Harm Gert Muller, for publishing such a detailed documentation of MicroMax.
 - Jim Ablett, for commpiling all the Zeta versions.
