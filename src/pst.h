@@ -19,6 +19,9 @@
   GNU General Public License for more details.
 */
 
+#ifndef PST_H_INCLUDED
+#define PST_H_INCLUDED
+
 #include "types.h"      /* custom types, board defs, data structures, macros */
 
 /* 
@@ -118,4 +121,6 @@ const Score EvalTable[7*64] =
   -10,  0,  0,  0,  0 , 0 , 0,-10,
   -20,-10,-10, -5, -5,-10,-10,-20
 };
+
+#endif /* PST_H_INCLUDED */
 
