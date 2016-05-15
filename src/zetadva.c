@@ -377,7 +377,6 @@ int main (int argc, char* argv[])
         break;
     }
   }
-
   /* init memory, files and tables */
   if (!inits())
   {
@@ -399,7 +398,6 @@ int main (int argc, char* argv[])
     }
     fprintf (Log_File, "\n");
   }
-
   /* print engine info to console */
   printf ("Zeta Dva, version %s\n",VERSION);
   printf ("Yet another amateur level chess engine.\n");
@@ -684,6 +682,7 @@ int main (int argc, char* argv[])
     /* unknown command...*/
     printf("Error (unsupported command): %s\n",Command);
   }
+
   /* release memory, files and tables */
   release_inits();
 
