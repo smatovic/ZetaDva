@@ -89,9 +89,9 @@ typedef u64             Rank;
   3 black kingside
 */
 /* engine defaults */
-#define MAXPLY      128
-#define MAXGAMEPLY  1024
-#define MAXMOVES    256
+#define MAXPLY      128     /* max internal search ply */
+#define MAXGAMEPLY  1024    /* max ply a game can reach */
+#define MAXMOVES    256     /* max amount of legal moves per position */
 /* colors */
 #define WHITE       0
 #define BLACK       1
@@ -109,6 +109,9 @@ typedef u64             Rank;
 #define BBEMPTY             0x0000000000000000ULL
 #define BBFULL              0xFFFFFFFFFFFFFFFFULL
 #define MOVENONE            0x0000000000000000ULL
+#define HASHNONE            0x0000000000000000ULL
+#define CRNONE              0x0000000000000000ULL
+#define SCORENONE           0x0000000000000000ULL
 /* set masks */
 #define SMSQEP              0x0000000FC0000000ULL
 #define SMHMC               0x00000FF000000000ULL
