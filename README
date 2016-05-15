@@ -50,7 +50,7 @@ Zeta supports Polyglot .bin books, just name the file "book.bin" and put it in
 the same directory like the engine.
 
 ### Compile from source ###
-The source code and a Makefile are placed in src folder.
+The source code and a GNU/Linux Makefile are placed in src folder.
 
 ### Thanks To ###
 - All CCC members, http://www.talkchess.com/

@@ -1,7 +1,7 @@
 ZetaDva (0301) alpha; urgency=low
 
   * code cleanup and fixes
-  * switch from CECP2 (Winboard/Xboard) to UCI
+  * added error handling in xboard (CECP) protocoll
   * eval fixes
   * time control fixes
   * switch to ANSI C89 style
