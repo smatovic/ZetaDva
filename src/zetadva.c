@@ -282,7 +282,7 @@ void self_test (void)
 /* print engine info to console */
 void print_version (void)
 {
-  printf ("Zeta Dva, version %s\n",VERSION);
+  printf ("Zeta Dva version: %s\n",VERSION);
   printf ("Yet another amateur level chess engine.\n");
   printf ("Copyright (C) 2011-2016 Srdja Matovic, Montenegro\n");
   printf ("This is free software, licensed under GPL >= v2\n");
@@ -302,11 +302,17 @@ void print_help (void)
   printf ("like Arena, Winboard or Xboard.\n");
   printf ("\n");
   printf ("Alternatively you can use Xboard commmands directly on commman Line,\n"); 
-  printf ("e.g.\n");
+  printf ("e.g.:\n");
   printf ("new            // init new game from start position\n");
   printf ("level 40 4 0   // set time control to 40 moves in 4 minutes\n");
   printf ("go             // let engine play site to move\n");
   printf ("usermove d7d5  // let engine apply usermove and start thinking\n");
+  printf ("\n");
+  printf ("Non-Xboard commands:\n");
+  printf ("perft n        // perform a performance test to depth n\n");
+  printf ("selftest       // run an internal selftest\n");
+  printf ("help           // print usage hints\n");
+  printf ("log            // toggle log flag\n");
   printf ("\n");
   printf ("Not supported Xboard commands:\n");
   printf ("analyze        // enter analyze mode\n");
@@ -317,12 +323,6 @@ void print_help (void)
   printf ("hint           // give user a hint move\n");
   printf ("bk             // book Lines\n");
   printf ("pause/resume   // pause the engine\n");
-  printf ("\n");
-  printf ("Non-Xboard commands:\n");
-  printf ("perft n        // perform a performance test to depth n\n");
-  printf ("selftest       // run an internal selftest\n");
-  printf ("help           // print usage hints\n");
-  printf ("log            // toggle log flag\n");
   printf ("\n");
 }
 /* Zeta Dva, amateur level chess engine  */
@@ -398,7 +398,7 @@ int main (int argc, char* argv[])
     fprintf (Log_File, "\n");
   }
   /* print engine info to console */
-  printf ("Zeta Dva, version %s\n",VERSION);
+  printf ("Zeta Dva %s\n",VERSION);
   printf ("Yet another amateur level chess engine.\n");
   printf ("Copyright (C) 2011-2016 Srdja Matovic, Montenegro\n");
   printf ("This is free software, licensed under GPL >= v2\n");
