@@ -148,8 +148,8 @@ typedef u64             Rank;
 #define SETSQEP(mv,sq)     (((mv)&CMSQEP)|(((sq)&0x3F)<<30))
 #define GETHMC(mv)         (((mv)>>36)&0xFF)   /* 8 bit halfmove clock */
 #define SETHMC(mv,hmc)     (((mv)&CMHMC)|(((hmc)&0xFF)<<36))
-#define GETCR(mv)          (((mv)>>44)&0xF)    /* 4 bit castle rights */
-#define SETCR(mv,cr)       ((mv&CMCRALL)|cr)   /* 4 bit castle rights */
+#define GETCR(mv)          (((mv)&SMCRALL))    /* 4 bit castle rights */
+#define SETCR(mv,cr)       (((mv)&CMCRALL)|cr)   /* 4 bit castle rights */
 #define GETSCORE(mv)       (((mv)>>48)&0xFFFF) /* signed 16 bit score */
 #define SETSCORE(mv,score) (((mv)&CMSCORE)|(((score)&0xFFFF)<<48)) 
 #define SETSCORE(mv,score) (((mv)&CMSCORE)|(((score)&0xFFFF)<<48)) 
