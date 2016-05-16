@@ -154,7 +154,7 @@ typedef u64             Rank;
 #define SETSCORE(mv,score) (((mv)&CMSCORE)|(((score)&0xFFFF)<<48)) 
 #define SETSCORE(mv,score) (((mv)&CMSCORE)|(((score)&0xFFFF)<<48)) 
 /* pack move into 64 bits */
-#define MAKEMOVE (sqfrom, sqto, sqcpt, pfrom, pto, pcpt, sqep, hmc, cr, score) \
+#define MAKEMOVE(sqfrom, sqto, sqcpt, pfrom, pto, pcpt, sqep, hmc, cr, score) \
 ( \
      sqfrom      | (sqto<<6)  | (sqcpt<<12) \
   | (pfrom<<18)  | (pto<<22)  | (pcpt<<26) \

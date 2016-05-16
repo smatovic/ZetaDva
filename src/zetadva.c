@@ -135,6 +135,62 @@ static void print_bitboard(Bitboard board)
 
   fflush(stdout);
 }
+Move alg2move (char *usermove, Bitboard *board, bool stm) 
+{
+
+  File file;
+  Rank rank;
+  Square sqfrom;
+  Square sqto;
+  Square sqcpt;
+  Piece pto;
+  Piece pfrom;
+  Piece pcpt;
+  Move move;
+  char promopiece;
+  Square sqep = 0;
+
+  file    = (int)usermove[0] -97;
+  rank    = (int)usermove[1] -49;
+  sqfrom  = MAKESQ(file,rank);
+  file    = (int)usermove[2] -97;
+  rank    = (int)usermove[3] -49;
+  sqto    = MAKESQ(file,rank);
+
+  pfrom = GETPIECE (board, sqfrom);
+  pto = pfrom;
+  sqcpt = sqto;
+  pcpt = GETPIECE (board, sqcpt);
+
+  /* en passant move */
+  sqcpt = ( (pfrom>>1) == PAWN && (stm == WHITE) && GETRANK (sqfrom) == RANK_5  
+            && sqto-sqfrom != 8 && (pcpt>>1) == PNONE ) ? sqto-8 : sqcpt;
+  sqcpt = ( (pfrom>>1) == PAWN && (stm == BLACK) && GETRANK (sqfrom) == RANK_4  
+            && sqfrom-sqto != 8 && (pcpt>>1) == PNONE ) ? sqto+8 : sqcpt;
+
+  pcpt = GETPIECE (board, sqcpt);
+
+  /* pawn double square move, set en passant target square */
+  if ( (pfrom>>1) == PAWN && GETRRANK(sqto,stm) - GETRRANK(sqfrom,stm) == 2 )
+    sqep = sqto;
+
+  /* pawn promo piece */
+  promopiece = usermove[4];
+  if (promopiece == 'q' || promopiece == 'Q' )
+      pto = QUEEN<<1 | (u64)stm;
+  else if (promopiece == 'n' || promopiece == 'N' )
+      pto = KNIGHT<<1 | (u64)stm;
+  else if (promopiece == 'b' || promopiece == 'B' )
+      pto = BISHOP<<1 | (u64)stm;
+  else if (promopiece == 'r' || promopiece == 'R' )
+      pto = ROOK<<1 | (u64)stm;
+
+  /* TODO: consider hmc, cr and score */
+  move = MAKEMOVE (sqfrom, sqto, sqcpt, pfrom, pto , pcpt, sqep, 0ULL,0ULL,0ULL);
+
+  return move;
+}
+
 void move2alg (Move move, char * movec) 
 {
   char rankc[8] = "12345678";
@@ -489,7 +545,7 @@ void print_version (void)
 /* engine options and usage */
 void print_help (void)
 {
-  printf ("Zeta Dva, Yet another amateur level chess engine.\n");
+  printf ("Zeta Dva, yet another amateur level chess engine.\n");
   printf ("\n");
   printf ("Options:\n");
   printf (" -l, --log          Write output/debug to file zetadva.log\n");
