@@ -686,7 +686,6 @@ int main (int argc, char* argv[])
       }
       if (!xboard_mode)
         print_board(BOARD);
-      PLY = 0;
       xboard_force  = false;
 			continue;
 		}
