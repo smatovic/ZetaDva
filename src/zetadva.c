@@ -111,6 +111,64 @@ bool inits (void)
   }
   return true;
 }
+/* print bitboard */
+static void print_bitboard(Bitboard board)
+{
+
+  int rank;
+  int file;
+  Square sq;
+
+  printf("###ABCDEFGH###\n");
+  for(rank = RANK_8; rank >= RANK_1; rank--) {
+    printf ("#%i ",rank+1);
+    for(file = FILE_A; file < FILE_NONE; file++) {
+      sq = MAKESQ (rank,file);
+      if (board&SETMASKBB(sq)) 
+        printf ("x");
+      else 
+        printf("-");
+    }
+    printf("\n");
+  }
+  printf("###ABCDEFGH###\n");
+
+  fflush(stdout);
+}
+/* print quadbitbooard */
+void print_board(Bitboard *board) {
+
+  int rank;
+  int file;
+  Square sq;
+  Piece piece;
+  char wpchars[] = "-PNKBRQ";
+  char bpchars[] = "-pnkbrq";
+
+print_bitboard(board[0]);
+print_bitboard(board[1]);
+print_bitboard(board[2]);
+print_bitboard(board[3]);
+
+  printf ("###ABCDEFGH###\n");
+  for(rank = RANK_8; rank >= RANK_1; rank--) {
+    printf ("#%i ",rank+1);
+    for(file = FILE_A; file < FILE_NONE; file++) {
+      sq = MAKESQ (rank,file);
+      piece = GETPIECE (board, sq);
+      if (piece != PNONE && (piece&BLACK))
+        printf ("%c", bpchars[piece>>1]);
+      else if (piece != PNONE)
+        printf ("%c", wpchars[piece>>1]);
+      else 
+        printf ("-");
+    }
+    printf ("\n");
+  }
+  printf ("###ABCDEFGH###\n");
+
+  fflush (stdout);
+}
 /* set internal chess board presentation to fen string */
 bool setboard (Bitboard *board, char *fenstring)
 {
@@ -121,9 +179,9 @@ bool setboard (Bitboard *board, char *fenstring)
   char *cep;      /* en passant target square */
   char *tempstring;
   char fencharstring[24] = {" PNKBRQ pnkbrq/12345678"}; /* mapping */
-  int i;
-  int j;
-  int side;
+  u64 i;
+  u64 j;
+  bool side;
   u64 hmc;        /* half move clock */
   u64 fendepth;   /* game depth */
   File file;
@@ -164,7 +222,7 @@ bool setboard (Bitboard *board, char *fenstring)
           position, cstm, castle, cep, &hmc, &fendepth);
 
   /* empty the board */
-  board[QBBWHITE] = 0x0ULL;
+  board[QBBBLACK] = 0x0ULL;
   board[QBBP1]    = 0x0ULL;
   board[QBBP2]    = 0x0ULL;
   board[QBBP3]    = 0x0ULL;
@@ -178,6 +236,7 @@ bool setboard (Bitboard *board, char *fenstring)
   while (!(rank <= RANK_1 && file >= FILE_NONE))
   {
     tempchar = position[i++];
+    /* iterate through all characters */
     for (j = 0; j <= 23; j++) 
     {
   		if (tempchar == fencharstring[j])
@@ -188,19 +247,28 @@ bool setboard (Bitboard *board, char *fenstring)
             rank--;
             file = FILE_A;
         }
-        /* empty squares*/
+        /* empty squares */
         else if (j >= 15)
         {
             file+=j-14;
         }
-        else
+        else if (j >= 7)
         {
             sq        = MAKESQ (rank, file);
-            side      = (j > 6)? BLACK : WHITE;
-            piece     = side? j-7 : j;
-            piece<<=1;
-            piece    |= side;
-            board[0] |= piece&0x1;
+            piece     = j-7;
+            piece     = (piece<<1) | (u64)BLACK;
+            board[0] |= (piece&0x1)<<sq;
+            board[1] |= ((piece>>1)&0x1)<<sq;
+            board[2] |= ((piece>>2)&0x1)<<sq;
+            board[3] |= ((piece>>3)&0x1)<<sq;
+            file++;
+        }
+        else if (j <= 6)
+        {
+            sq        = MAKESQ (rank, file);
+            piece     = j;
+            piece     = (piece<<1) | (u64)WHITE;
+            board[0] |= (piece&0x1)<<sq;
             board[1] |= ((piece>>1)&0x1)<<sq;
             board[2] |= ((piece>>2)&0x1)<<sq;
             board[3] |= ((piece>>3)&0x1)<<sq;
@@ -266,6 +334,8 @@ bool setboard (Bitboard *board, char *fenstring)
 
   /* store lastmove+ in board */
   board[QBBLAST] = lastmove;
+
+print_board(BOARD);
 
   return true;
 }

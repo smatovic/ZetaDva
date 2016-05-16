@@ -64,7 +64,7 @@ typedef u64             Rank;
   4   64 bit board hash, for future use
   5   lastmove + ep target + halfmove clock + castle rights + move score
 */
-#define QBBWHITE  0
+#define QBBBLACK  0
 #define QBBP1     1
 #define QBBP2     2
 #define QBBP3     3
@@ -94,8 +94,8 @@ typedef u64             Rank;
 #define MAXGAMEPLY  1024    /* max ply a game can reach */
 #define MAXMOVES    256     /* max amount of legal moves per position */
 /* colors */
-#define WHITE       0
 #define BLACK       1
+#define WHITE       0
 /* piece type enumeration */
 #define PNONE       0
 #define PAWN        1
@@ -167,6 +167,18 @@ typedef u64             Rank;
 #define GETRRANK(sq,color)  ((color)?(((sq)>>3)^7):((sq)>>3))
 #define FLIP(sq)            (((sq)^7))
 #define FLOP(sqe)           (((sq))^56)
+/* piece helpers */
+#define GETPIECE(board,sq)  ( \
+                               ((board[0]>>(sq))&0x1)\
+                           |  (((board[1]>>(sq))&0x1)<<1) \
+                           |  (((board[2]>>(sq))&0x1)<<2) \
+                           |  (((board[3]>>(sq))&0x1)<<3) \
+                             )
+#define GETPIECETYPE(board,sq) ( \
+                           |  (((board[1]>>(sq))&0x1)) \
+                           |  (((board[2]>>(sq))&0x1)<<1) \
+                           |  (((board[3]>>(sq))&0x1)<<2) \
+                             )
 /* file enumeration */
 enum Files
 {
