@@ -34,7 +34,7 @@ go             // let engine play site to move
 usermove d7d5  // let engine apply usermove and start thinking
 
 Non-Xboard commands:
-perft n        // perform a performance test to depth n
+perft          // perform a performance test to depth set by sd command
 selftest       // run an internal selftest
 help           // print usage hints
 log            // toggle log flag
