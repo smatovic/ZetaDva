@@ -21,7 +21,6 @@
 
 ### Binaries ###
 Linux 64 bit and Windows 32/64 bit binaries are placed in bin folder. 
-For Linux gcc, and for Windows mingw, did the job.
 
 ### Play ### 
 To play against the engine use an CECP v2 protocol capable chess GUI
