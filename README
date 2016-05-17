@@ -68,6 +68,8 @@ The source code and a GNU/Linux Makefile are placed in src folder.
 - Marcel van Kervinck, for his smart Chess Programm MSCP.
 - Michel Van den Bergh for the Polyglot probing code.
   http://hardy.uhasselt.be/Toga/book_format.html
+- Steffan Westcott for the KoggeStone move generator,
+  http://chessprogramming.wikispaces.com/Kogge-Stone+Algorithm
 - Stockfish Team for their great engine.
 - Tomasz Michniewski, for his Piece Square Tables,
   https://chessprogramming.wikispaces.com/Simplified+evaluation+function
