@@ -114,11 +114,13 @@ typedef u64             Rank;
 #define CRNONE              0x0000000000000000ULL
 #define SCORENONE           0x0000000000000000ULL
 /* set masks */
+#define SMMOVE              0x000000003FFFFFFFULL
 #define SMSQEP              0x0000000FC0000000ULL
 #define SMHMC               0x00000FF000000000ULL
 #define SMCRALL             0x0000F00000000000ULL
 #define SMSCORE             0xFFFF000000000000ULL
 /* clear masks */
+#define CMMOVE              0xFFFFFFFFC0000000ULL
 #define CMSQEP              0xFFFFFFF03FFFFFFFULL
 #define CMHMC               0xFFFFF00FFFFFFFFFULL
 #define CMCRALL             0xFFFF0FFFFFFFFFFFULL
@@ -138,12 +140,13 @@ typedef u64             Rank;
 #define CMCRBLACKQ          0xFFFFBFFFFFFFFFFFULL
 #define CMCRBLACKK          0xFFFF7FFFFFFFFFFFULL
 /* move helpers */
+#define GETPTYPE(p)        (((p)>>1)&0x7)      /* 3 bit piece type encoding */
 #define GETSQFROM(mv)      ((mv)&0x3F)         /* 6 bit square */
 #define GETSQTO(mv)        (((mv)>>6)&0xF)     /* 6 bit square */
-#define GETSQCAPTURE(mv)   (((mv)>>12)&0x3F)   /* 6 bit square */
-#define GETPFROM(mv)       (((mv)>>18)&0x3F)   /* 4 bit piece type */
-#define GETPTO(mv)         (((mv)>>22)&0xF)    /* 4 bit piece type */
-#define GETPCPT(mv)        (((mv)>>26)&0xF)    /* 4 bit piece type */
+#define GETSQCPT(mv)   (((mv)>>12)&0x3F)   /* 6 bit square */
+#define GETPFROM(mv)       (((mv)>>18)&0x3F)   /* 4 bit piece encoding */
+#define GETPTO(mv)         (((mv)>>22)&0xF)    /* 4 bit piece encoding */
+#define GETPCPT(mv)        (((mv)>>26)&0xF)    /* 4 bit piece encodinge */
 #define GETSQEP(mv)        (((mv)>>30)&0x3F)   /* 6 bit square */
 #define SETSQEP(mv,sq)     (((mv)&CMSQEP)|(((sq)&0x3F)<<30))
 #define GETHMC(mv)         (((mv)>>36)&0xFF)   /* 8 bit halfmove clock */
@@ -158,7 +161,7 @@ typedef u64             Rank;
 ( \
      sqfrom      | (sqto<<6)  | (sqcpt<<12) \
   | (pfrom<<18)  | (pto<<22)  | (pcpt<<26) \
-  | (sqep<<30)   | (hmc<<36)  | (cr<<44) | (score<<48) \
+  | (sqep<<30)   | (hmc<<36)  | (cr)        | (score<<48) \
 )
 /* square helpers */
 #define MAKESQ(file,rank)   ((rank)<<3|(file))
@@ -179,6 +182,9 @@ typedef u64             Rank;
                            |  (((board[2]>>(sq))&0x1)<<1) \
                            |  (((board[3]>>(sq))&0x1)<<2) \
                              )
+/* file distance */
+#define ABS(val)            ((val)>0?val:val*-1)
+#define FILEDIS(sqa,sqb)    (ABS((GETFILE(sqa)-GETFILE(sqb))))
 /* file enumeration */
 enum Files
 {

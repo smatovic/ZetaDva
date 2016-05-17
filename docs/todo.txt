@@ -1,6 +1,6 @@
 A) root-structure
-    - UCI protocol                                              TODO
-    - FEN loader                                                TODO
+    - basic Xboard protocol                                     TODO
+    - setboard with FEN                                 DONE
     - time control                                              TODO
     - internal test suite                                       TODO
     - three fold repetition rule                                TODO
@@ -19,7 +19,7 @@ B) BoardPresentation
 + 1*8 Byte hash                                         DONE
 + 1*8 Byte lastmove+ep+castle+halfmoveclock+score       DONE
 
-C) MovGenerator (Board)
+C) MovGenerator (Board)                                               WIP
     - generalized Kogge-Stone move gen                          TODO
     - precalculated AttackTables                                TOOD
       for white pawns, black pawns and knights                  TODO
@@ -30,8 +30,8 @@ C) MovGenerator (Board)
     - cleanup & performance tuning                              TODO
 
 D) DoMove, UnDoMove
-    - normal moves                                              TODO
-    - castle moves                                              TODO
+    - normal moves                                                    WIP
+    - castle moves                                                    WIP
 
 E) Evaluation
     - simple piece values                               DONE

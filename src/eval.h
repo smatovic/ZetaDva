@@ -24,6 +24,12 @@
 
 #include "types.h"      /* custom types, board defs, data structures, macros */
 
+extern const Score EvalPieceValues[7];
+extern const Score EvalControl[64];
+extern const Score EvalTable[7*64];
+
+
+Score evalmove(PieceType piece, Square sq, bool stm);
 
 #endif /* EVAL_H_INCLUDED */
 
