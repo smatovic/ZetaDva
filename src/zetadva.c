@@ -996,7 +996,7 @@ void print_help (void)
   printf ("usermove d7d5  // let engine apply usermove and start thinking\n");
   printf ("\n");
   printf ("Non-Xboard commands:\n");
-  printf ("perft          // perform a performance test to depth set by sd command\n");
+  printf ("perft          // perform a performance test, depth set by sd command\n");
   printf ("selftest       // run an internal test\n");
   printf ("help           // print usage hints\n");
   printf ("log            // toggle log flag\n");
@@ -1006,7 +1006,7 @@ void print_help (void)
   printf ("undo/remove    // take back last moves\n");
   printf ("?              // move now\n");
   printf ("draw           // handle draw offers\n");
-  printf ("hard/easy      // turn on pondering\n");
+  printf ("hard/easy      // turn on/off pondering\n");
   printf ("hint           // give user a hint move\n");
   printf ("bk             // book Lines\n");
   printf ("pause/resume   // pause the engine\n");

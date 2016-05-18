@@ -34,7 +34,7 @@ go             // let engine play site to move
 usermove d7d5  // let engine apply usermove and start thinking
 
 Non-Xboard commands:
-perft          // perform a performance test to depth set by sd command
+perft          // perform a performance test, depth set by sd command
 selftest       // run an internal selftest
 help           // print usage hints
 log            // toggle log flag
@@ -44,7 +44,7 @@ analyze        // enter analyze mode
 undo/remove    // take back last moves
 ?              // move now
 draw           // handle draw offers
-hard/easy      // turn on pondering
+hard/easy      // turn on/off pondering
 hint           // give user a hint move
 bk             // book lines
 pause/resume   // pause the engine
