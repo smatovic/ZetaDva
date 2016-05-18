@@ -181,9 +181,6 @@ typedef u64             Rank;
                            |  (((board[2]>>(sq))&0x1)<<1) \
                            |  (((board[3]>>(sq))&0x1)<<2) \
                              )
-/* file distance */
-#define ABS(val)            ((val)>0?val:val*-1)
-#define FILEDIS(sqa,sqb)    (ABS((GETFILE(sqa)-GETFILE(sqb))))
 /* file enumeration */
 enum Files
 {
