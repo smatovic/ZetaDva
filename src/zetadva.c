@@ -670,7 +670,7 @@ static int genmoves_general (Bitboard *board, Move *moves, int movecounter, bool
       score = (pcpt==PNONE)? (evalmove (pto, sqto, stm)-evalmove(pfrom, sqfrom, stm)) : (EvalPieceValues[pcpt]*16-EvalPieceValues[pto]);
 
       /* pack move into 64 bits, considering castle rights and halfmovecounter and score */
-      move = MAKEMOVE (sqfrom, sqto, sqcpt, pfrom, pto, pcpt, sqep, GETCR(lastmove), (u64)GETHMC(lastmove), (u64)score);
+      move = MAKEMOVE (sqfrom, sqto, sqcpt, pfrom, pto, pcpt, sqep, (u64)GETHMC(lastmove), GETCR(lastmove), (u64)score);
 
       domove (board, move);
       if (!kingincheck (board, stm))
