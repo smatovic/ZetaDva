@@ -26,6 +26,7 @@
 
 #include "bitboard.h"   /* for population count, pop_count */
 #include "eval.h"       /* for evalmove and eval */
+#include "search.h"   /* for population count, pop_count */
 #include "timer.h"      /* for time measurement */
 #include "types.h"      /* custom types, board defs, data structures, macros */
 
@@ -69,7 +70,7 @@ void createfen (char *fenstring, Bitboard *board, bool stm, int gameply);
 void move2alg (Move move, char * movec);
 Move alg2move (char *usermove, Bitboard *board, bool stm);
 void print_move(Move move);
-static void print_bitboard(Bitboard board);
+void print_bitboard(Bitboard board);
 void print_board(Bitboard *board);
 
 /* move generator costants */
@@ -540,9 +541,10 @@ bool kingincheck(Bitboard *board, bool stm)
   return pieceincheck (board, sqking, !stm);
 }
 
-/* generate legal moves via generalized KoggeStone bitboard approach by Steffan Westcott */
+/* generate legal moves via generalized KoggeStone bitboard approach */
+/* based on work by Steffan Westcott */
 /* http://chessprogramming.wikispaces.com/Kogge-Stone+Algorithm */
-static int genmoves_general (Bitboard *board, Move *moves, int movecounter, bool stm, bool qs) 
+int genmoves_general (Bitboard *board, Move *moves, int movecounter, bool stm, bool qs) 
 {
 
   Score score;
@@ -751,47 +753,6 @@ static int genmoves_general (Bitboard *board, Move *moves, int movecounter, bool
 
   return movecounter;
 }
-static Score perft (Bitboard *board, bool stm, u32 depth)
-{
-
-  Move moves[MAXMOVES];
-  Move lastmove = board[QBBLAST];
-  Score score = 0;
-  int i = 0;
-  int movecounter = 0;
-  bool kic = false;
-
-  kic = kingincheck (board, stm);
-
-  if (depth == SD)
-  {
-    NODECOUNT++;
-    return 0;
-  }
-
-  movecounter = genmoves_general (board, moves, movecounter, stm, false);
-
-  MOVECOUNT+= movecounter;
-
-  if (movecounter == 0 && kic)
-  {
-    return 0;
-  }
-  if (movecounter == 0 && !kic) 
-  {
-    return 0;
-  }
-
-  /* iterate through moves */
-  for (i=0;i<movecounter;i++)
-  {
-    domove (board, moves[i]);
-    score = -perft(board, !stm, depth+1);
-    undomove (board, moves[i], lastmove);
-  }
-  return 0;
-}
-
 /* Zeta Dva, amateur level chess engine  */
 int main (int argc, char* argv[])
 {
@@ -1208,7 +1169,7 @@ bool isvalid(Bitboard *board)
   return false;
 }
 /* print bitboard */
-static void print_bitboard (Bitboard board)
+void print_bitboard (Bitboard board)
 {
 
   int rank;

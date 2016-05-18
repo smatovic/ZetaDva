@@ -8,7 +8,7 @@ CFLAGS=-Wall -Wextra -pedantic -std=c89 -O2 -Wno-long-long -Wno-format -Wno-unus
 TARGETS=zetadva
 
 zetadva: 
-	$(CC) $(CFLAGS) -o zetadva bitboard.c book.c eval.c timer.c zetadva.c
+	$(CC) $(CFLAGS) -o zetadva bitboard.c book.c eval.c search.c timer.c zetadva.c
 
 clean:
 	rm -f ${TARGETS}
