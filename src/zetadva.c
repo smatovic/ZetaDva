@@ -1194,7 +1194,19 @@ int main (int argc, char* argv[])
 
   exit (EXIT_SUCCESS);
 }
+/* check for two opposite kings */
+bool islegal(Bitboard *board)
+{
+  if ( (popcount(board[QBBBLACK]&(board[QBBP1]&board[QBBP2]&~board[QBBP3]))==1) 
+        && (popcount( (board[QBBBLACK]^(board[QBBP1]|board[QBBP2]|board[QBBP3]))
+                      &(board[QBBP1]&board[QBBP2]&~board[QBBP3]))==1)
+     )
+  {
+    return true;
+  }
 
+  return false;
+}
 /* print bitboard */
 static void print_bitboard (Bitboard board)
 {
@@ -1321,6 +1333,51 @@ void move2alg (Move move, char * movec)
       movec[4] = 'n';
   }
 }
+/* print quadbitbooard */
+void print_board (Bitboard *board)
+{
+
+  int rank;
+  int file;
+  Square sq;
+  Piece piece;
+  char wpchars[] = "-PNKBRQ";
+  char bpchars[] = "-pnkbrq";
+  char fenstring[1024];
+
+/*
+print_bitboard(board[0]);
+print_bitboard(board[1]);
+print_bitboard(board[2]);
+print_bitboard(board[3]);
+print_bitboard(board[4]);
+print_bitboard(board[5]);
+*/
+  printf ("###ABCDEFGH###\n");
+  for (rank = RANK_8; rank >= RANK_1; rank--) 
+  {
+    printf ("#%i ",rank+1);
+    for (file = FILE_A; file < FILE_NONE; file++)
+    {
+      sq = MAKESQ(file, rank);
+      piece = GETPIECE(board, sq);
+      if (piece != PNONE && (piece&BLACK))
+        printf ("%c", bpchars[piece>>1]);
+      else if (piece != PNONE)
+        printf ("%c", wpchars[piece>>1]);
+      else 
+        printf ("-");
+    }
+    printf ("\n");
+  }
+  printf ("###ABCDEFGH###\n");
+
+  createfen (fenstring, BOARD, STM, GAMEPLY);
+
+  printf ("#fen: %s\n",fenstring);
+
+  fflush (stdout);
+}
 /* create fen string from board state */
 void createfen (char *fenstring, Bitboard *board, bool stm, int gameply)
 {
@@ -1422,52 +1479,6 @@ void createfen (char *fenstring, Bitboard *board, bool stm, int gameply)
 
   stringptr+=sprintf (stringptr, "%d", (gameply/2));
 
-}
-
-/* print quadbitbooard */
-void print_board (Bitboard *board)
-{
-
-  int rank;
-  int file;
-  Square sq;
-  Piece piece;
-  char wpchars[] = "-PNKBRQ";
-  char bpchars[] = "-pnkbrq";
-  char fenstring[1024];
-
-/*
-print_bitboard(board[0]);
-print_bitboard(board[1]);
-print_bitboard(board[2]);
-print_bitboard(board[3]);
-print_bitboard(board[4]);
-print_bitboard(board[5]);
-*/
-  printf ("###ABCDEFGH###\n");
-  for (rank = RANK_8; rank >= RANK_1; rank--) 
-  {
-    printf ("#%i ",rank+1);
-    for (file = FILE_A; file < FILE_NONE; file++)
-    {
-      sq = MAKESQ(file, rank);
-      piece = GETPIECE(board, sq);
-      if (piece != PNONE && (piece&BLACK))
-        printf ("%c", bpchars[piece>>1]);
-      else if (piece != PNONE)
-        printf ("%c", wpchars[piece>>1]);
-      else 
-        printf ("-");
-    }
-    printf ("\n");
-  }
-  printf ("###ABCDEFGH###\n");
-
-  createfen (fenstring, BOARD, STM, GAMEPLY);
-
-  printf ("#fen: %s\n",fenstring);
-
-  fflush (stdout);
 }
 /* set internal chess board presentation to fen string */
 bool setboard (Bitboard *board, char *fenstring)
@@ -1633,6 +1644,12 @@ bool setboard (Bitboard *board, char *fenstring)
 
   /* store lastmove+ in board */
   board[QBBLAST] = lastmove;
+
+  if (!islegal(board))
+  {
+    printf ("Error (given fen position is illegal): setboard\n");        
+    return false;
+  }
 
   return true;
 }
