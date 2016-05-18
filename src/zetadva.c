@@ -840,6 +840,7 @@ int main (int argc, char* argv[])
         break;
       case 3:
         self_test ();
+        exit (EXIT_SUCCESS);
         break;
     }
   }
@@ -1114,6 +1115,7 @@ int main (int argc, char* argv[])
     /* do an internal self test */
     if (!xboard_mode && !strcmp (Command, "selftest"))
     {
+      self_test();
       continue;
     }
     /* print help */
@@ -1635,6 +1637,34 @@ bool setboard (Bitboard *board, char *fenstring)
 /* run internal selftest */
 void self_test (void) 
 {
+  u64 perftdepth4  = 197281;
+
+  NODECOUNT = 0;
+  MOVECOUNT = 0;
+  SD = 4;
+
+  printf ("# doing perft depth: %u for position\n", SD);  
+
+  if (!setboard 
+      (BOARD, "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"))
+  {
+    printf ("# Error (in setting start postition): new\n");        
+    return;
+  }
+  else
+    print_board(BOARD);
+  
+  start = get_time();
+  perft (BOARD, STM, 0);
+  end = get_time();   
+  elapsed = end-start;
+  elapsed /= 1000;
+
+  if(NODECOUNT==perftdepth4)
+    printf ("# Nodecount Correct, %llu nodes in %f seconds with %llu nps.\n", NODECOUNT, elapsed, (u64)(NODECOUNT/elapsed));
+  else
+    printf ("# Nodecount Not Correct, %llu computed nodes != %llu nodes for depth 4.\n", NODECOUNT, perftdepth4);
+
   return;
 }
 /* print engine info to console */
@@ -1668,7 +1698,7 @@ void print_help (void)
   printf ("\n");
   printf ("Non-Xboard commands:\n");
   printf ("perft          // perform a performance test to depth set by sd command\n");
-  printf ("selftest       // run an internal selftest\n");
+  printf ("selftest       // run an internal test\n");
   printf ("help           // print usage hints\n");
   printf ("log            // toggle log flag\n");
   printf ("\n");
