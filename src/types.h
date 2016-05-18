@@ -140,6 +140,7 @@ typedef u64             Rank;
 #define CMCRBLACKQ          0xFFFFBFFFFFFFFFFFULL
 #define CMCRBLACKK          0xFFFF7FFFFFFFFFFFULL
 /* move helpers */
+#define MAKEP(p,c)         (((p)<<1)|c)
 #define GETPTYPE(p)        (((p)>>1)&0x7)      /* 3 bit piece type encoding */
 #define GETSQFROM(mv)      ((mv)&0x3F)         /* 6 bit square */
 #define GETSQTO(mv)        (((mv)>>6)&0x3F)    /* 6 bit square */
