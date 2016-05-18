@@ -1195,7 +1195,7 @@ int main (int argc, char* argv[])
   exit (EXIT_SUCCESS);
 }
 /* check for two opposite kings */
-bool islegal(Bitboard *board)
+bool isvalid(Bitboard *board)
 {
   if ( (popcount(board[QBBBLACK]&(board[QBBP1]&board[QBBP2]&~board[QBBP3]))==1) 
         && (popcount( (board[QBBBLACK]^(board[QBBP1]|board[QBBP2]|board[QBBP3]))
@@ -1645,7 +1645,8 @@ bool setboard (Bitboard *board, char *fenstring)
   /* store lastmove+ in board */
   board[QBBLAST] = lastmove;
 
-  if (!islegal(board))
+  /* board valid check */
+  if (!isvalid(board))
   {
     printf ("Error (given fen position is illegal): setboard\n");        
     return false;
