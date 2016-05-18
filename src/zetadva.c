@@ -1609,13 +1609,15 @@ bool setboard (Bitboard *board, char *fenstring)
 
   /* set en passant target square */
   tempchar = cep[0];
-  if (tempchar != '-')
+  file  = 0;
+  rank  = 0;
+  if (tempchar != '-' && tempchar != '\0' && tempchar != '\n')
   {
     file  = cep[0] - 97;
     rank  = cep[1] - 49;
-    sq    = MAKESQ(file, rank);
-    lastmove = SETSQEP (lastmove, sq);
   }
+  sq    = MAKESQ(file, rank);
+  lastmove = SETSQEP (lastmove, sq);
 
   /* ply starts at zero */
   PLY = 0;
