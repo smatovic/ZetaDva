@@ -232,20 +232,20 @@ bool inits (void)
   return true;
 }
 /* apply move on board */
-void domove(Bitboard *board, Move move)
+void domove (Bitboard *board, Move move)
 {
-  Square sqfrom   = GETSQFROM (move);
-  Square sqto     = GETSQTO (move);
-  Square sqcpt    = GETSQCPT (move);
-  Piece pfrom     = GETPFROM (move);
-  Piece pto       = GETPTO (move);
+  Square sqfrom   = GETSQFROM(move);
+  Square sqto     = GETSQTO(move);
+  Square sqcpt    = GETSQCPT(move);
+  Piece pfrom     = GETPFROM(move);
+  Piece pto       = GETPTO(move);
   Piece pcpt      = GETPCPT (move);
   Bitboard bbTemp = BBEMPTY;
   Piece pcastle   = PNONE;
   u64 hmc;
 
   /* increase half move clock */
-  hmc = GETHMC (move);
+  hmc = GETHMC(move);
   hmc++;
   /* store lastmove in board */
   board[QBBLAST] = move;
@@ -264,7 +264,7 @@ void domove(Bitboard *board, Move move)
   board[QBBP3]    |= ((pto>>3)&0x1)<<sqto;
 
   /* handle castle rook, queenside */
-  pcastle = (GETPTYPE (pfrom) == KING && sqfrom-sqto == 2)?
+  pcastle = (GETPTYPE(pfrom) == KING && sqfrom-sqto == 2)?
             (ROOK<<1) | (pfrom&0x1) : PNONE;
 
   board[QBBBLACK] |= (pcastle&0x1)<<(sqto+1);
@@ -280,7 +280,7 @@ void domove(Bitboard *board, Move move)
   hmc = (pcastle)? 0 :hmc;
 
   /* handle castle rook, kingside */
-  pcastle = (GETPTYPE (pfrom) == KING && sqto-sqfrom == 2)?
+  pcastle = (GETPTYPE(pfrom) == KING && sqto-sqfrom == 2)?
             (ROOK<<1) | (pfrom&0x1) : PNONE;
 
   board[QBBBLACK] |= (pcastle&0x1)<<(sqto-1);
@@ -296,44 +296,44 @@ void domove(Bitboard *board, Move move)
   hmc = (pcastle)? 0 :hmc;
 
   /* handle castle rights, king moved, clear all*/
-  bbTemp = (GETPTYPE (pfrom) == KING && (sqfrom == 4 || sqfrom == 60 ))? 
+  bbTemp = (GETPTYPE(pfrom) == KING && (sqfrom == 4 || sqfrom == 60 ))? 
             (pfrom&BLACK)? CMCRBLACK : CMCRWHITE : BBFULL;
   board[QBBLAST] &= bbTemp;
 
   /* handle castle rights, rook file a moved, clear queenside */
-  bbTemp = ( GETPTYPE (pfrom) == ROOK && (sqfrom == 0 || sqfrom == 56 ))?
+  bbTemp = ( GETPTYPE(pfrom) == ROOK && (sqfrom == 0 || sqfrom == 56 ))?
             (pfrom&BLACK)? CMCRBLACKQ : CMCRWHITEQ : BBFULL;
   board[QBBLAST] &= bbTemp;
 
   /* handle castle rights, rook file a captured, clear queenside */
-  bbTemp = ( GETPTYPE (pcpt) == ROOK && (sqcpt == 0 || sqcpt == 56 ))?
+  bbTemp = ( GETPTYPE(pcpt) == ROOK && (sqcpt == 0 || sqcpt == 56 ))?
             (pcpt&BLACK)? CMCRBLACKQ : CMCRWHITEQ : BBFULL;
   board[QBBLAST] &= bbTemp;
 
   /* handle castle rights, rook file h moved, clear kingside */
-  bbTemp = ( GETPTYPE (pfrom) == ROOK && (sqfrom == 7 || sqfrom == 63 ))?
+  bbTemp = ( GETPTYPE(pfrom) == ROOK && (sqfrom == 7 || sqfrom == 63 ))?
             (pfrom&BLACK)? CMCRBLACKK : CMCRWHITEK : BBFULL;
   board[QBBLAST] &= bbTemp;
 
   /* handle castle rights, rook file h captured, clear kingside */
-  bbTemp = ( GETPTYPE (pcpt) == ROOK && (sqcpt == 7 || sqcpt == 63 ))?
+  bbTemp = ( GETPTYPE(pcpt) == ROOK && (sqcpt == 7 || sqcpt == 63 ))?
             (pcpt&BLACK)? CMCRBLACKK : CMCRWHITEK : BBFULL;
   board[QBBLAST] &= bbTemp;
 
   /* handle halfmove clock */
-  hmc = (GETPTYPE (pfrom) == PAWN )? 0 :hmc; /* pawn move */
-  hmc = (GETPTYPE (pcpt) != PNONE )? 0 :hmc; /* capture move */
+  hmc = (GETPTYPE(pfrom) == PAWN )? 0 :hmc; /* pawn move */
+  hmc = (GETPTYPE(pcpt) != PNONE )? 0 :hmc; /* capture move */
 
   /* store hmc in board */  
   board[QBBLAST] = SETHMC (board[QBBLAST], hmc);
 }
 /* restore board again */
-void undomove(Bitboard *board, Move move, Move lastmove)
+void undomove (Bitboard *board, Move move, Move lastmove)
 {
-  Square sqfrom   = GETSQFROM (move);
-  Square sqto     = GETSQTO (move);
-  Square sqcpt    = GETSQCPT (move);
-  Piece pfrom     = GETPFROM (move);
+  Square sqfrom   = GETSQFROM(move);
+  Square sqto     = GETSQTO(move);
+  Square sqcpt    = GETSQCPT(move);
+  Piece pfrom     = GETPFROM(move);
   Piece pcpt      = GETPCPT (move);
   Bitboard bbTemp = BBEMPTY;
   Piece pcastle   = PNONE;
@@ -342,7 +342,7 @@ void undomove(Bitboard *board, Move move, Move lastmove)
   board[QBBLAST] = lastmove;
 
   /* unset square capture, square to */
-  bbTemp = CLRMASKBB(sqcpt) & CLRMASKBB(sqto);
+  bbTemp = CLRMASKBB (sqcpt) & CLRMASKBB (sqto);
   board[QBBBLACK] &= bbTemp;
   board[QBBP1]    &= bbTemp;
   board[QBBP2]    &= bbTemp;
@@ -361,7 +361,7 @@ void undomove(Bitboard *board, Move move, Move lastmove)
   board[QBBP3]    |= ((pfrom>>3)&0x1)<<sqfrom;
 
   /* restore castle rook, queenside */
-  pcastle = (GETPTYPE (pfrom) == KING && sqfrom-sqto == 2)? 
+  pcastle = (GETPTYPE(pfrom) == KING && sqfrom-sqto == 2)? 
             (ROOK<<1) | (pfrom&0x1) : PNONE;
 
   board[QBBBLACK] |= (pcastle&0x1)<<(sqfrom-4);
@@ -370,7 +370,7 @@ void undomove(Bitboard *board, Move move, Move lastmove)
   board[QBBP1]    |= ((pcastle>>3)&0x1)<<(sqfrom-4);
 
   /* restore castle rook, kingside */
-  pcastle = (GETPTYPE (pfrom) == KING && sqto-sqfrom == 2)?
+  pcastle = (GETPTYPE(pfrom) == KING && sqto-sqfrom == 2)?
             (ROOK<<1) | (pfrom&0x1) : PNONE;
 
   board[QBBBLACK] |= (pcastle&0x1)<<(sqfrom+3);
@@ -379,7 +379,7 @@ void undomove(Bitboard *board, Move move, Move lastmove)
   board[QBBP1]    |= ((pcastle>>3)&0x1)<<(sqfrom+3);
 }
 /* is piece in check via superpiece approach */
-bool pieceincheck(Bitboard *board, Square sq, bool stm) 
+bool pieceincheck (Bitboard *board, Square sq, bool stm) 
 {
 
   Bitboard bbWrap;
@@ -396,7 +396,7 @@ bool pieceincheck(Bitboard *board, Square sq, bool stm)
   bbMoves = BBEMPTY;
   /* directions left shifting <<1 ROOK */
   bbPro   = ~bbBlockers;
-  bbGen   = SETMASKBB(sq);
+  bbGen   = SETMASKBB (sq);
   bbWrap  = BBNOTAFILE;
   bbPro  &= bbWrap;
   /* do kogge stone */
@@ -411,7 +411,7 @@ bool pieceincheck(Bitboard *board, Square sq, bool stm)
 
   /* directions left shifting <<8 ROOK */
   bbPro   = ~bbBlockers;
-  bbGen   = SETMASKBB(sq);
+  bbGen   = SETMASKBB (sq);
   /* do kogge stone */
   bbGen  |= bbPro &   (bbGen << 8);
   bbPro  &=           (bbPro << 8);
@@ -424,7 +424,7 @@ bool pieceincheck(Bitboard *board, Square sq, bool stm)
 
   /* directions right shifting >>1 ROOK */
   bbPro   = ~bbBlockers;
-  bbGen   = SETMASKBB(sq);
+  bbGen   = SETMASKBB (sq);
   bbWrap  = BBNOTHFILE;
   bbPro  &= bbWrap;
   /* do kogge stone */
@@ -439,7 +439,7 @@ bool pieceincheck(Bitboard *board, Square sq, bool stm)
 
   /* directions right shifting >>8 ROOK */
   bbPro   = ~bbBlockers;
-  bbGen   = SETMASKBB(sq);
+  bbGen   = SETMASKBB (sq);
   /* do kogge stone */
   bbGen  |= bbPro &   (bbGen >> 8);
   bbPro  &=           (bbPro >> 8);
@@ -458,11 +458,10 @@ bool pieceincheck(Bitboard *board, Square sq, bool stm)
     return true;
   }
 
-
   bbMoves = BBEMPTY;
   /* directions left shifting <<9 BISHOP */
   bbPro   = ~bbBlockers;
-  bbGen   = SETMASKBB(sq);
+  bbGen   = SETMASKBB (sq);
 
   bbWrap  = BBNOTAFILE;
   bbPro  &= bbWrap;
@@ -478,7 +477,7 @@ bool pieceincheck(Bitboard *board, Square sq, bool stm)
 
   /* directions left shifting <<7 BISHOP */
   bbPro   = ~bbBlockers;
-  bbGen   = SETMASKBB(sq);
+  bbGen   = SETMASKBB (sq);
   bbWrap  = BBNOTHFILE;
   bbPro  &= bbWrap;
   /* do kogge stone */
@@ -493,7 +492,7 @@ bool pieceincheck(Bitboard *board, Square sq, bool stm)
 
   /* directions right shifting >>9 ROOK */
   bbPro   = ~bbBlockers;
-  bbGen   = SETMASKBB(sq);
+  bbGen   = SETMASKBB (sq);
   bbWrap  = BBNOTHFILE;
   bbPro  &= bbWrap;
   /* do kogge stone */
@@ -508,7 +507,7 @@ bool pieceincheck(Bitboard *board, Square sq, bool stm)
 
   /* directions right shifting <<7 ROOK */
   bbPro   = ~bbBlockers;
-  bbGen   = SETMASKBB(sq);
+  bbGen   = SETMASKBB (sq);
   bbWrap  = BBNOTAFILE;
   bbPro  &= bbWrap;
   /* do kogge stone */
@@ -531,21 +530,21 @@ bool pieceincheck(Bitboard *board, Square sq, bool stm)
 
   /* knights */
   bbWork = bbBoth[stm]&(~board[QBBP1]&board[QBBP2]&~board[QBBP3]);
-  bbMoves = AttackTablesTo[(!stm)*7*64+KNIGHT*64+sq] ;
+  bbMoves = AttackTablesTo[stm*7*64+KNIGHT*64+sq] ;
   if (bbMoves&bbWork) 
   {
     return true;
   }
   /* pawns */
   bbWork = bbBoth[stm]&(board[QBBP1]&~board[QBBP2]&~board[QBBP3]);
-  bbMoves = AttackTablesTo[(!stm)*7*64+PAWN*64+sq];
+  bbMoves = AttackTablesTo[stm*7*64+PAWN*64+sq];
   if (bbMoves&bbWork)
   {
     return true;
   }
   /* king */
   bbWork = bbBoth[stm]&(board[QBBP1]&board[QBBP2]&~board[QBBP3]);
-  bbMoves = AttackTablesTo[(!stm)*7*64+KING*64+sq];
+  bbMoves = AttackTablesTo[stm*7*64+KING*64+sq];
   if (bbMoves&bbWork)
   {
     return true;
@@ -560,12 +559,12 @@ bool kingincheck(Bitboard *board, bool stm)
   Bitboard bbKing = board[QBBP1]&board[QBBP2]&~board[QBBP3]; /* get kings */
 
   /* get colored king */
-  bbKing &= (stm&BLACK)? board[QBBBLACK] : 
+  bbKing &= (stm)? board[QBBBLACK] : 
             (board[QBBBLACK]^(board[QBBP1]|board[QBBP2]|board[QBBP3]));
 
-  sqking  = first1(bbKing);
+  sqking  = first1 (bbKing);
 
-  return pieceincheck(board, sqking, !stm);
+  return pieceincheck (board, sqking, !stm);
 }
 
 /* generate legal moves via generalized KoggeStone bitboard approach by Steffan Westcott */
@@ -602,7 +601,7 @@ static int genmoves_general (Bitboard *board, Move *moves, int movecounter, bool
   /* for each piece of site to move */
   while (bbWork)
   {
-    sqfrom   = popfirst1(&bbWork);
+    sqfrom   = popfirst1 (&bbWork);
     pfrom   = GETPIECE(board, sqfrom);
     bbTemp  = BBEMPTY;
 
@@ -611,7 +610,7 @@ static int genmoves_general (Bitboard *board, Move *moves, int movecounter, bool
     {
       shift   = shifts[GETPTYPE(pfrom)*4+i];
       bbPro   = ~bbBlockers;
-      bbGen   = SETMASKBB(sqfrom);
+      bbGen   = SETMASKBB (sqfrom);
       bbWrap  = (GETPTYPE(pfrom)==KNIGHT)?BBFULL:wraps[i];
     
       bbPro  &= bbWrap;
@@ -630,7 +629,7 @@ static int genmoves_general (Bitboard *board, Move *moves, int movecounter, bool
     {
       shift   = shifts[GETPTYPE(pfrom)*4+i];
       bbPro   = ~bbBlockers;
-      bbGen   = SETMASKBB(sqfrom);
+      bbGen   = SETMASKBB (sqfrom);
       bbWrap  = (GETPTYPE(pfrom)==KNIGHT)?BBFULL:wraps[i];
 
       bbPro  &= bbWrap;
@@ -645,47 +644,46 @@ static int genmoves_general (Bitboard *board, Move *moves, int movecounter, bool
       bbTemp |= bbGen;
     }
 
-
     /* verify against attack tables */
     bbPro = (GETPTYPE(pfrom)==PAWN)? 
             (PawnAttackTables[stm*64+sqfrom]&bbBoth[!stm]) | 
             (PawnAttackTables[(stm+2)*64+sqfrom]&~bbBlockers) :
-            AttackTables[(stm*7*64)+GETPTYPE(pfrom)*64+sqfrom];
+             AttackTables[(stm*7*64)+GETPTYPE(pfrom)*64+sqfrom];
     bbTemp &= bbPro; 
 
     /* captures */    
     bbMoves  = bbTemp&bbBoth[!stm];
     /* non captures */    
-    bbMoves |= (qs)? BBEMPTY : (bbTemp&~bbBlockers);
+    bbMoves |= (qs)?BBEMPTY:(bbTemp&~bbBlockers);
 
     /* extract moves */
     while (bbMoves)
     {
-      sqto      = popfirst1(&bbMoves);
+      sqto      = popfirst1 (&bbMoves);
       sqcpt     = sqto;
-      pcpt      = GETPIECE (board, sqcpt);
+      pcpt      = GETPIECE(board, sqcpt);
 
       /* TODO: pawn promo always queen */
       pto = pfrom;
 
       /* get score, non captures via static values, capture via MVV-LVA */
-      score = (pcpt==PNONE)? (evalmove(pto, sqto, stm)-evalmove(pfrom, sqfrom, stm)) : (EvalPieceValues[pcpt]*16-EvalPieceValues[pto]);
+      score = (pcpt==PNONE)? (evalmove (pto, sqto, stm)-evalmove(pfrom, sqfrom, stm)) : (EvalPieceValues[pcpt]*16-EvalPieceValues[pto]);
 
       /* pack move into 64 bits, considering castle rights and halfmovecounter and score */
-      move = MAKEMOVE(sqfrom, sqto, sqcpt, pfrom, pto, pcpt, sqep, GETCR(lastmove), GETHMC(lastmove), (u64)score);
+      move = MAKEMOVE (sqfrom, sqto, sqcpt, pfrom, pto, pcpt, sqep, GETCR(lastmove), GETHMC(lastmove), (u64)score);
 
-      domove(board, move);
-      if (!kingincheck(board, stm))
+      domove (board, move);
+      if (!kingincheck (board, stm))
       {
         moves[movecounter] = move;
         movecounter++;
       }
-      undomove(board, move, lastmove);
+      undomove (board, move, lastmove);
     }
   }
   return movecounter;
 }
-static Score perft(Bitboard *board, bool stm, u32 depth)
+static Score perft (Bitboard *board, bool stm, u32 depth)
 {
 
   Move moves[MAXMOVES];
@@ -695,7 +693,7 @@ static Score perft(Bitboard *board, bool stm, u32 depth)
   int movecounter = 0;
   bool kic = false;
 
-  kic = kingincheck(board, stm);
+  kic = kingincheck (board, stm);
 
   if (depth == SD)
   {
@@ -703,15 +701,15 @@ static Score perft(Bitboard *board, bool stm, u32 depth)
     return 0;
   }
 
-  movecounter = genmoves_general(board, moves, movecounter, stm, false);
+  movecounter = genmoves_general (board, moves, movecounter, stm, false);
 
   MOVECOUNT+= movecounter;
 
-  if (movecounter==0&&kic)
+  if (movecounter == 0 && kic)
   {
     return 0;
   }
-  if (movecounter==0&&!kic) 
+  if (movecounter == 0 && !kic) 
   {
     return 0;
   }
@@ -719,9 +717,9 @@ static Score perft(Bitboard *board, bool stm, u32 depth)
   /* iterate through moves */
   for (i=0;i<movecounter;i++)
   {
-    domove(board, moves[i]);
+    domove (board, moves[i]);
     score = -perft(board, !stm, depth+1);
-    undomove(board, moves[i], lastmove);
+    undomove (board, moves[i], lastmove);
   }
   return 0;
 }
@@ -747,8 +745,8 @@ int main (int argc, char* argv[])
   s32 option_index = 0;
 
   /* no buffers */
-  setbuf(stdout, NULL);
-  setbuf(stdin, NULL);
+  setbuf (stdout, NULL);
+  setbuf (stdin, NULL);
 
   /* getopt loop, parsing for help, version and logging */
   while ((c = getopt_long_only (argc, argv, "",
@@ -778,9 +776,9 @@ int main (int argc, char* argv[])
     }
   }
   /* init memory, files and tables */
-  if (!inits())
+  if (!inits ())
   {
-    release_inits();
+    release_inits ();
     exit (EXIT_FAILURE);
   }
   /* open log file */
@@ -834,7 +832,7 @@ int main (int argc, char* argv[])
     /* set xboard mode */
     if (!strcmp (Command, "xboard"))
     {
-      printf("feature done=0\n");  
+      printf ("feature done=0\n");  
       xboard_mode = true;
       continue;
     }
@@ -845,8 +843,8 @@ int main (int argc, char* argv[])
       /* zeta supports only CECP >= v2 */
       if (xboard_mode && xboard_protover<2)
       {
-        printf("Error (unsupported protocoll version,  < v2): protover\n");
-        printf("tellusererror (unsupported protocoll version, < v2): protover\n");
+        printf ("Error (unsupported protocoll version,  < v2): protover\n");
+        printf ("tellusererror (unsupported protocoll version, < v2): protover\n");
       }
       else
       {
@@ -887,7 +885,7 @@ int main (int argc, char* argv[])
       if (!setboard 
           (BOARD, "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"))
       {
-        printf("Error (in setting start postition): new\n");        
+        printf ("Error (in setting start postition): new\n");        
       }
       if (!xboard_mode)
         print_board(BOARD);
@@ -900,7 +898,7 @@ int main (int argc, char* argv[])
       sscanf (Line, "setboard %1023[0-9a-zA-Z /-]", Fen);
       if(!setboard (BOARD, Fen))
       {
-        printf("Error (in setting chess psotition via fen string): setboard\n");        
+        printf ("Error (in setting chess psotition via fen string): setboard\n");        
       }
       if (!xboard_mode)
         print_board(BOARD);
@@ -911,8 +909,8 @@ int main (int argc, char* argv[])
       /* zeta supports only CECP >= v2 */
       if (xboard_mode && xboard_protover<2)
       {
-        printf("Error (unsupported protocoll version, < v2): go\n");
-        printf("tellusererror (unsupported protocoll version. < v2): go\n");
+        printf ("Error (unsupported protocoll version, < v2): go\n");
+        printf ("tellusererror (unsupported protocoll version. < v2): go\n");
       }
       xboard_force = false;
       PLY++;
@@ -940,8 +938,8 @@ int main (int argc, char* argv[])
       /* zeta supports only CECP >= v2 */
       if (xboard_mode && xboard_protover<2)
       {
-        printf("Error (unsupported protocoll version, < v2): usermove\n");
-        printf("tellusererror (unsupported protocoll version, <v2): usermove\n");
+        printf ("Error (unsupported protocoll version, < v2): usermove\n");
+        printf ("tellusererror (unsupported protocoll version, <v2): usermove\n");
       }
       PLY++;
       STM = !STM;
@@ -1031,17 +1029,17 @@ int main (int argc, char* argv[])
       NODECOUNT = 0;
       MOVECOUNT = 0;
 
-      printf("#doing perft depth %u:\n", SD);  
+      printf ("#doing perft depth %u:\n", SD);  
 
       start = get_time();
 
-      perft(BOARD, STM, 0);
+      perft (BOARD, STM, 0);
 
       end = get_time();   
       elapsed = end-start;
       elapsed /= 1000;
 
-      printf("%llu, nodes in %f seconds \n", NODECOUNT, elapsed);
+      printf ("%llu, nodes in %f seconds \n", NODECOUNT, elapsed);
 
       continue;
     }
@@ -1076,82 +1074,82 @@ int main (int argc, char* argv[])
     /* not supported xboard commands...tell user */
 		if (!strcmp (Command, "edit"))
     {
-      printf("Error (unsupported command): %s\n",Command);
-      printf("tellusererror (unsupported command): %s\n",Command);
-      printf("tellusererror engine supports only CECP (Xboard) version >=2\n");
+      printf ("Error (unsupported command): %s\n",Command);
+      printf ("tellusererror (unsupported command): %s\n",Command);
+      printf ("tellusererror engine supports only CECP (Xboard) version >=2\n");
       continue;
     }
 		if (!strcmp (Command, "undo"))
     {
-      printf("Error (unsupported command): %s\n",Command);
-      printf("tellusererror (unsupported command): %s\n",Command);
+      printf ("Error (unsupported command): %s\n",Command);
+      printf ("tellusererror (unsupported command): %s\n",Command);
       continue;
     }
 		if (!strcmp (Command, "remove"))
     {
-      printf("Error (unsupported command): %s\n",Command);
-      printf("tellusererror (unsupported command): %s\n",Command);
+      printf ("Error (unsupported command): %s\n",Command);
+      printf ("tellusererror (unsupported command): %s\n",Command);
       continue;
     }
 		if (!strcmp (Command, "remove"))
     {
-      printf("Error (unsupported command): %s\n",Command);
-      printf("tellusererror (unsupported command): %s\n",Command);
+      printf ("Error (unsupported command): %s\n",Command);
+      printf ("tellusererror (unsupported command): %s\n",Command);
       continue;
     }
 		if (!strcmp (Command, "analyze"))
     {
-      printf("Error (unsupported command): %s\n",Command);
-      printf("tellusererror (unsupported command): %s\n",Command);
+      printf ("Error (unsupported command): %s\n",Command);
+      printf ("tellusererror (unsupported command): %s\n",Command);
       continue;
     }
 		if (!strcmp (Command, "pause"))
     {
-      printf("Error (unsupported command): %s\n",Command);
-      printf("tellusererror (unsupported command): %s\n",Command);
+      printf ("Error (unsupported command): %s\n",Command);
+      printf ("tellusererror (unsupported command): %s\n",Command);
       continue;
     }
 		if (!strcmp (Command, "resume"))
     {
-      printf("Error (unsupported command): %s\n",Command);
-      printf("tellusererror (unsupported command): %s\n",Command);
+      printf ("Error (unsupported command): %s\n",Command);
+      printf ("tellusererror (unsupported command): %s\n",Command);
       continue;
     }
     /* unknown command...*/
-    printf("Error (unsupported command): %s\n",Command);
+    printf ("Error (unsupported command): %s\n",Command);
   }
 
   /* release memory, files and tables */
-  release_inits();
+  release_inits ();
 
   exit (EXIT_SUCCESS);
 }
 
 /* print bitboard */
-static void print_bitboard(Bitboard board)
+static void print_bitboard (Bitboard board)
 {
 
   int rank;
   int file;
   Square sq;
 
-  printf("###ABCDEFGH###\n");
+  printf ("###ABCDEFGH###\n");
   for(rank = RANK_8; rank >= RANK_1; rank--) {
     printf ("#%i ",rank+1);
     for(file = FILE_A; file < FILE_NONE; file++) {
-      sq = MAKESQ (file, rank);
+      sq = MAKESQ(file, rank);
       if (board&SETMASKBB(sq)) 
         printf ("x");
       else 
-        printf("-");
+        printf ("-");
     }
-    printf("\n");
+    printf ("\n");
   }
-  printf("###ABCDEFGH###\n");
+  printf ("###ABCDEFGH###\n");
 
   fflush(stdout);
 }
-void print_move(Move move)
+void print_move (Move move)
 {
   printf ("sqfrom:%llu\n",GETSQFROM(move));
   printf ("sqto:%llu\n",GETSQTO(move));
@@ -1186,18 +1184,18 @@ Move alg2move (char *usermove, Bitboard *board, bool stm)
   rank    = (int)usermove[3] -49;
   sqto    = MAKESQ(file, rank);
 
-  pfrom = GETPIECE (board, sqfrom);
+  pfrom = GETPIECE(board, sqfrom);
   pto = pfrom;
   sqcpt = sqto;
-  pcpt = GETPIECE (board, sqcpt);
+  pcpt = GETPIECE(board, sqcpt);
 
   /* en passant move */
-  sqcpt = ( (pfrom>>1) == PAWN && (stm == WHITE) && GETRANK (sqfrom) == RANK_5  
+  sqcpt = ( (pfrom>>1) == PAWN && (stm == WHITE) && GETRANK(sqfrom) == RANK_5  
             && sqto-sqfrom != 8 && (pcpt>>1) == PNONE ) ? sqto-8 : sqcpt;
-  sqcpt = ( (pfrom>>1) == PAWN && (stm == BLACK) && GETRANK (sqfrom) == RANK_4  
+  sqcpt = ( (pfrom>>1) == PAWN && (stm == BLACK) && GETRANK(sqfrom) == RANK_4  
             && sqfrom-sqto != 8 && (pcpt>>1) == PNONE ) ? sqto+8 : sqcpt;
 
-  pcpt = GETPIECE (board, sqcpt);
+  pcpt = GETPIECE(board, sqcpt);
 
   /* pawn double square move, set en passant target square */
   if ( (pfrom>>1) == PAWN && GETRRANK(sqto,stm) - GETRRANK(sqfrom,stm) == 2 )
@@ -1227,16 +1225,16 @@ void move2alg (Move move, char * movec)
 {
   char rankc[8] = "12345678";
   char filec[8] = "abcdefgh";
-  Square from   = GETSQFROM (move);
-  Square to     = GETSQTO (move);
-  Piece pfrom   = GETPFROM (move);
-  Piece pto     = GETPTO (move);
+  Square from   = GETSQFROM(move);
+  Square to     = GETSQTO(move);
+  Piece pfrom   = GETPFROM(move);
+  Piece pto     = GETPTO(move);
 
 
-  movec[0] = filec[GETFILE (from)];
-  movec[1] = rankc[GETRANK (from)];
-  movec[2] = filec[GETFILE (to)];
-  movec[3] = rankc[GETRANK (to)];
+  movec[0] = filec[GETFILE(from)];
+  movec[1] = rankc[GETRANK(from)];
+  movec[2] = filec[GETFILE(to)];
+  movec[3] = rankc[GETRANK(to)];
   movec[4] = ' ';
   movec[5] = '\0';
 
@@ -1269,11 +1267,13 @@ void createfen (char *fenstring, Bitboard *board, bool stm, int gameply)
   int spaces = 0;
 
   /* add pieces from board to string */
-  for (rank = RANK_8; rank >= RANK_1; rank--) {
+  for (rank = RANK_8; rank >= RANK_1; rank--)
+  {
     spaces=0;
-    for (file = FILE_A; file < FILE_NONE; file++) {
-      sq = MAKESQ (file, rank);
-      piece = GETPIECE (board, sq);
+    for (file = FILE_A; file < FILE_NONE; file++)
+    {
+      sq = MAKESQ(file, rank);
+      piece = GETPIECE(board, sq);
       /* handle empty squares */
       if (spaces > 0 && piece != PNONE)
       {
@@ -1302,7 +1302,7 @@ void createfen (char *fenstring, Bitboard *board, bool stm, int gameply)
   stringptr+=sprintf (stringptr, " ");
 
   /* add site to move */
-  if (stm == BLACK)
+  if (stm&BLACK)
   {
     stringptr+=sprintf (stringptr, "b");
   }
@@ -1335,11 +1335,11 @@ void createfen (char *fenstring, Bitboard *board, bool stm, int gameply)
   stringptr+=sprintf (stringptr," ");
 
   /* add en passant target square */
-  sq = GETSQEP (board[QBBLAST]);
+  sq = GETSQEP(board[QBBLAST]);
   if (sq > 0)
   {
-    stringptr+=sprintf (stringptr, "%c", filec[GETFILE (sq)]);
-    stringptr+=sprintf (stringptr, "%c", rankc[GETRANK (sq)]);
+    stringptr+=sprintf (stringptr, "%c", filec[GETFILE(sq)]);
+    stringptr+=sprintf (stringptr, "%c", rankc[GETRANK(sq)]);
   }
   else
     stringptr+=sprintf (stringptr, "-");
@@ -1347,7 +1347,7 @@ void createfen (char *fenstring, Bitboard *board, bool stm, int gameply)
   stringptr+=sprintf (stringptr," ");
 
   /* add halpfmove clock  */
-  stringptr+=sprintf (stringptr, "%d",GETHMC (board[QBBLAST]));
+  stringptr+=sprintf (stringptr, "%d",GETHMC(board[QBBLAST]));
   stringptr+=sprintf (stringptr, " ");
 
   stringptr+=sprintf (stringptr, "%d", (gameply/2));
@@ -1355,7 +1355,7 @@ void createfen (char *fenstring, Bitboard *board, bool stm, int gameply)
 }
 
 /* print quadbitbooard */
-void print_board(Bitboard *board)
+void print_board (Bitboard *board)
 {
 
   int rank;
@@ -1375,11 +1375,13 @@ print_bitboard(board[4]);
 print_bitboard(board[5]);
 */
   printf ("###ABCDEFGH###\n");
-  for(rank = RANK_8; rank >= RANK_1; rank--) {
+  for (rank = RANK_8; rank >= RANK_1; rank--) 
+  {
     printf ("#%i ",rank+1);
-    for(file = FILE_A; file < FILE_NONE; file++) {
-      sq = MAKESQ (file, rank);
-      piece = GETPIECE (board, sq);
+    for (file = FILE_A; file < FILE_NONE; file++)
+    {
+      sq = MAKESQ(file, rank);
+      piece = GETPIECE(board, sq);
       if (piece != PNONE && (piece&BLACK))
         printf ("%c", bpchars[piece>>1]);
       else if (piece != PNONE)
@@ -1479,7 +1481,7 @@ bool setboard (Bitboard *board, char *fenstring)
         }
         else if (j >= 7)
         {
-            sq               = MAKESQ (file, rank);
+            sq               = MAKESQ(file, rank);
             piece            = j-7;
             piece            = (piece<<1) | (u64)BLACK;
             board[QBBBLACK] |= (piece&0x1)<<sq;
@@ -1490,7 +1492,7 @@ bool setboard (Bitboard *board, char *fenstring)
         }
         else if (j <= 6)
         {
-            sq               = MAKESQ (file, rank);
+            sq               = MAKESQ(file, rank);
             piece            = j;
             piece            = (piece<<1) | (u64)WHITE;
             board[QBBBLACK] |= (piece&0x1)<<sq;
@@ -1541,7 +1543,7 @@ bool setboard (Bitboard *board, char *fenstring)
   {
     file  = cep[0] - 97;
     rank  = cep[1] - 49;
-    sq    = MAKESQ (file, rank);
+    sq    = MAKESQ(file, rank);
     lastmove = SETSQEP (lastmove, sq);
   }
 
