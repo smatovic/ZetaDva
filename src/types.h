@@ -142,9 +142,9 @@ typedef u64             Rank;
 /* move helpers */
 #define GETPTYPE(p)        (((p)>>1)&0x7)      /* 3 bit piece type encoding */
 #define GETSQFROM(mv)      ((mv)&0x3F)         /* 6 bit square */
-#define GETSQTO(mv)        (((mv)>>6)&0xF)     /* 6 bit square */
-#define GETSQCPT(mv)   (((mv)>>12)&0x3F)   /* 6 bit square */
-#define GETPFROM(mv)       (((mv)>>18)&0x3F)   /* 4 bit piece encoding */
+#define GETSQTO(mv)        (((mv)>>6)&0x3F)    /* 6 bit square */
+#define GETSQCPT(mv)       (((mv)>>12)&0x3F)   /* 6 bit square */
+#define GETPFROM(mv)       (((mv)>>18)&0xF)    /* 4 bit piece encoding */
 #define GETPTO(mv)         (((mv)>>22)&0xF)    /* 4 bit piece encoding */
 #define GETPCPT(mv)        (((mv)>>26)&0xF)    /* 4 bit piece encodinge */
 #define GETSQEP(mv)        (((mv)>>30)&0x3F)   /* 6 bit square */
@@ -154,7 +154,6 @@ typedef u64             Rank;
 #define GETCR(mv)          (((mv)&SMCRALL))    /* 4 bit castle rights */
 #define SETCR(mv,cr)       (((mv)&CMCRALL)|cr)   /* 4 bit castle rights */
 #define GETSCORE(mv)       (((mv)>>48)&0xFFFF) /* signed 16 bit score */
-#define SETSCORE(mv,score) (((mv)&CMSCORE)|(((score)&0xFFFF)<<48)) 
 #define SETSCORE(mv,score) (((mv)&CMSCORE)|(((score)&0xFFFF)<<48)) 
 /* pack move into 64 bits */
 #define MAKEMOVE(sqfrom, sqto, sqcpt, pfrom, pto, pcpt, sqep, hmc, cr, score) \
