@@ -1014,9 +1014,7 @@ int main (int argc, char* argv[])
       elapsed = end-start;
       elapsed /= 1000;
 
-      printf ("%llu, nodes in %f seconds \n", NODECOUNT, elapsed);
-
-print_board(BOARD);
+      printf ("%llu nodes, seconds: %f, nps: %llu \n", NODECOUNT, elapsed, (u64)(NODECOUNT/elapsed));
 
       continue;
     }
