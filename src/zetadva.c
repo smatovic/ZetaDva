@@ -236,7 +236,7 @@ void domove (Bitboard *board, Move move)
 
   /* handle castle rook, queenside */
   pcastle = (GETPTYPE(pfrom) == KING && sqfrom-sqto == 2)?
-            (ROOK<<1) | (pfrom&0x1) : PNONE;
+            MAKEPIECE(ROOK,GETCOLOR(pfrom)) : PNONE;
 
   board[QBBBLACK] |= (pcastle&0x1)<<(sqto+1);
   board[QBBP1]    |= ((pcastle>>1)&0x1)<<(sqto+1);
@@ -252,7 +252,7 @@ void domove (Bitboard *board, Move move)
 
   /* handle castle rook, kingside */
   pcastle = (GETPTYPE(pfrom) == KING && sqto-sqfrom == 2)?
-            (ROOK<<1) | (pfrom&0x1) : PNONE;
+            MAKEPIECE(ROOK,GETCOLOR(pfrom)) : PNONE;
 
   board[QBBBLACK] |= (pcastle&0x1)<<(sqto-1);
   board[QBBP1]    |= ((pcastle>>1)&0x1)<<(sqto-1);
@@ -333,7 +333,7 @@ void undomove (Bitboard *board, Move move, Move lastmove)
 
   /* restore castle rook, queenside */
   pcastle = (GETPTYPE(pfrom) == KING && sqfrom-sqto == 2)? 
-            (ROOK<<1) | (pfrom&0x1) : PNONE;
+            MAKEPIECE(ROOK,GETCOLOR(pfrom)) : PNONE;
 
   board[QBBBLACK] |= (pcastle&0x1)<<(sqfrom-4);
   board[QBBP1]    |= ((pcastle>>1)&0x1)<<(sqfrom-4);
@@ -342,7 +342,7 @@ void undomove (Bitboard *board, Move move, Move lastmove)
 
   /* restore castle rook, kingside */
   pcastle = (GETPTYPE(pfrom) == KING && sqto-sqfrom == 2)?
-            (ROOK<<1) | (pfrom&0x1) : PNONE;
+            MAKEPIECE(ROOK,GETCOLOR(pfrom)) : PNONE;
 
   board[QBBBLACK] |= (pcastle&0x1)<<(sqfrom+3);
   board[QBBP1]    |= ((pcastle>>1)&0x1)<<(sqfrom+3);
@@ -636,7 +636,7 @@ static int genmoves_general (Bitboard *board, Move *moves, int movecounter, bool
       pcpt      = GETPIECE(board, sqcpt);
 
       /* handle pawn promo: knight */
-      pto = (GETPTYPE(pfrom) == PAWN && GETRRANK(sqto,stm) == RANK_8)?MAKEP(KNIGHT,(u64)stm):pfrom;
+      pto = (GETPTYPE(pfrom) == PAWN && GETRRANK(sqto,stm) == RANK_8)?MAKEPIECE(KNIGHT,(u64)stm):pfrom;
       /* get score, non captures via static values, capture via MVV-LVA */
       score = (pcpt==PNONE)? (evalmove (pto, sqto, stm)-evalmove(pfrom, sqfrom, stm)) : (EvalPieceValues[pcpt]*16-EvalPieceValues[pto]);
       /* pack move into 64 bits, considering castle rights and halfmovecounter and score */
@@ -653,7 +653,7 @@ static int genmoves_general (Bitboard *board, Move *moves, int movecounter, bool
 
       /* TODO: in non-perft do queen promo only? */
       /* handle pawn promo: bishop */
-      pto = (!kic&&GETPTYPE(pfrom)==PAWN&&GETRRANK(sqto,stm)==RANK_8)?MAKEP(BISHOP,(u64)stm):PNONE;
+      pto = (!kic&&GETPTYPE(pfrom)==PAWN&&GETRRANK(sqto,stm)==RANK_8)?MAKEPIECE(BISHOP,(u64)stm):PNONE;
       /* get score, non captures via static values, capture via MVV-LVA */
       score = (pcpt==PNONE)? (evalmove (pto, sqto, stm)-evalmove(pfrom, sqfrom, stm)) : (EvalPieceValues[pcpt]*16-EvalPieceValues[pto]);
       /* pack move into 64 bits, considering castle rights and halfmovecounter and score */
@@ -662,7 +662,7 @@ static int genmoves_general (Bitboard *board, Move *moves, int movecounter, bool
       movecounter+=(pto!=PNONE)?1:0;
 
       /* handle pawn promo: rook */
-      pto = (!kic&&GETPTYPE(pfrom)==PAWN&&GETRRANK(sqto,stm)==RANK_8)?MAKEP(ROOK,(u64)stm):PNONE;
+      pto = (!kic&&GETPTYPE(pfrom)==PAWN&&GETRRANK(sqto,stm)==RANK_8)?MAKEPIECE(ROOK,(u64)stm):PNONE;
       /* get score, non captures via static values, capture via MVV-LVA */
       score = (pcpt==PNONE)? (evalmove (pto, sqto, stm)-evalmove(pfrom, sqfrom, stm)) : (EvalPieceValues[pcpt]*16-EvalPieceValues[pto]);
       /* pack move into 64 bits, considering castle rights and halfmovecounter and score */
@@ -671,7 +671,7 @@ static int genmoves_general (Bitboard *board, Move *moves, int movecounter, bool
       movecounter+=(pto!=PNONE)?1:0;
 
       /* handle pawn promo: queen */
-      pto = (!kic&&GETPTYPE(pfrom)==PAWN&&GETRRANK(sqto,stm)==RANK_8)?MAKEP(QUEEN,(u64)stm):PNONE;
+      pto = (!kic&&GETPTYPE(pfrom)==PAWN&&GETRRANK(sqto,stm)==RANK_8)?MAKEPIECE(QUEEN,(u64)stm):PNONE;
       /* get score, non captures via static values, capture via MVV-LVA */
       score = (pcpt==PNONE)? (evalmove (pto, sqto, stm)-evalmove(pfrom, sqfrom, stm)) : (EvalPieceValues[pcpt]*16-EvalPieceValues[pto]);
       /* pack move into 64 bits, considering castle rights and halfmovecounter and score */
@@ -1207,13 +1207,13 @@ Move alg2move (char *usermove, Bitboard *board, bool stm)
   /* pawn promo piece */
   promopiece = usermove[4];
   if (promopiece == 'q' || promopiece == 'Q' )
-      pto = QUEEN<<1 | (u64)stm;
+      pto = MAKEPIECE(QUEEN,(u64)stm);
   else if (promopiece == 'n' || promopiece == 'N' )
-      pto = KNIGHT<<1 | (u64)stm;
+      pto = MAKEPIECE(KNIGHT,(u64)stm);
   else if (promopiece == 'b' || promopiece == 'B' )
-      pto = BISHOP<<1 | (u64)stm;
+      pto = MAKEPIECE(BISHOP,(u64)stm);
   else if (promopiece == 'r' || promopiece == 'R' )
-      pto = ROOK<<1 | (u64)stm;
+      pto = MAKEPIECE(ROOK,(u64)stm);
 
   /* pack move, considering hmc, cr and score */
   move = MAKEMOVE(sqfrom, sqto, sqcpt, pfrom, pto , pcpt, sqep,
@@ -1486,7 +1486,7 @@ bool setboard (Bitboard *board, char *fenstring)
         {
             sq               = MAKESQ(file, rank);
             piece            = j-7;
-            piece            = (piece<<1) | (u64)BLACK;
+            piece            = MAKEPIECE(piece,(u64)BLACK);
             board[QBBBLACK] |= (piece&0x1)<<sq;
             board[QBBP1]    |= ((piece>>1)&0x1)<<sq;
             board[QBBP2]    |= ((piece>>2)&0x1)<<sq;
@@ -1497,7 +1497,7 @@ bool setboard (Bitboard *board, char *fenstring)
         {
             sq               = MAKESQ(file, rank);
             piece            = j;
-            piece            = (piece<<1) | (u64)WHITE;
+            piece            = MAKEPIECE(piece,(u64)WHITE);
             board[QBBBLACK] |= (piece&0x1)<<sq;
             board[QBBP1]    |= ((piece>>1)&0x1)<<sq;
             board[QBBP2]    |= ((piece>>2)&0x1)<<sq;
