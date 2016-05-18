@@ -128,8 +128,7 @@ const u64 shifts[7*4] =
    0, 1, 0, 8,              /* ROOK   */
    9, 1, 7, 8              /* QUEEN  */
 };
-
-const u64 wrap[8] =
+const Bitboard wraps[8] =
 {
   /* wraps shift left */
   0xfefefefefefefe00, /* <<9 */ 
@@ -142,34 +141,6 @@ const u64 wrap[8] =
   0x7f7f7f7f7f7f7f7f, /* >>1 */
   0x00fefefefefefefe, /* >>7 */
   0x00ffffffffffffff  /* >>8 */
-};
-
-const Bitboard wraps[7*8] =
-{
-  /* pnone wraps shifts left */
-  BBFULL, BBFULL, BBFULL, BBFULL,
-  /* pnone wraps shifts right */
-  BBFULL, BBFULL, BBFULL, BBFULL,
-  /* pawns shift left */
-  BBNOTAFILE, BBNOTHFILE, BBFULL, BBFULL, 
-  /* pawns shift right */
-  BBNOTHFILE, BBNOTAFILE, BBFULL, BBFULL, 
-  /* knights shift left */
-  BBFULL, BBFULL, BBFULL, BBFULL, 
-  /* knights shift right */
-  BBFULL, BBFULL, BBFULL, BBFULL, 
-  /* king shift left */
-  BBNOTAFILE, BBNOTAFILE, BBNOTHFILE, BBFULL, 
-  /* king shift right */
-  BBNOTHFILE, BBNOTHFILE, BBNOTAFILE, BBFULL, 
-  /* rook shift left */
-  BBNOTAFILE, BBFULL, BBFULL, BBFULL, 
-  /* rook shift right */
-  BBNOTHFILE, BBFULL, BBFULL, BBFULL, 
-  /* queen shift left */
-  BBNOTAFILE, BBNOTAFILE, BBNOTHFILE, BBFULL, 
-  /* queen shift right */
-  BBNOTHFILE, BBNOTHFILE, BBNOTAFILE, BBFULL
 };
 
 /* release memory, files and tables */
@@ -397,7 +368,7 @@ bool pieceincheck (Bitboard *board, Square sq, bool stm)
   bbMoves = BBEMPTY;
   /* directions left shifting <<1 ROOK */
   bbPro   = ~bbBlockers;
-  bbGen   = SETMASKBB (sq);
+  bbGen   = SETMASKBB(sq);
   bbWrap  = BBNOTAFILE;
   bbPro  &= bbWrap;
   /* do kogge stone */
@@ -412,7 +383,7 @@ bool pieceincheck (Bitboard *board, Square sq, bool stm)
 
   /* directions left shifting <<8 ROOK */
   bbPro   = ~bbBlockers;
-  bbGen   = SETMASKBB (sq);
+  bbGen   = SETMASKBB(sq);
   /* do kogge stone */
   bbGen  |= bbPro &   (bbGen << 8);
   bbPro  &=           (bbPro << 8);
@@ -425,7 +396,7 @@ bool pieceincheck (Bitboard *board, Square sq, bool stm)
 
   /* directions right shifting >>1 ROOK */
   bbPro   = ~bbBlockers;
-  bbGen   = SETMASKBB (sq);
+  bbGen   = SETMASKBB(sq);
   bbWrap  = BBNOTHFILE;
   bbPro  &= bbWrap;
   /* do kogge stone */
@@ -440,7 +411,7 @@ bool pieceincheck (Bitboard *board, Square sq, bool stm)
 
   /* directions right shifting >>8 ROOK */
   bbPro   = ~bbBlockers;
-  bbGen   = SETMASKBB (sq);
+  bbGen   = SETMASKBB(sq);
   /* do kogge stone */
   bbGen  |= bbPro &   (bbGen >> 8);
   bbPro  &=           (bbPro >> 8);
@@ -462,7 +433,7 @@ bool pieceincheck (Bitboard *board, Square sq, bool stm)
   bbMoves = BBEMPTY;
   /* directions left shifting <<9 BISHOP */
   bbPro   = ~bbBlockers;
-  bbGen   = SETMASKBB (sq);
+  bbGen   = SETMASKBB(sq);
 
   bbWrap  = BBNOTAFILE;
   bbPro  &= bbWrap;
@@ -478,7 +449,7 @@ bool pieceincheck (Bitboard *board, Square sq, bool stm)
 
   /* directions left shifting <<7 BISHOP */
   bbPro   = ~bbBlockers;
-  bbGen   = SETMASKBB (sq);
+  bbGen   = SETMASKBB(sq);
   bbWrap  = BBNOTHFILE;
   bbPro  &= bbWrap;
   /* do kogge stone */
@@ -493,7 +464,7 @@ bool pieceincheck (Bitboard *board, Square sq, bool stm)
 
   /* directions right shifting >>9 ROOK */
   bbPro   = ~bbBlockers;
-  bbGen   = SETMASKBB (sq);
+  bbGen   = SETMASKBB(sq);
   bbWrap  = BBNOTHFILE;
   bbPro  &= bbWrap;
   /* do kogge stone */
@@ -508,7 +479,7 @@ bool pieceincheck (Bitboard *board, Square sq, bool stm)
 
   /* directions right shifting <<7 ROOK */
   bbPro   = ~bbBlockers;
-  bbGen   = SETMASKBB (sq);
+  bbGen   = SETMASKBB(sq);
   bbWrap  = BBNOTAFILE;
   bbPro  &= bbWrap;
   /* do kogge stone */
@@ -610,7 +581,7 @@ static int genmoves_general (Bitboard *board, Move *moves, int movecounter, bool
     {
       shift   = shifts[GETPTYPE(pfrom)*4+i];
       bbPro   = ~bbBlockers;
-      bbGen   = SETMASKBB (sqfrom);
+      bbGen   = SETMASKBB(sqfrom);
       bbWrap  = (GETPTYPE(pfrom)==KNIGHT)?BBFULL:wraps[i];
     
       bbPro  &= bbWrap;
@@ -629,8 +600,8 @@ static int genmoves_general (Bitboard *board, Move *moves, int movecounter, bool
     {
       shift   = shifts[GETPTYPE(pfrom)*4+i];
       bbPro   = ~bbBlockers;
-      bbGen   = SETMASKBB (sqfrom);
-      bbWrap  = (GETPTYPE(pfrom)==KNIGHT)?BBFULL:wraps[i];
+      bbGen   = SETMASKBB(sqfrom);
+      bbWrap  = (GETPTYPE(pfrom)==KNIGHT)?BBFULL:wraps[4+i];
 
       bbPro  &= bbWrap;
       /* do kogge stone */
@@ -670,7 +641,7 @@ static int genmoves_general (Bitboard *board, Move *moves, int movecounter, bool
       score = (pcpt==PNONE)? (evalmove (pto, sqto, stm)-evalmove(pfrom, sqfrom, stm)) : (EvalPieceValues[pcpt]*16-EvalPieceValues[pto]);
 
       /* pack move into 64 bits, considering castle rights and halfmovecounter and score */
-      move = MAKEMOVE (sqfrom, sqto, sqcpt, pfrom, pto, pcpt, sqep, (u64)GETHMC(lastmove), GETCR(lastmove), (u64)score);
+      move = MAKEMOVE(sqfrom, sqto, sqcpt, pfrom, pto, pcpt, sqep, (u64)GETHMC(lastmove), GETCR(lastmove), (u64)score);
 
       domove (board, move);
       if (!kingincheck (board, stm))
@@ -1219,7 +1190,7 @@ Move alg2move (char *usermove, Bitboard *board, bool stm)
       pto = ROOK<<1 | (u64)stm;
 
   /* pack move, considering hmc, cr and score */
-  move = MAKEMOVE (sqfrom, sqto, sqcpt, pfrom, pto , pcpt, sqep,
+  move = MAKEMOVE(sqfrom, sqto, sqcpt, pfrom, pto , pcpt, sqep,
                     GETHMC(board[QBBLAST]) ,
                     GETCR(board[QBBLAST]),
                     (u64)0);
