@@ -1655,7 +1655,9 @@ void self_test (void)
     print_board(BOARD);
   
   start = get_time();
+
   perft (BOARD, STM, 0);
+
   end = get_time();   
   elapsed = end-start;
   elapsed /= 1000;
