@@ -651,6 +651,7 @@ static int genmoves_general (Bitboard *board, Move *moves, int movecounter, bool
       }
       undomove (board, move, lastmove);
 
+      /* TODO: in non-perft do queen promo only? */
       /* handle pawn promo: bishop */
       pto = (!kic&&GETPTYPE(pfrom)==PAWN&&GETRRANK(sqto,stm)==RANK_8)?MAKEP(BISHOP,(u64)stm):PNONE;
       /* get score, non captures via static values, capture via MVV-LVA */
