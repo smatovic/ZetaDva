@@ -1,8 +1,8 @@
 A) root-structure
-    - basic Xboard protocol                                     TODO
+    - basic Xboard protocol                                           WIP
     - setboard with FEN                                 DONE
     - time control                                              TODO
-    - internal test suite                                       TODO
+    - external test suite                                             WIP
     - three fold repetition rule                                TODO
     - performance tuning                                        TODO
         - incremental hash                                      TODO
@@ -30,8 +30,8 @@ C) MovGenerator (Board)                                               WIP
     - cleanup & performance tuning                              TODO
 
 D) DoMove, UnDoMove
-    - normal moves                                                    WIP
-    - castle moves                                                    WIP
+    - normal moves                                      DONE
+    - castle moves                                      DONE
 
 E) Evaluation
     - simple piece values                               DONE
@@ -39,6 +39,7 @@ E) Evaluation
     - simple pawn structure                             DONE
 
 F) Search Algorithm
+    - perft                                             DONE
     - root-search                                               TODO
     - Iterative Deepening Framwork                              TODO
     - AlphaBeta w. move ordering via MVV-LVA                    TODO
