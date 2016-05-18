@@ -387,9 +387,10 @@ bool pieceincheck (Bitboard *board, Square sq, bool stm)
   Bitboard bbPro;
   Bitboard bbWork;
   Bitboard bbMoves;
-  Bitboard bbBlockers  = board[QBBP1]|board[QBBP2]|board[QBBP3];
+  Bitboard bbBlockers;
   Bitboard bbBoth[2];
 
+  bbBlockers    = board[QBBP1]|board[QBBP2]|board[QBBP3];
   bbBoth[WHITE] = board[QBBBLACK]^bbBlockers;
   bbBoth[BLACK] = board[QBBBLACK];
 
@@ -527,7 +528,6 @@ bool pieceincheck (Bitboard *board, Square sq, bool stm)
   {
     return true;
   }
-
   /* knights */
   bbWork = bbBoth[stm]&(~board[QBBP1]&board[QBBP2]&~board[QBBP3]);
   bbMoves = AttackTablesTo[stm*7*64+KNIGHT*64+sq] ;
