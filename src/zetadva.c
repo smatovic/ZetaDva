@@ -32,7 +32,7 @@
 #include "types.h"      /* custom types, board defs, data structures, macros */
 
 /* global variables */
-FILE 	*Log_File = NULL;       /* logfile for debug */
+FILE *Log_File = NULL;        /* logfile for debug */
 char *Line;                   /* for fgetting the input on stdin */
 char *Command;                /* for pasring the xboard command */
 char *Fen;                    /* for storing the fen chess baord string */
