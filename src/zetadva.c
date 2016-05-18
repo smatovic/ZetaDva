@@ -239,7 +239,7 @@ void domove (Bitboard *board, Move move)
   Square sqcpt    = GETSQCPT(move);
   Piece pfrom     = GETPFROM(move);
   Piece pto       = GETPTO(move);
-  Piece pcpt      = GETPCPT (move);
+  Piece pcpt      = GETPCPT(move);
   Bitboard bbTemp = BBEMPTY;
   Piece pcastle   = PNONE;
   u64 hmc;
@@ -269,8 +269,8 @@ void domove (Bitboard *board, Move move)
 
   board[QBBBLACK] |= (pcastle&0x1)<<(sqto+1);
   board[QBBP1]    |= ((pcastle>>1)&0x1)<<(sqto+1);
-  board[QBBP1]    |= ((pcastle>>2)&0x1)<<(sqto+1);
-  board[QBBP1]    |= ((pcastle>>3)&0x1)<<(sqto+1);
+  board[QBBP2]    |= ((pcastle>>2)&0x1)<<(sqto+1);
+  board[QBBP3]    |= ((pcastle>>3)&0x1)<<(sqto+1);
 
   /* handle castle rights, clear all of color */
   bbTemp = (pcastle)? (pfrom&BLACK)? CMCRBLACK : CMCRWHITE : BBFULL;
@@ -285,8 +285,8 @@ void domove (Bitboard *board, Move move)
 
   board[QBBBLACK] |= (pcastle&0x1)<<(sqto-1);
   board[QBBP1]    |= ((pcastle>>1)&0x1)<<(sqto-1);
-  board[QBBP1]    |= ((pcastle>>2)&0x1)<<(sqto-1);
-  board[QBBP1]    |= ((pcastle>>3)&0x1)<<(sqto-1);
+  board[QBBP3]    |= ((pcastle>>2)&0x1)<<(sqto-1);
+  board[QBBP3]    |= ((pcastle>>3)&0x1)<<(sqto-1);
 
   /* handle castle rights, clear all of color */
   bbTemp = (pcastle)? (pfrom&BLACK)? CMCRBLACK : CMCRWHITE : BBFULL;
@@ -325,7 +325,7 @@ void domove (Bitboard *board, Move move)
   hmc = (GETPTYPE(pcpt) != PNONE )? 0 :hmc; /* capture move */
 
   /* store hmc in board */  
-  board[QBBLAST] = SETHMC (board[QBBLAST], hmc);
+  board[QBBLAST] = SETHMC(board[QBBLAST], hmc);
 }
 /* restore board again */
 void undomove (Bitboard *board, Move move, Move lastmove)
@@ -334,7 +334,7 @@ void undomove (Bitboard *board, Move move, Move lastmove)
   Square sqto     = GETSQTO(move);
   Square sqcpt    = GETSQCPT(move);
   Piece pfrom     = GETPFROM(move);
-  Piece pcpt      = GETPCPT (move);
+  Piece pcpt      = GETPCPT(move);
   Bitboard bbTemp = BBEMPTY;
   Piece pcastle   = PNONE;
 
@@ -342,7 +342,7 @@ void undomove (Bitboard *board, Move move, Move lastmove)
   board[QBBLAST] = lastmove;
 
   /* unset square capture, square to */
-  bbTemp = CLRMASKBB (sqcpt) & CLRMASKBB (sqto);
+  bbTemp = CLRMASKBB(sqcpt) & CLRMASKBB(sqto);
   board[QBBBLACK] &= bbTemp;
   board[QBBP1]    &= bbTemp;
   board[QBBP2]    &= bbTemp;
@@ -366,8 +366,8 @@ void undomove (Bitboard *board, Move move, Move lastmove)
 
   board[QBBBLACK] |= (pcastle&0x1)<<(sqfrom-4);
   board[QBBP1]    |= ((pcastle>>1)&0x1)<<(sqfrom-4);
-  board[QBBP1]    |= ((pcastle>>2)&0x1)<<(sqfrom-4);
-  board[QBBP1]    |= ((pcastle>>3)&0x1)<<(sqfrom-4);
+  board[QBBP2]    |= ((pcastle>>2)&0x1)<<(sqfrom-4);
+  board[QBBP3]    |= ((pcastle>>3)&0x1)<<(sqfrom-4);
 
   /* restore castle rook, kingside */
   pcastle = (GETPTYPE(pfrom) == KING && sqto-sqfrom == 2)?
@@ -375,8 +375,8 @@ void undomove (Bitboard *board, Move move, Move lastmove)
 
   board[QBBBLACK] |= (pcastle&0x1)<<(sqfrom+3);
   board[QBBP1]    |= ((pcastle>>1)&0x1)<<(sqfrom+3);
-  board[QBBP1]    |= ((pcastle>>2)&0x1)<<(sqfrom+3);
-  board[QBBP1]    |= ((pcastle>>3)&0x1)<<(sqfrom+3);
+  board[QBBP2]    |= ((pcastle>>2)&0x1)<<(sqfrom+3);
+  board[QBBP3]    |= ((pcastle>>3)&0x1)<<(sqfrom+3);
 }
 /* is piece in check via superpiece approach */
 bool pieceincheck (Bitboard *board, Square sq, bool stm) 
@@ -670,7 +670,7 @@ static int genmoves_general (Bitboard *board, Move *moves, int movecounter, bool
       score = (pcpt==PNONE)? (evalmove (pto, sqto, stm)-evalmove(pfrom, sqfrom, stm)) : (EvalPieceValues[pcpt]*16-EvalPieceValues[pto]);
 
       /* pack move into 64 bits, considering castle rights and halfmovecounter and score */
-      move = MAKEMOVE (sqfrom, sqto, sqcpt, pfrom, pto, pcpt, sqep, GETCR(lastmove), GETHMC(lastmove), (u64)score);
+      move = MAKEMOVE (sqfrom, sqto, sqcpt, pfrom, pto, pcpt, sqep, GETCR(lastmove), (u64)GETHMC(lastmove), (u64)score);
 
       domove (board, move);
       if (!kingincheck (board, stm))
@@ -681,6 +681,10 @@ static int genmoves_general (Bitboard *board, Move *moves, int movecounter, bool
       undomove (board, move, lastmove);
     }
   }
+
+  /* TODO: en passant moves */
+  /* TODO: castle moves */
+
   return movecounter;
 }
 static Score perft (Bitboard *board, bool stm, u32 depth)
@@ -1040,6 +1044,8 @@ int main (int argc, char* argv[])
       elapsed /= 1000;
 
       printf ("%llu, nodes in %f seconds \n", NODECOUNT, elapsed);
+
+print_board(BOARD);
 
       continue;
     }
@@ -1535,7 +1541,7 @@ bool setboard (Bitboard *board, char *fenstring)
     }
   }
   /* store castle rights into lastmove */
-  lastmove = SETHMC (lastmove, hmc);
+  lastmove = SETHMC(lastmove, hmc);
 
   /* set en passant target square */
   tempchar = cep[0];
