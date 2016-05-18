@@ -120,27 +120,56 @@ const Bitboard AttackTablesTo[2*7*64] =
 /* Kogge Stone shifts */
 const u64 shifts[7*4] =
 {
-   0, 0, 0, 0,                      /* PNONE  */
-   9, 0, 7, 8,                     /* PAWN   */
-  17,10, 6,15,                    /* KNIGTH */
-   9, 1, 7, 8,                   /* KING   */
-   9, 0, 7, 0,                  /* BISHOP */
-   0, 1, 0, 8,                 /* ROOK   */
-   9, 1, 7, 8                 /* QUEEN  */
+   0, 0, 0, 0,                   /* PNONE  */
+   9, 0, 7, 8,                  /* PAWN   */
+  17,10, 6,15,                 /* KNIGTH */
+   9, 1, 7, 8,                /* KING   */
+   9, 0, 7, 0,               /* BISHOP */
+   0, 1, 0, 8,              /* ROOK   */
+   9, 1, 7, 8              /* QUEEN  */
 };
 
-const Bitboard wraps[2*4] =
+const u64 wrap[8] =
 {
   /* wraps shift left */
-  0xfefefefefefefe00,
-  0xfefefefefefefefe,
-  0x7f7f7f7f7f7f7f00,
-  0xffffffffffffff00,
+  0xfefefefefefefe00, /* <<9 */ 
+  0xfefefefefefefefe, /* <<1 */
+  0x7f7f7f7f7f7f7f00, /* <<7 */
+  0xffffffffffffff00, /* <<8 */
+
   /* wraps shift right */
-  0x007f7f7f7f7f7f7f,
-  0x7f7f7f7f7f7f7f7f,
-  0x00fefefefefefefe,
-  0x00ffffffffffffff
+  0x007f7f7f7f7f7f7f, /* >>9 */
+  0x7f7f7f7f7f7f7f7f, /* >>1 */
+  0x00fefefefefefefe, /* >>7 */
+  0x00ffffffffffffff  /* >>8 */
+};
+
+const Bitboard wraps[7*8] =
+{
+  /* pnone wraps shifts left */
+  BBFULL, BBFULL, BBFULL, BBFULL,
+  /* pnone wraps shifts right */
+  BBFULL, BBFULL, BBFULL, BBFULL,
+  /* pawns shift left */
+  BBNOTAFILE, BBNOTHFILE, BBFULL, BBFULL, 
+  /* pawns shift right */
+  BBNOTHFILE, BBNOTAFILE, BBFULL, BBFULL, 
+  /* knights shift left */
+  BBFULL, BBFULL, BBFULL, BBFULL, 
+  /* knights shift right */
+  BBFULL, BBFULL, BBFULL, BBFULL, 
+  /* king shift left */
+  BBNOTAFILE, BBNOTAFILE, BBNOTHFILE, BBFULL, 
+  /* king shift right */
+  BBNOTHFILE, BBNOTHFILE, BBNOTAFILE, BBFULL, 
+  /* rook shift left */
+  BBNOTAFILE, BBFULL, BBFULL, BBFULL, 
+  /* rook shift right */
+  BBNOTHFILE, BBFULL, BBFULL, BBFULL, 
+  /* queen shift left */
+  BBNOTAFILE, BBNOTAFILE, BBNOTHFILE, BBFULL, 
+  /* queen shift right */
+  BBNOTHFILE, BBNOTHFILE, BBNOTAFILE, BBFULL
 };
 
 /* release memory, files and tables */
@@ -349,144 +378,175 @@ void undomove(Bitboard *board, Move move, Move lastmove)
   board[QBBP1]    |= ((pcastle>>2)&0x1)<<(sqfrom+3);
   board[QBBP1]    |= ((pcastle>>3)&0x1)<<(sqfrom+3);
 }
-/* is piece in check? */
+/* is piece in check via superpiece approach */
 bool pieceincheck(Bitboard *board, Square sq, bool stm) 
 {
 
   Bitboard bbWrap;
-  u64 shift;
-  int i;
   Bitboard bbGen;
   Bitboard bbPro;
   Bitboard bbWork;
   Bitboard bbMoves;
-  Bitboard bbTemp = board[QBBBLACK]^(board[QBBP1]|board[QBBP2]|board[QBBP3]);
-  Bitboard bbMe   = (stm&BLACK)? board[QBBBLACK]:bbTemp;
-  Bitboard bbOpposite  = (stm&BLACK)? bbTemp:board[QBBBLACK];
-  Bitboard bbBlockers  = bbMe|bbOpposite;
+  Bitboard bbBlockers  = board[QBBP1]|board[QBBP2]|board[QBBP3];
+  Bitboard bbBoth[2];
+
+  bbBoth[WHITE] = board[QBBBLACK]^bbBlockers;
+  bbBoth[BLACK] = board[QBBBLACK];
 
   bbMoves = BBEMPTY;
-  /* four directions left shifting ROOK */
-  for (i = 0; i < 4; i++)
-  {
-    bbPro   = ~bbBlockers;
-    bbGen   = SETMASKBB(sq);
+  /* directions left shifting <<1 ROOK */
+  bbPro   = ~bbBlockers;
+  bbGen   = SETMASKBB(sq);
+  bbWrap  = BBNOTAFILE;
+  bbPro  &= bbWrap;
+  /* do kogge stone */
+  bbGen  |= bbPro &   (bbGen << 1);
+  bbPro  &=           (bbPro << 1);
+  bbGen  |= bbPro &   (bbGen << 2*1);
+  bbPro  &=           (bbPro << 2*1);
+  bbGen  |= bbPro &   (bbGen << 4*1);
+  /* shift one further */
+  bbGen   = bbWrap &  (bbGen << 1);
+  bbMoves|= bbGen;
 
-    shift   = shifts[ROOK*4+i];
-    bbWrap  = wraps[i];
+  /* directions left shifting <<8 ROOK */
+  bbPro   = ~bbBlockers;
+  bbGen   = SETMASKBB(sq);
+  /* do kogge stone */
+  bbGen  |= bbPro &   (bbGen << 8);
+  bbPro  &=           (bbPro << 8);
+  bbGen  |= bbPro &   (bbGen << 2*8);
+  bbPro  &=           (bbPro << 2*8);
+  bbGen  |= bbPro &   (bbGen << 4*8);
+  /* shift one further */
+  bbGen   =           (bbGen << 8);
+  bbMoves|= bbGen;
 
-    bbPro  &= bbWrap;
+  /* directions right shifting >>1 ROOK */
+  bbPro   = ~bbBlockers;
+  bbGen   = SETMASKBB(sq);
+  bbWrap  = BBNOTHFILE;
+  bbPro  &= bbWrap;
+  /* do kogge stone */
+  bbGen  |= bbPro &   (bbGen >> 1);
+  bbPro  &=           (bbPro >> 1);
+  bbGen  |= bbPro &   (bbGen >> 2*1);
+  bbPro  &=           (bbPro >> 2*1);
+  bbGen  |= bbPro &   (bbGen >> 4*1);
+  /* shift one further */
+  bbGen   = bbWrap &  (bbGen >> 1);
+  bbMoves|= bbGen;
 
-    /* do kogge stone */
-    bbGen  |= bbPro & (bbGen << shift);
-    bbPro  &=         (bbPro << shift);
-    bbGen  |= bbPro & (bbGen << 2*shift);
-    bbPro  &=         (bbPro << 2*shift);
-    bbGen  |= bbPro & (bbGen << 4*shift);
-    /* shift one further */
-    bbGen   = bbWrap &  (bbGen << shift);
-    bbMoves|= bbGen;
-  }
-  /* four directions right shifting ROOK */
-  for (i = 0; i < 4; i++)
-  {
-    bbPro   = ~bbBlockers;
-    bbGen   = SETMASKBB(sq);
-
-    shift   = shifts[ROOK*4+i];
-    bbWrap  = wraps[4+i];
-
-    bbPro  &= bbWrap;
-
-    /* do kogge stone */
-    bbGen  |= bbPro & (bbGen >> shift);
-    bbPro  &=         (bbPro >> shift);
-    bbGen  |= bbPro & (bbGen >> 2*shift);
-    bbPro  &=         (bbPro >> 2*shift);
-    bbGen  |= bbPro & (bbGen >> 4*shift);
-    /* shift one further */
-    bbGen   = bbWrap &  (bbGen >> shift);
-    bbMoves|= bbGen;
-  }
+  /* directions right shifting >>8 ROOK */
+  bbPro   = ~bbBlockers;
+  bbGen   = SETMASKBB(sq);
+  /* do kogge stone */
+  bbGen  |= bbPro &   (bbGen >> 8);
+  bbPro  &=           (bbPro >> 8);
+  bbGen  |= bbPro &   (bbGen >> 2*8);
+  bbPro  &=           (bbPro >> 2*8);
+  bbGen  |= bbPro &   (bbGen >> 4*8);
+  /* shift one further */
+  bbGen   =           (bbGen >> 8);
+  bbMoves|= bbGen;
 
   /* rooks and queens */
-  bbWork = (  bbOpposite&board[QBBP1]&~board[QBBP2]&board[QBBP3]) 
-            | (bbOpposite&~board[QBBP1]&board[QBBP2]&board[QBBP3]);
-  if (bbMoves & bbWork)
+  bbWork =    (bbBoth[stm]&(board[QBBP1]&~board[QBBP2]&board[QBBP3])) 
+            | (bbBoth[stm]&(~board[QBBP1]&board[QBBP2]&board[QBBP3]));
+  if (bbMoves&bbWork)
   {
     return true;
   }
 
+
   bbMoves = BBEMPTY;
-  /* four directions left shifting BISHOP */
-  for (i = 0; i < 4; i++)
-  {
-    bbPro   = ~bbBlockers;
-    bbGen   = SETMASKBB(sq);
+  /* directions left shifting <<9 BISHOP */
+  bbPro   = ~bbBlockers;
+  bbGen   = SETMASKBB(sq);
 
-    shift   = shifts[BISHOP*4+i];
-    bbWrap  = wraps[i];
+  bbWrap  = BBNOTAFILE;
+  bbPro  &= bbWrap;
+  /* do kogge stone */
+  bbGen  |= bbPro &   (bbGen << 9);
+  bbPro  &=           (bbPro << 9);
+  bbGen  |= bbPro &   (bbGen << 2*9);
+  bbPro  &=           (bbPro << 2*9);
+  bbGen  |= bbPro &   (bbGen << 4*9);
+  /* shift one further */
+  bbGen   = bbWrap &  (bbGen << 9);
+  bbMoves|= bbGen;
 
-    bbPro  &= bbWrap;
+  /* directions left shifting <<7 BISHOP */
+  bbPro   = ~bbBlockers;
+  bbGen   = SETMASKBB(sq);
+  bbWrap  = BBNOTHFILE;
+  bbPro  &= bbWrap;
+  /* do kogge stone */
+  bbGen  |= bbPro &   (bbGen << 7);
+  bbPro  &=           (bbPro << 7);
+  bbGen  |= bbPro &   (bbGen << 2*7);
+  bbPro  &=           (bbPro << 2*7);
+  bbGen  |= bbPro &   (bbGen << 4*7);
+  /* shift one further */
+  bbGen   = bbWrap &  (bbGen << 7);
+  bbMoves|= bbGen;
 
-    /* do kogge stone */
-    bbGen  |= bbPro & (bbGen << shift);
-    bbPro  &=         (bbPro << shift);
-    bbGen  |= bbPro & (bbGen << 2*shift);
-    bbPro  &=         (bbPro << 2*shift);
-    bbGen  |= bbPro & (bbGen << 4*shift);
-    /* shift one further */
-    bbGen   = bbWrap &  (bbGen << shift);
-    bbMoves|= bbGen;
-  }
-  /* four directions right shifting BISHOP */
-  for (i = 0; i < 4; i++)
-  {
-    bbPro   = ~bbBlockers;
-    bbGen   = SETMASKBB(sq);
+  /* directions right shifting >>9 ROOK */
+  bbPro   = ~bbBlockers;
+  bbGen   = SETMASKBB(sq);
+  bbWrap  = BBNOTHFILE;
+  bbPro  &= bbWrap;
+  /* do kogge stone */
+  bbGen  |= bbPro &   (bbGen >> 9);
+  bbPro  &=           (bbPro >> 9);
+  bbGen  |= bbPro &   (bbGen >> 2*9);
+  bbPro  &=           (bbPro >> 2*9);
+  bbGen  |= bbPro &   (bbGen >> 4*9);
+  /* shift one further */
+  bbGen   = bbWrap &  (bbGen >> 9);
+  bbMoves|= bbGen;
 
-    shift   = shifts[BISHOP*4+i];
-    bbWrap  = wraps[4+i];
-
-    bbPro  &= bbWrap;
-
-    /* do kogge stone */
-    bbGen  |= bbPro & (bbGen >> shift);
-    bbPro  &=         (bbPro >> shift);
-    bbGen  |= bbPro & (bbGen >> 2*shift);
-    bbPro  &=         (bbPro >> 2*shift);
-    bbGen  |= bbPro & (bbGen >> 4*shift);
-    /* shift one further */
-    bbGen   = bbWrap &  (bbGen >> shift);
-    bbMoves|= bbGen;
-  }
+  /* directions right shifting <<7 ROOK */
+  bbPro   = ~bbBlockers;
+  bbGen   = SETMASKBB(sq);
+  bbWrap  = BBNOTAFILE;
+  bbPro  &= bbWrap;
+  /* do kogge stone */
+  bbGen  |= bbPro &   (bbGen >> 7);
+  bbPro  &=           (bbPro >> 7);
+  bbGen  |= bbPro &   (bbGen >> 2*7);
+  bbPro  &=           (bbPro >> 2*7);
+  bbGen  |= bbPro &   (bbGen >> 4*7);
+  /* shift one further */
+  bbGen   = bbWrap &  (bbGen >> 7);
+  bbMoves|= bbGen;
 
   /* bishops and queens */
-  bbWork = (  bbOpposite&~board[QBBP1]&~board[QBBP2]&board[QBBP3]) 
-            | (bbOpposite&~board[QBBP1]&board[QBBP2]&board[QBBP3]);
-  if (bbMoves & bbWork)
+  bbWork =  (bbBoth[stm]&(~board[QBBP1]&~board[QBBP2]&board[QBBP3])) 
+          | (bbBoth[stm]&(~board[QBBP1]&board[QBBP2]&board[QBBP3]));
+  if (bbMoves&bbWork)
   {
     return true;
   }
 
   /* knights */
-  bbWork = (bbOpposite&~board[QBBP1]&board[QBBP2]&~board[QBBP3] );
+  bbWork = bbBoth[stm]&(~board[QBBP1]&board[QBBP2]&~board[QBBP3]);
   bbMoves = AttackTablesTo[(!stm)*7*64+KNIGHT*64+sq] ;
-  if (bbMoves & bbWork) 
+  if (bbMoves&bbWork) 
   {
     return true;
   }
   /* pawns */
-  bbWork = (bbOpposite&board[QBBP1]&~board[QBBP2]&~board[QBBP3] );
+  bbWork = bbBoth[stm]&(board[QBBP1]&~board[QBBP2]&~board[QBBP3]);
   bbMoves = AttackTablesTo[(!stm)*7*64+PAWN*64+sq];
-  if (bbMoves & bbWork)
+  if (bbMoves&bbWork)
   {
     return true;
   }
   /* king */
-  bbWork = (bbOpposite&board[QBBP1]&board[QBBP1]&~board[QBBP1]);
+  bbWork = bbBoth[stm]&(board[QBBP1]&board[QBBP2]&~board[QBBP3]);
   bbMoves = AttackTablesTo[(!stm)*7*64+KING*64+sq];
-  if (bbMoves & bbWork)
+  if (bbMoves&bbWork)
   {
     return true;
   } 
@@ -497,14 +557,15 @@ bool kingincheck(Bitboard *board, bool stm)
 {
 
   Square sqking;
-  Bitboard bbKing = ~board[QBBP1]&board[QBBP2]&~board[QBBP3];
+  Bitboard bbKing = board[QBBP1]&board[QBBP2]&~board[QBBP3]; /* get kings */
 
+  /* get colored king */
   bbKing &= (stm&BLACK)? board[QBBBLACK] : 
-            (board[QBBBLACK]^(board[QBBP1]&board[QBBP2]&board[QBBP3]));
+            (board[QBBBLACK]^(board[QBBP1]|board[QBBP2]|board[QBBP3]));
 
-  sqking  = bbKing&-bbKing; /* get lsb */
+  sqking  = first1(bbKing);
 
-  return pieceincheck(board, !stm, sqking);
+  return pieceincheck(board, sqking, !stm);
 }
 
 /* generate legal moves via generalized KoggeStone bitboard approach by Steffan Westcott */
@@ -522,93 +583,80 @@ static int genmoves_general (Bitboard *board, Move *moves, int movecounter, bool
   Square sqep = 0; 
   Move move;
   Move lastmove = board[QBBLAST];
-  Bitboard bbTemp     = BBEMPTY;
-  Bitboard bbWork     = BBEMPTY;
-  Bitboard bbMoves    = BBEMPTY;
-  Bitboard bbBlockers = BBEMPTY;
-  Bitboard bbMe       = BBEMPTY;
-  Bitboard bbOpposite = BBEMPTY;
-  int i;
-  u64 shift;
+  Bitboard bbTemp;
+  Bitboard bbWork;
+  Bitboard bbMoves;
+  Bitboard bbBlockers = board[QBBP1]|board[QBBP2]|board[QBBP3];
   Bitboard bbWrap;
   Bitboard bbPro;
   Bitboard bbGen;
+  Bitboard bbBoth[2];
+  int i;
+  u64 shift;
 
-
-  bbTemp      = board[QBBP1] | board[QBBP2] | board[QBBP3];
-  bbMe        = (stm&BLACK)? board[QBBBLACK]  : (board[QBBBLACK]^bbTemp);
-  bbWork      = bbMe;
-  bbOpposite  = (stm&BLACK)? (board[QBBBLACK]^bbTemp) : board[QBBBLACK];
-  bbBlockers  = bbTemp;
+  bbBoth[WHITE] = board[QBBBLACK]^bbBlockers;
+  bbBoth[BLACK] = board[QBBBLACK];
+  bbWork        = bbBoth[stm];
   
-
-print_bitboard(bbWork);
 
   /* for each piece of site to move */
   while (bbWork)
   {
     sqfrom   = popfirst1(&bbWork);
-
-printf("sqfrom:%llu\n",sqfrom);
-
-    pfrom   = GETPIECE (board, sqfrom);
-
+    pfrom   = GETPIECE(board, sqfrom);
     bbTemp  = BBEMPTY;
 
-    /* four directions left shifting */
-    for (i = 0; i < 4; i++)
+    /* directions left shifting */
+    for (i=0;i<4;i++)
     {
+      shift   = shifts[GETPTYPE(pfrom)*4+i];
       bbPro   = ~bbBlockers;
       bbGen   = SETMASKBB(sqfrom);
-
-      shift   = shifts[GETPTYPE(pfrom)*4+i];
-      bbWrap  = wraps[i];
-
+      bbWrap  = (GETPTYPE(pfrom)==KNIGHT)?BBFULL:wraps[i];
+    
       bbPro  &= bbWrap;
-
       /* do kogge stone */
-      bbGen  |= bbPro & (bbGen << shift);
-      bbPro  &=         (bbPro << shift);
-      bbGen  |= bbPro & (bbGen << 2*shift);
-      bbPro  &=         (bbPro << 2*shift);
-      bbGen  |= bbPro & (bbGen << 4*shift);
+      bbGen  |= bbPro &   (bbGen << shift);
+      bbPro  &=           (bbPro << shift);
+      bbGen  |= bbPro &   (bbGen << 2*shift);
+      bbPro  &=           (bbPro << 2*shift);
+      bbGen  |= bbPro &   (bbGen << 4*shift);
       /* shift one further */
       bbGen   = bbWrap &  (bbGen << shift);
       bbTemp |= bbGen;
     }
-    /* four directions right shifting */
-    for (i = 0; i < 4; i++)
+    /* directions right shifting */
+    for (i=0;i<4;i++)
     {
+      shift   = shifts[GETPTYPE(pfrom)*4+i];
       bbPro   = ~bbBlockers;
       bbGen   = SETMASKBB(sqfrom);
-
-      shift   = shifts[GETPTYPE(pfrom)*4+i];
-      bbWrap  = wraps[4+i];
+      bbWrap  = (GETPTYPE(pfrom)==KNIGHT)?BBFULL:wraps[i];
 
       bbPro  &= bbWrap;
-
       /* do kogge stone */
-      bbGen  |= bbPro & (bbGen >> shift);
-      bbPro  &=         (bbPro >> shift);
-      bbGen  |= bbPro & (bbGen >> 2*shift);
-      bbPro  &=         (bbPro >> 2*shift);
-      bbGen  |= bbPro & (bbGen >> 4*shift);
+      bbGen  |= bbPro &   (bbGen >> shift);
+      bbPro  &=           (bbPro >> shift);
+      bbGen  |= bbPro &   (bbGen >> 2*shift);
+      bbPro  &=           (bbPro >> 2*shift);
+      bbGen  |= bbPro &   (bbGen >> 4*shift);
       /* shift one further */
       bbGen   = bbWrap &  (bbGen >> shift);
       bbTemp |= bbGen;
     }
+
+
     /* verify against attack tables */
     bbPro = (GETPTYPE(pfrom)==PAWN)? 
-            (PawnAttackTables[stm*64+sqfrom]&bbOpposite) | 
+            (PawnAttackTables[stm*64+sqfrom]&bbBoth[!stm]) | 
             (PawnAttackTables[(stm+2)*64+sqfrom]&~bbBlockers) :
             AttackTables[(stm*7*64)+GETPTYPE(pfrom)*64+sqfrom];
     bbTemp &= bbPro; 
+
     /* captures */    
-    bbMoves  = bbTemp&bbOpposite;
+    bbMoves  = bbTemp&bbBoth[!stm];
     /* non captures */    
     bbMoves |= (qs)? BBEMPTY : (bbTemp&~bbBlockers);
-
-print_bitboard(bbMoves);
 
     /* extract moves */
     while (bbMoves)
@@ -629,14 +677,12 @@ print_bitboard(bbMoves);
       domove(board, move);
       if (!kingincheck(board, stm))
       {
-print_move(move);
         moves[movecounter] = move;
         movecounter++;
       }
       undomove(board, move, lastmove);
     }
   }
-exit(0);
   return movecounter;
 }
 static Score perft(Bitboard *board, bool stm, u32 depth)
@@ -658,9 +704,6 @@ static Score perft(Bitboard *board, bool stm, u32 depth)
   }
 
   movecounter = genmoves_general(board, moves, movecounter, stm, false);
-
-printf("movec: %i",movecounter);
-exit(0);
 
   MOVECOUNT+= movecounter;
 
@@ -760,6 +803,9 @@ int main (int argc, char* argv[])
   printf ("Yet another amateur level chess engine.\n");
   printf ("Copyright (C) 2011-2016 Srdja Matovic, Montenegro\n");
   printf ("This is free software, licensed under GPL >= v2\n");
+
+  /* init starting position */
+  setboard(BOARD,"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
 
   /* xboard command loop */
   for (;;)
@@ -986,8 +1032,6 @@ int main (int argc, char* argv[])
       MOVECOUNT = 0;
 
       printf("#doing perft depth %u:\n", SD);  
-
-      setboard(BOARD,"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
 
       start = get_time();
 
