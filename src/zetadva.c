@@ -235,7 +235,7 @@ void domove (Bitboard *board, Move move)
   board[QBBP3]    |= ((pto>>3)&0x1)<<sqto;
 
   /* handle castle rook, queenside */
-  pcastle = (GETPTYPE(pfrom) == KING && sqfrom-sqto == 2)?
+  pcastle = (GETPTYPE(pfrom)==KING&&sqfrom-2==sqto)?
             MAKEPIECE(ROOK,GETCOLOR(pfrom)) : PNONE;
 
   board[QBBBLACK] |= (pcastle&0x1)<<(sqto+1);
@@ -251,7 +251,7 @@ void domove (Bitboard *board, Move move)
   hmc = (pcastle)? 0 :hmc;
 
   /* handle castle rook, kingside */
-  pcastle = (GETPTYPE(pfrom) == KING && sqto-sqfrom == 2)?
+  pcastle = (GETPTYPE(pfrom) == KING && sqto-2==sqfrom)?
             MAKEPIECE(ROOK,GETCOLOR(pfrom)) : PNONE;
 
   board[QBBBLACK] |= (pcastle&0x1)<<(sqto-1);
@@ -332,6 +332,7 @@ void undomove (Bitboard *board, Move move, Move lastmove)
   board[QBBP3]    |= ((pfrom>>3)&0x1)<<sqfrom;
 
   /* restore castle rook, queenside */
+  /* restore castle rook, queenside */
   pcastle = (GETPTYPE(pfrom) == KING && sqfrom-sqto == 2)? 
             MAKEPIECE(ROOK,GETCOLOR(pfrom)) : PNONE;
 
@@ -341,7 +342,8 @@ void undomove (Bitboard *board, Move move, Move lastmove)
   board[QBBP3]    |= ((pcastle>>3)&0x1)<<(sqfrom-4);
 
   /* restore castle rook, kingside */
-  pcastle = (GETPTYPE(pfrom) == KING && sqto-sqfrom == 2)?
+  /* handle castle rook, kingside */
+  pcastle = (GETPTYPE(pfrom) == KING && sqto-2==sqfrom)?
             MAKEPIECE(ROOK,GETCOLOR(pfrom)) : PNONE;
 
   board[QBBBLACK] |= (pcastle&0x1)<<(sqfrom+3);
@@ -684,7 +686,7 @@ static int genmoves_general (Bitboard *board, Move *moves, int movecounter, bool
     }
   }
 
-  /* en passant moves */
+  /* gen en passant moves */
   sqep = GETSQEP(board[QBBLAST]); 
   bbPro  = bbBoth[stm]&(board[QBBP1]&~board[QBBP2]&~board[QBBP3]);
   bbPro &= (stm)? 0xFF000000 : 0xFF00000000;
@@ -716,9 +718,36 @@ static int genmoves_general (Bitboard *board, Move *moves, int movecounter, bool
     }
     undomove (board, move, lastmove);
   }
-  
 
-  /* TODO: castle moves */
+  /* gen castle moves, queenside */
+  /* get king square */
+  sqfrom  = first1(bbBoth[stm]&(board[QBBP1]&board[QBBP2]&~board[QBBP3]));
+  pfrom   = MAKEPIECE(KING,(u64)stm);
+  /* get castle rights queenside */
+  bbTemp  = (stm)?(board[QBBLAST]&SMCRBLACKQ):(board[QBBLAST]&SMCRWHITEQ);
+  /* check for emtpty squares */
+  bbPro   = ((bbBlockers&SETMASKBB(sqfrom-1))|(bbBlockers&SETMASKBB(sqfrom-2))|(bbBlockers&SETMASKBB(sqfrom-3)));
+  /* check for kign and empty squares in check */
+  bbGen  =  (pieceincheck(board,stm,sqfrom)|pieceincheck(board,stm,sqfrom-1)|pieceincheck(board,stm,sqfrom-2));
+  /* set castle move score */
+  score   = INF-100;
+  move    = (bbTemp&&!bbPro&&!bbGen)?MAKEMOVE(sqfrom, (sqfrom-2), (sqfrom-2), pfrom, pfrom, PNONE, 0, (u64)GETHMC(lastmove), GETCR(lastmove), (u64)score):MOVENONE;
+
+  moves[movecounter] = move;
+  movecounter+=(bbTemp&&!bbPro&&!bbGen)?1:0;
+
+  /* get castle rights queenside */
+  bbTemp  = (stm)?(board[QBBLAST]&SMCRBLACKQ):(board[QBBLAST]&SMCRWHITEQ);
+  /* check for emtpty squares */
+  bbPro   = ((bbBlockers&SETMASKBB(sqfrom+1))|(bbBlockers&SETMASKBB(sqfrom+2)));
+  /* check for kign and empty squares in check */
+  bbGen  =  (pieceincheck(board,stm,sqfrom)|pieceincheck(board,stm,sqfrom+1)|pieceincheck(board,stm,sqfrom+2));
+  /* set castle move score */
+  score   = INF-100;
+  move    = (bbTemp&&!bbPro&&!bbGen)?MAKEMOVE(sqfrom, (sqfrom+2), (sqfrom+2), pfrom, pfrom, PNONE, 0, (u64)GETHMC(lastmove), GETCR(lastmove), (u64)score):MOVENONE;
+
+  moves[movecounter] = move;
+  movecounter+=(bbTemp&&!bbPro&&!bbGen)?1:0;
 
   return movecounter;
 }

@@ -94,16 +94,22 @@ typedef u64             Rank;
 #define MAXGAMEPLY  1024    /* max ply a game can reach */
 #define MAXMOVES    256     /* max amount of legal moves per position */
 /* colors */
-#define BLACK       1
-#define WHITE       0
+#define BLACK               1
+#define WHITE               0
+/* scores */
+#define INF                 32000
+#define MATESCORE           30000
+#define DRAWSCORE           0
+#define STALEMATESCORE      0
+
 /* piece type enumeration */
-#define PNONE       0
-#define PAWN        1
-#define KNIGHT      2
-#define KING        3
-#define BISHOP      4
-#define ROOK        5
-#define QUEEN       6
+#define PNONE               0
+#define PAWN                1
+#define KNIGHT              2
+#define KING                3
+#define BISHOP              4
+#define ROOK                5
+#define QUEEN               6
 /* bitboard masks, computation prefered over lookup */
 #define SETMASKBB(sq)       (1ULL<<(sq))
 #define CLRMASKBB(sq)       (~(1ULL<<(sq)))
