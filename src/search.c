@@ -31,6 +31,7 @@ Score perft (Bitboard *board, bool stm, u32 depth)
 
   Move moves[MAXMOVES];
   Move lastmove = board[QBBLAST];
+  Cr cr = board[QBBPMVD];
   Score score = 0;
   int i = 0;
   int movecounter = 0;
@@ -62,7 +63,7 @@ Score perft (Bitboard *board, bool stm, u32 depth)
   {
     domove (board, moves[i]);
     score = -perft(board, !stm, depth+1);
-    undomove (board, moves[i], lastmove);
+    undomove (board, moves[i], lastmove, cr);
   }
   return 0;
 }

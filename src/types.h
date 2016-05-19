@@ -56,20 +56,14 @@ typedef u64             Rank;
 
 #define VERSION         "0301"
 
-/* quad bitboard array index definition
-  0   pieces white
-  1   piece type first bit
-  2   piece type second bit
-  3   piece type third bit
-  4   64 bit board hash, for future use
-  5   lastmove + ep target + halfmove clock + castle rights + move score
-*/
-#define QBBBLACK  0
-#define QBBP1     1
-#define QBBP2     2
-#define QBBP3     3
-#define QBBHASH   4
-#define QBBLAST   5
+/* quad bitboard array index definition */
+#define QBBBLACK  0     /* pieces white */
+#define QBBP1     1     /* piece type first bit */
+#define QBBP2     2     /* piece type second bit */
+#define QBBP3     3     /* piece type third bit */
+#define QBBPMVD   4     /* piece moved flags, for castle rights */
+#define QBBHASH   5     /* 64 bit board Zobrist hash */
+#define QBBLAST   6     /* lastmove + ep target + halfmove clock + move score */
 /* move encoding 
 
    0  -  5  square from
@@ -80,14 +74,8 @@ typedef u64             Rank;
   26  - 29  piece capture
   30  - 35  square en passant target
   36  - 43  halfmove clock for fity move rule, last capture/castle/pawn move
-  44  - 47  castle rights
+  44  - 47  4 bit free
   48  - 63  move score
-*/
-/* castle right encoding mask in 4 bits
-  0 white queenside
-  1 white kingside
-  2 black queenside
-  3 black kingside
 */
 /* engine defaults */
 #define MAXPLY      128     /* max internal search ply */
@@ -101,7 +89,6 @@ typedef u64             Rank;
 #define MATESCORE           30000
 #define DRAWSCORE           0
 #define STALEMATESCORE      0
-
 /* piece type enumeration */
 #define PNONE               0
 #define PAWN                1
@@ -123,28 +110,21 @@ typedef u64             Rank;
 #define SMMOVE              0x000000003FFFFFFFULL
 #define SMSQEP              0x0000000FC0000000ULL
 #define SMHMC               0x00000FF000000000ULL
-#define SMCRALL             0x0000F00000000000ULL
+#define SMCRALL             0x8900000000000091ULL
 #define SMSCORE             0xFFFF000000000000ULL
 /* clear masks */
 #define CMMOVE              0xFFFFFFFFC0000000ULL
 #define CMSQEP              0xFFFFFFF03FFFFFFFULL
 #define CMHMC               0xFFFFF00FFFFFFFFFULL
-#define CMCRALL             0xFFFF0FFFFFFFFFFFULL
+#define CMCRALL             0x76FFFFFFFFFFFF6EULL
 #define CMSCORE             0x0000FFFFFFFFFFFFULL
 /* castle right set masks big endian */
-#define SMCRWHITE           0x0000300000000000ULL
-#define SMCRWHITEQ          0x0000100000000000ULL
-#define SMCRWHITEK          0x0000200000000000ULL
-#define SMCRBLACK           0x0000C00000000000ULL
-#define SMCRBLACKQ          0x0000400000000000ULL
-#define SMCRBLACKK          0x0000800000000000ULL
-/* castle right clear masks big endian */
-#define CMCRWHITE           0xFFFFCFFFFFFFFFFFULL
-#define CMCRWHITEQ          0xFFFFEFFFFFFFFFFFULL
-#define CMCRWHITEK          0xFFFFDFFFFFFFFFFFULL
-#define CMCRBLACK           0xFFFF3FFFFFFFFFFFULL
-#define CMCRBLACKQ          0xFFFFBFFFFFFFFFFFULL
-#define CMCRBLACKK          0xFFFF7FFFFFFFFFFFULL
+#define SMCRWHITE           0x0000000000000091ULL
+#define SMCRWHITEQ          0x0000000000000011ULL
+#define SMCRWHITEK          0x0000000000000090ULL
+#define SMCRBLACK           0x8900000000000000ULL
+#define SMCRBLACKQ          0x8800000000000000ULL
+#define SMCRBLACKK          0x0900000000000000ULL
 /* move helpers */
 #define MAKEPIECE(p,c)     (((p)<<1)|c)
 #define GETCOLOR(p)        ((p)&0x1)
@@ -159,16 +139,14 @@ typedef u64             Rank;
 #define SETSQEP(mv,sq)     (((mv)&CMSQEP)|(((sq)&0x3F)<<30))
 #define GETHMC(mv)         (((mv)>>36)&0xFF)   /* 8 bit halfmove clock */
 #define SETHMC(mv,hmc)     (((mv)&CMHMC)|(((hmc)&0xFF)<<36))
-#define GETCR(mv)          (((mv)&SMCRALL))    /* 4 bit castle rights */
-#define SETCR(mv,cr)       (((mv)&CMCRALL)|cr)   /* 4 bit castle rights */
 #define GETSCORE(mv)       (((mv)>>48)&0xFFFF) /* signed 16 bit score */
 #define SETSCORE(mv,score) (((mv)&CMSCORE)|(((score)&0xFFFF)<<48)) 
 /* pack move into 64 bits */
-#define MAKEMOVE(sqfrom, sqto, sqcpt, pfrom, pto, pcpt, sqep, hmc, cr, score) \
+#define MAKEMOVE(sqfrom, sqto, sqcpt, pfrom, pto, pcpt, sqep, hmc, score) \
 ( \
      sqfrom      | (sqto<<6)  | (sqcpt<<12) \
   | (pfrom<<18)  | (pto<<22)  | (pcpt<<26) \
-  | (sqep<<30)   | (hmc<<36)  | (cr)        | (score<<48) \
+  | (sqep<<30)   | (hmc<<36)  | (score<<48) \
 )
 /* square helpers */
 #define MAKESQ(file,rank)   ((rank)<<3|(file))

@@ -53,14 +53,15 @@ Hash *Hash_History;           /* last game hashes indexed by ply */
 /* Quad Bitboard */
 /* based on http://chessprogramming.wikispaces.com/Quad-Bitboards */
 /* by Gerd Isenberg */
-Bitboard BOARD[6];
+Bitboard BOARD[7];
 /* quad bitboard array index definition
   0   pieces white
   1   piece type first bit
   2   piece type second bit
   3   piece type third bit
-  4   64 bit board Zobrist hash
-  5   lastmove + ep target + halfmove clock + castle rights + move score
+  5   piece moved flags, for castle rights
+  6   64 bit board Zobrist hash
+  7   lastmove + ep target + halfmove clock + move score
 */
 /* forward declarations */
 void print_help (void);
@@ -165,21 +166,22 @@ void domove (Bitboard *board, Move move)
   board[QBBP2]    |= ((pto>>2)&0x1)<<sqto;
   board[QBBP3]    |= ((pto>>3)&0x1)<<sqto;
 
+  /* set piece moved flag, for castle rights */
+  board[QBBPMVD]  |= SETMASKBB(sqfrom);
+  board[QBBPMVD]  |= SETMASKBB(sqto);
+  board[QBBPMVD]  |= SETMASKBB(sqcpt);
+
   /* handle castle rook, queenside */
   pcastle = (GETPTYPE(pfrom)==KING&&sqfrom-2==sqto)?
             MAKEPIECE(ROOK,GETCOLOR(pfrom)) : PNONE;
-
   board[QBBBLACK] |= (pcastle&0x1)<<(sqto+1);
   board[QBBP1]    |= ((pcastle>>1)&0x1)<<(sqto+1);
   board[QBBP2]    |= ((pcastle>>2)&0x1)<<(sqto+1);
   board[QBBP3]    |= ((pcastle>>3)&0x1)<<(sqto+1);
-
-  /* handle castle rights, clear all of color */
-  bbTemp = (pcastle)? (pfrom&BLACK)? CMCRBLACK : CMCRWHITE : BBFULL;
-  board[QBBLAST] &= bbTemp;
-
+  /* set piece moved flag, for castle rights */
+  board[QBBPMVD]  |= (pcastle)? SETMASKBB(sqfrom-4):BBEMPTY;
   /* reset halfmoveclok */
-  hmc = (pcastle)? 0 :hmc;
+  hmc = (pcastle)?0:hmc;  /* castle move */
 
   /* handle castle rook, kingside */
   pcastle = (GETPTYPE(pfrom) == KING && sqto-2==sqfrom)?
@@ -189,48 +191,20 @@ void domove (Bitboard *board, Move move)
   board[QBBP1]    |= ((pcastle>>1)&0x1)<<(sqto-1);
   board[QBBP3]    |= ((pcastle>>2)&0x1)<<(sqto-1);
   board[QBBP3]    |= ((pcastle>>3)&0x1)<<(sqto-1);
-
-  /* handle castle rights, clear all of color */
-  bbTemp = (pcastle)? (pfrom&BLACK)? CMCRBLACK : CMCRWHITE : BBFULL;
-  board[QBBLAST] &= bbTemp;
-
+  /* set piece moved flag, for castle rights */
+  board[QBBPMVD]  |= (pcastle)? SETMASKBB(sqfrom+3):BBEMPTY;
   /* reset halfmoveclok */
-  hmc = (pcastle)? 0 :hmc;
-
-  /* handle castle rights, king moved, clear all*/
-  bbTemp = (GETPTYPE(pfrom) == KING && (sqfrom == 4 || sqfrom == 60 ))? 
-            (pfrom&BLACK)? CMCRBLACK : CMCRWHITE : BBFULL;
-  board[QBBLAST] &= bbTemp;
-
-  /* handle castle rights, rook file a moved, clear queenside */
-  bbTemp = ( GETPTYPE(pfrom) == ROOK && (sqfrom == 0 || sqfrom == 56 ))?
-            (pfrom&BLACK)? CMCRBLACKQ : CMCRWHITEQ : BBFULL;
-  board[QBBLAST] &= bbTemp;
-
-  /* handle castle rights, rook file a captured, clear queenside */
-  bbTemp = ( GETPTYPE(pcpt) == ROOK && (sqcpt == 0 || sqcpt == 56 ))?
-            (pcpt&BLACK)? CMCRBLACKQ : CMCRWHITEQ : BBFULL;
-  board[QBBLAST] &= bbTemp;
-
-  /* handle castle rights, rook file h moved, clear kingside */
-  bbTemp = ( GETPTYPE(pfrom) == ROOK && (sqfrom == 7 || sqfrom == 63 ))?
-            (pfrom&BLACK)? CMCRBLACKK : CMCRWHITEK : BBFULL;
-  board[QBBLAST] &= bbTemp;
-
-  /* handle castle rights, rook file h captured, clear kingside */
-  bbTemp = ( GETPTYPE(pcpt) == ROOK && (sqcpt == 7 || sqcpt == 63 ))?
-            (pcpt&BLACK)? CMCRBLACKK : CMCRWHITEK : BBFULL;
-  board[QBBLAST] &= bbTemp;
+  hmc = (pcastle)?0:hmc;  /* castle move */
 
   /* handle halfmove clock */
-  hmc = (GETPTYPE(pfrom) == PAWN )? 0 :hmc; /* pawn move */
-  hmc = (GETPTYPE(pcpt) != PNONE )? 0 :hmc; /* capture move */
+  hmc = (GETPTYPE(pfrom)==PAWN)?0:hmc;   /* pawn move */
+  hmc = (GETPTYPE(pcpt)!=PNONE)?0:hmc;  /* capture move */
 
   /* store hmc in board */  
   board[QBBLAST] = SETHMC(board[QBBLAST], hmc);
 }
 /* restore board again */
-void undomove (Bitboard *board, Move move, Move lastmove)
+void undomove (Bitboard *board, Move move, Move lastmove, Cr cr)
 {
   Square sqfrom   = GETSQFROM(move);
   Square sqto     = GETSQTO(move);
@@ -242,6 +216,8 @@ void undomove (Bitboard *board, Move move, Move lastmove)
 
   /* restore lastmove with hmc, cr and score */
   board[QBBLAST] = lastmove;
+  /* restore castle rights. via piece moved flags */
+  board[QBBPMVD] = cr;
 
   /* unset square capture, square to */
   bbTemp = CLRMASKBB(sqcpt) & CLRMASKBB(sqto);
@@ -263,8 +239,7 @@ void undomove (Bitboard *board, Move move, Move lastmove)
   board[QBBP3]    |= ((pfrom>>3)&0x1)<<sqfrom;
 
   /* restore castle rook, queenside */
-  /* restore castle rook, queenside */
-  pcastle = (GETPTYPE(pfrom) == KING && sqfrom-sqto == 2)? 
+  pcastle = (GETPTYPE(pfrom)==KING&&sqfrom-2==sqto)?
             MAKEPIECE(ROOK,GETCOLOR(pfrom)) : PNONE;
 
   board[QBBBLACK] |= (pcastle&0x1)<<(sqfrom-4);
@@ -273,7 +248,6 @@ void undomove (Bitboard *board, Move move, Move lastmove)
   board[QBBP3]    |= ((pcastle>>3)&0x1)<<(sqfrom-4);
 
   /* restore castle rook, kingside */
-  /* handle castle rook, kingside */
   pcastle = (GETPTYPE(pfrom) == KING && sqto-2==sqfrom)?
             MAKEPIECE(ROOK,GETCOLOR(pfrom)) : PNONE;
 
@@ -516,7 +490,6 @@ void print_move (Move move)
   printf ("pto:%llu\n",GETPTO(move));
   printf ("pcpt:%llu\n",GETPCPT(move));
   printf ("sqep:%llu\n",GETSQEP(move));
-  printf ("cr:%llx\n",GETCR(move));
   printf ("hmc:%u\n",(u32)GETHMC(move));
   printf ("score:%i\n",(Score)GETSCORE(move));
 }
@@ -573,9 +546,7 @@ Move alg2move (char *usermove, Bitboard *board, bool stm)
 
   /* pack move, considering hmc, cr and score */
   move = MAKEMOVE(sqfrom, sqto, sqcpt, pfrom, pto , pcpt, sqep,
-                    GETHMC(board[QBBLAST]) ,
-                    GETCR(board[QBBLAST]),
-                    (u64)0);
+                    GETHMC(board[QBBLAST]), (u64)0);
 
   return move;
 }
@@ -718,21 +689,21 @@ void createfen (char *fenstring, Bitboard *board, bool stm, int gameply)
   stringptr+=sprintf (stringptr, " ");
 
   /* add castle rights */
-  if (!(board[QBBLAST] & SMCRALL))
+  if (((~board[QBBPMVD])&SMCRALL)==BBEMPTY)
     stringptr+=sprintf (stringptr, "-");
   else
   {
     /* white kingside */
-    if (board[QBBLAST] & SMCRWHITEK)
+    if (((~board[QBBPMVD])&SMCRWHITEK)==SMCRWHITEK)
       stringptr+=sprintf (stringptr, "K");
     /* white queenside */
-    if (board[QBBLAST] & SMCRWHITEQ)
+    if (((~board[QBBPMVD])&SMCRWHITEQ)==SMCRWHITEQ)
       stringptr+=sprintf (stringptr, "Q");
     /* black kingside */
-    if (board[QBBLAST] & SMCRBLACKK)
+    if (((~board[QBBPMVD])&SMCRBLACKK)==SMCRBLACKK)
       stringptr+=sprintf (stringptr, "k");
     /* black queenside */
-    if (board[QBBLAST] & SMCRBLACKQ)
+    if (((~board[QBBPMVD])&SMCRBLACKQ)==SMCRBLACKQ)
       stringptr+=sprintf (stringptr, "q");
   }
 
@@ -775,6 +746,7 @@ bool setboard (Bitboard *board, char *fenstring)
   Piece piece;
   Square sq;
   Move lastmove = MOVENONE;
+  Bitboard bbCr = BBEMPTY;
 
   /* memory, fen string ist max 1023 char in size */
   position  = malloc (1024 * sizeof (char));
@@ -811,6 +783,7 @@ bool setboard (Bitboard *board, char *fenstring)
   board[QBBP1]    = 0x0ULL;
   board[QBBP2]    = 0x0ULL;
   board[QBBP3]    = 0x0ULL;
+  board[QBBPMVD]  = BBFULL;
   board[QBBHASH]  = 0x0ULL;
   board[QBBLAST]  = 0x0ULL;
 
@@ -878,21 +851,23 @@ bool setboard (Bitboard *board, char *fenstring)
     {
       /* white queenside */
       if (tempchar == 'Q')
-        lastmove |= SMCRWHITEQ;
+        bbCr |= SMCRWHITEQ;
       /* white kingside */
       if (tempchar == 'K')
-        lastmove |= SMCRWHITEK;
+        bbCr |= SMCRWHITEK;
       /* black queenside */
       if (tempchar == 'q')
-        lastmove |= SMCRBLACKQ;
+        bbCr |= SMCRBLACKQ;
       /* black kingside */
       if (tempchar == 'k')
-        lastmove |= SMCRBLACKK;
+        bbCr |= SMCRBLACKK;
       i++;
       tempchar = castle[i];
     }
   }
-  /* store castle rights into lastmove */
+  /* store castle rights via piece moved flags in board */
+  board[QBBPMVD]  ^= bbCr;
+  /* store halfmovecounter into lastmove */
   lastmove = SETHMC(lastmove, hmc);
 
   /* set en passant target square */
