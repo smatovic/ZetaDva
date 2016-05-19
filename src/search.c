@@ -23,8 +23,9 @@
 
 #include "bitboard.h"   /* for population count, pop_count */
 #include "eval.h"       /* for evalmove and eval */
+#include "movegen.h"    /* for move generator thingies */
 #include "types.h"      /* custom types, board defs, data structures, macros */
-#include "zetadva.h"   /* for global vars */
+#include "zetadva.h"    /* for global vars */
 
 Score perft (Bitboard *board, bool stm, u32 depth)
 {

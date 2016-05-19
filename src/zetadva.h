@@ -41,7 +41,6 @@ extern Hash *Hash_History;
 
 bool squareunderattack (Bitboard *board, Square sq, bool stm);
 bool kingincheck(Bitboard *board, bool stm);
-int genmoves_general (Bitboard *board, Move *moves, int movecounter, bool stm, bool qs);
 void domove (Bitboard *board, Move move);
 void undomove (Bitboard *board, Move move, Move lastmove, Cr cr);
 

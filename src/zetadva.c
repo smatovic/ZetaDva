@@ -64,19 +64,19 @@ Bitboard BOARD[7];
   7   lastmove + ep target + halfmove clock + move score
 */
 /* forward declarations */
-void print_help (void);
-void print_version (void);
-void self_test (void);
-bool setboard (Bitboard *board, char *fenstring);
-void createfen (char *fenstring, Bitboard *board, bool stm, int gameply);
-void move2alg (Move move, char * movec);
-Move alg2move (char *usermove, Bitboard *board, bool stm);
-void print_move(Move move);
+static void print_help (void);
+static void print_version (void);
+static void self_test (void);
+static bool setboard (Bitboard *board, char *fenstring);
+static void createfen (char *fenstring, Bitboard *board, bool stm, int gameply);
+static void move2alg (Move move, char * movec);
+static Move alg2move (char *usermove, Bitboard *board, bool stm);
+static void print_move(Move move);
+static void print_board(Bitboard *board);
 void print_bitboard(Bitboard board);
-void print_board(Bitboard *board);
 
 /* release memory, files and tables */
-bool release_inits (void)
+static bool release_inits (void)
 {
   /* close log file */
   if (Log_File != NULL)
@@ -96,7 +96,7 @@ bool release_inits (void)
   return true;
 }
 /* innitialize memory, files and tables */
-bool inits (void)
+static bool inits (void)
 {
   /* memory allocation */
   Line         = malloc (1024       * sizeof (char));
@@ -481,7 +481,7 @@ void print_bitboard (Bitboard board)
 
   fflush(stdout);
 }
-void print_move (Move move)
+static void print_move (Move move)
 {
   printf ("sqfrom:%llu\n",GETSQFROM(move));
   printf ("sqto:%llu\n",GETSQTO(move));
@@ -494,7 +494,7 @@ void print_move (Move move)
   printf ("score:%i\n",(Score)GETSCORE(move));
 }
 /* move in algebraic notation, eg. e2e4, to internal packed move  */
-Move alg2move (char *usermove, Bitboard *board, bool stm) 
+static Move alg2move (char *usermove, Bitboard *board, bool stm) 
 {
 
   File file;
@@ -551,7 +551,7 @@ Move alg2move (char *usermove, Bitboard *board, bool stm)
   return move;
 }
 /* packed move to move in algebraic notation, eg. e2e4 */
-void move2alg (Move move, char * movec) 
+static void move2alg (Move move, char * movec) 
 {
   char rankc[8] = "12345678";
   char filec[8] = "abcdefgh";
@@ -582,7 +582,7 @@ void move2alg (Move move, char * movec)
   }
 }
 /* print quadbitbooard */
-void print_board (Bitboard *board)
+static void print_board (Bitboard *board)
 {
 
   int rank;
@@ -627,7 +627,7 @@ print_bitboard(board[5]);
   fflush (stdout);
 }
 /* create fen string from board state */
-void createfen (char *fenstring, Bitboard *board, bool stm, int gameply)
+static void createfen (char *fenstring, Bitboard *board, bool stm, int gameply)
 {
 
   int rank;
@@ -729,7 +729,7 @@ void createfen (char *fenstring, Bitboard *board, bool stm, int gameply)
 
 }
 /* set internal chess board presentation to fen string */
-bool setboard (Bitboard *board, char *fenstring)
+static bool setboard (Bitboard *board, char *fenstring)
 {
   char tempchar;
   char *position; /* piece types and position, row_8, file_a, to row_1, file_h*/
@@ -907,7 +907,7 @@ bool setboard (Bitboard *board, char *fenstring)
   return true;
 }
 /* run internal selftest */
-void self_test (void) 
+static void self_test (void) 
 {
   u64 perftdepth4  = 197281;
 
@@ -942,7 +942,7 @@ void self_test (void)
   return;
 }
 /* print engine info to console */
-void print_version (void)
+static void print_version (void)
 {
   printf ("Zeta Dva version: %s\n",VERSION);
   printf ("Yet another amateur level chess engine.\n");
@@ -950,7 +950,7 @@ void print_version (void)
   printf ("This is free software, licensed under GPL >= v2\n");
 }
 /* engine options and usage */
-void print_help (void)
+static void print_help (void)
 {
   printf ("Zeta Dva, yet another amateur level chess engine.\n");
   printf ("\n");
