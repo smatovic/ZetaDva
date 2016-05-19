@@ -20,13 +20,15 @@ B) BoardPresentation
 + 1*8 Byte lastmove+ep+castle+halfmoveclock+score       DONE
 
 C) MovGenerator (Board)                                               WIP
-    - generalized Kogge-Stone move gen                          TODO
-    - precalculated AttackTables                                TOOD
-      for white pawns, black pawns and knights                  TODO
-    - en passant                                                TODO
-    - castling moves                                            TODO
-    - pawn promotion                                            TODO
-    - pieceincheck function                                     TODO
+    - generalized Kogge-Stone move gen                  DONE
+    - precalculated AttackTables                        DONE
+      for white pawns, black pawns and knights          
+    - en passant                                        DONE
+    - castling moves                                    DONE
+    - pawn promotion                                    DONE
+    - pieceincheck function                             DONE
+    - debug with test positions                                       WIP
+    - tighten attacktbales                                      TODO
     - cleanup & performance tuning                              TODO
 
 D) DoMove, UnDoMove
