@@ -753,24 +753,33 @@ static bool setboard (Bitboard *board, char *fenstring)
   if (position == NULL) 
   {
     printf ("Error (memory allocation failed): char position[%d]", 1024);
-    return false;
   }
   cstm  = malloc (1024 * sizeof (char));
   if (cstm == NULL) 
   {
     printf ("Error (memory allocation failed): char cstm[%d]", 1024);
-    return false;
   }
   castle  = malloc (1024 * sizeof (char));
   if (castle == NULL) 
   {
     printf ("Error (memory allocation failed): char castle[%d]", 1024);
-    return false;
   }
   cep  = malloc (1024 * sizeof (char));
   if (cep == NULL) 
   {
     printf ("Error (memory allocation failed): char cep[%d]", 1024);
+  }
+  if (position==NULL||cstm==NULL||castle==NULL||cep==NULL)
+  {
+    /* release memory */
+    if (position != NULL) 
+      free(position);
+    if (cstm != NULL) 
+      free(cstm);
+    if (castle != NULL) 
+      free(castle);
+    if (cep != NULL) 
+      free(cep);
     return false;
   }
 
@@ -896,6 +905,16 @@ static bool setboard (Bitboard *board, char *fenstring)
 
   /* store lastmove+ in board */
   board[QBBLAST] = lastmove;
+
+  /* release memory */
+  if (position != NULL) 
+    free(position);
+  if (cstm != NULL) 
+    free(cstm);
+  if (castle != NULL) 
+    free(castle);
+  if (cep != NULL) 
+    free(cep);
 
   /* board valid check */
   if (!isvalid(board))
