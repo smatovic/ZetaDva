@@ -1011,6 +1011,7 @@ int main (int argc, char* argv[])
 {
   /* xboard states */
   bool xboard_mode    = false;  /* chess GUI sets to true */
+  bool epd_mode       = false;  /* process epd mode, no fancy print */
   bool xboard_force   = false;  /* if true aplly only moves, do not think */
   bool xboard_post    = false;  /* post search thinking output */
   s32 xboard_protover = 0;      /* Zeta works with protocoll version >= v2 */
@@ -1091,9 +1092,6 @@ int main (int argc, char* argv[])
   /* xboard command loop */
   for (;;)
   {
-    /* console mode */
-    if (!xboard_mode)
-      printf ("> ");
     /* just to be sure, flush the output...*/
     fflush (stdout);
     /* get Line */
@@ -1119,6 +1117,16 @@ int main (int argc, char* argv[])
       xboard_mode = true;
       continue;
     }
+    /* set epd mode */
+    if (!strcmp (Command, "epd"))
+    {
+      xboard_mode = false;
+      epd_mode = true;
+      continue;
+    }
+    /* console mode */
+    if (!xboard_mode&&!epd_mode)
+      printf ("> ");
     /* get xboard protocoll version */
     if (!strcmp(Command, "protover")) 
     {
@@ -1170,7 +1178,7 @@ int main (int argc, char* argv[])
       {
         printf ("Error (in setting start postition): new\n");        
       }
-      if (!xboard_mode)
+      if (!xboard_mode&&!epd_mode)
         print_board(BOARD);
       xboard_force  = false;
 			continue;
@@ -1183,7 +1191,7 @@ int main (int argc, char* argv[])
       {
         printf ("Error (in setting chess psotition via fen string): setboard\n");        
       }
-      if (!xboard_mode)
+      if (!xboard_mode&&!epd_mode)
         print_board(BOARD);
       continue;
 		}
@@ -1312,7 +1320,8 @@ int main (int argc, char* argv[])
       NODECOUNT = 0;
       MOVECOUNT = 0;
 
-      printf ("#doing perft depth %u:\n", SD);  
+      if (!epd_mode)
+        printf ("#doing perft depth %u:\n", SD);  
 
       start = get_time();
 
@@ -1322,8 +1331,13 @@ int main (int argc, char* argv[])
       elapsed = end-start;
       elapsed /= 1000;
 
-      printf ("%llu nodes, seconds: %f, nps: %llu \n", NODECOUNT, elapsed, (u64)(NODECOUNT/elapsed));
+      if (epd_mode)
+        printf ("%llu\n", NODECOUNT);
+      else
+        printf ("%llu nodes, seconds: %f, nps: %llu \n", NODECOUNT, elapsed, (u64)(NODECOUNT/elapsed));
 
+      fflush(stdout);
+  
       continue;
     }
     /* do an internal self test */
