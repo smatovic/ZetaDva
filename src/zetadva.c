@@ -147,6 +147,10 @@ void domove (Bitboard *board, Move move)
   Piece pcastle   = PNONE;
   u64 hmc;
 
+  /* check for edges */
+  if (move==MOVENONE)
+    return;
+
   /* increase half move clock */
   hmc = GETHMC(move);
   hmc++;
@@ -224,6 +228,10 @@ void undomove (Bitboard *board, Move move, Move lastmove, Cr cr)
   Piece pcpt      = GETPCPT(move);
   Bitboard bbTemp = BBEMPTY;
   Piece pcastle   = PNONE;
+
+  /* check for edges */
+  if (move==MOVENONE)
+    return;
 
   /* restore lastmove with hmc, cr and score */
   board[QBBLAST] = lastmove;
@@ -1346,7 +1354,7 @@ int main (int argc, char* argv[])
       MOVECOUNT = 0;
 
       if (!epd_mode)
-        printf ("#doing perft depth %u:\n", SD);  
+        printf ("### doing perft depth %u: ###\n", SD);  
 
       start = get_time();
 

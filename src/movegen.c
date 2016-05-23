@@ -72,7 +72,7 @@ const Bitboard AttackTablesTo[2*7*64] =
   0x81412111090503fe,0x2824222120a07fd,0x404844424150efb,0x8080888492a1cf7,0x10101011925438ef,0x2020212224a870df,0x404142444850e0bf,0x8182848890a0c07f,0x412111090503fe03,0x824222120a07fd07,0x4844424150efb0e,0x80888492a1cf71c,0x101011925438ef38,0x20212224a870df70,0x4142444850e0bfe0,0x82848890a0c07fc0,0x2111090503fe0305,0x4222120a07fd070a,0x844424150efb0e15,0x888492a1cf71c2a,0x1011925438ef3854,0x212224a870df70a8,0x42444850e0bfe050,0x848890a0c07fc0a0,0x11090503fe030509,0x22120a07fd070a12,0x4424150efb0e1524,0x88492a1cf71c2a49,0x11925438ef385492,0x2224a870df70a824,0x444850e0bfe05048,0x8890a0c07fc0a090,0x90503fe03050911,0x120a07fd070a1222,0x24150efb0e152444,0x492a1cf71c2a4988,0x925438ef38549211,0x24a870df70a82422,0x4850e0bfe0504844,0x90a0c07fc0a09088,0x503fe0305091121,0xa07fd070a122242,0x150efb0e15244484,0x2a1cf71c2a498808,0x5438ef3854921110,0xa870df70a8242221,0x50e0bfe050484442,0xa0c07fc0a0908884,0x3fe030509112141,0x7fd070a12224282,0xefb0e1524448404,0x1cf71c2a49880808,0x38ef385492111010,0x70df70a824222120,0xe0bfe05048444241,0xc07fc0a090888482,0xfe03050911214181,0xfd070a1222428202,0xfb0e152444840404,0xf71c2a4988080808,0xef38549211101010,0xdf70a82422212020,0xbfe0504844424140,0x7fc0a09088848281
 };
 /* kogge stone shifts */
-const u64 shifts[7*4] =
+const u64 shifts4[7*4] =
 {
    0, 0, 0, 0,                   /* PNONE  */
    9, 0, 7, 8,                  /* PAWN   */
@@ -81,6 +81,17 @@ const u64 shifts[7*4] =
    9, 0, 7, 0,               /* BISHOP */
    0, 1, 0, 8,              /* ROOK   */
    9, 1, 7, 8              /* QUEEN  */
+};
+/* kogge stone shifts */
+const u64 shifts8[7*8] =
+{
+   0,  0,  0,  0,  0,  0,  0,  0,       /* PNONE  */
+   9,  0,  7,  8, -9,  0, -7, -8,      /* PAWN   */
+  17, 10,  6, 15,-17,-10, -6,-15,     /* KNIGTH */
+   9,  1,  7,  8, -9, -1, -7, -8,    /* KING   */
+   9,  0,  7,  0, -9,  0, -7,  0,   /* BISHOP */
+   0,  1,  0,  8,  0, -1,  0, -8,  /* ROOK   */
+   9,  1,  7,  8, -9, -1, -7, -8  /* QUEEN  */
 };
 /* wraps for kogge stone shifts */
 const Bitboard wraps[8] =
@@ -97,6 +108,7 @@ const Bitboard wraps[8] =
   0x00fefefefefefefe, /* >>7 */
   0x00ffffffffffffff  /* >>8 */
 };
+
 
 /* generate legal moves via generalized KoggeStone bitboard approach */
 /* based on work by Steffan Westcott */
@@ -145,7 +157,7 @@ int genmoves_general (Bitboard *board, Move *moves, int movecounter, bool stm, b
     /* directions left shifting */
     for (i=0;i<4;i++)
     {
-      shift   = shifts[GETPTYPE(pfrom)*4+i];
+      shift   = shifts4[GETPTYPE(pfrom)*4+i];
       bbPro   = ~bbBlockers;
       bbGen   = SETMASKBB(sqfrom);
       bbWrap  = (GETPTYPE(pfrom)==KNIGHT)?BBFULL:wraps[i];
@@ -164,7 +176,7 @@ int genmoves_general (Bitboard *board, Move *moves, int movecounter, bool stm, b
     /* directions right shifting */
     for (i=0;i<4;i++)
     {
-      shift   = shifts[GETPTYPE(pfrom)*4+i];
+      shift   = shifts4[GETPTYPE(pfrom)*4+i];
       bbPro   = ~bbBlockers;
       bbGen   = SETMASKBB(sqfrom);
       bbWrap  = (GETPTYPE(pfrom)==KNIGHT)?BBFULL:wraps[4+i];
@@ -242,7 +254,7 @@ int genmoves_general (Bitboard *board, Move *moves, int movecounter, bool stm, b
       /* handle pawn promo: queen */
       pto = (!kic&&GETPTYPE(pfrom)==PAWN&&GETRRANK(sqto,stm)==RANK_8)?MAKEPIECE(QUEEN, GETCOLOR(pfrom)):PNONE;
       /* get score, non captures via static values, capture via MVV-LVA */
-      score = (pcpt==PNONE)? (evalmove (pto, sqto, stm)-evalmove(pfrom, sqfrom, stm)) : (EvalPieceValues[pcpt]*16-EvalPieceValues[pto]);
+      score = (pcpt==PNONE)? (evalmove (GETPTYPE(pto), sqto, stm)-evalmove(GETPTYPE(pfrom), sqfrom, stm)) : (EvalPieceValues[GETPTYPE(pcpt)]*16-EvalPieceValues[GETPTYPE(pto)]);
       /* pack move into 64 bits, considering castle rights and halfmovecounter and score */
       move = (pto==PNONE)?MOVENONE:MAKEMOVE(sqfrom, sqto, sqcpt, pfrom, pto, pcpt, 0, (u64)GETHMC(lastmove), (u64)score);
       moves[movecounter] = move;
@@ -257,31 +269,36 @@ int genmoves_general (Bitboard *board, Move *moves, int movecounter, bool stm, b
   bbTemp  = (sqep)? (stm)? bbPro&(SETMASKBB(sqep+7)|SETMASKBB(sqep+9)):
                           bbPro&(SETMASKBB(sqep-7)|SETMASKBB(sqep-9))          
            : BBEMPTY;
+  pfrom   = MAKEPIECE(PAWN,stm);
+  pto     = pfrom; 
+  pcpt    = MAKEPIECE(PAWN,(u64)!stm);
+  score   = EvalPieceValues[PAWN]*16-EvalPieceValues[PAWN];
 
-  while (bbTemp)
-  {
-    sqfrom   = popfirst1(&bbTemp);
-    sqto     = sqep;
-    sqcpt    = (stm)? sqep+8:sqep-8;
-    pfrom    = GETPIECE(board, sqfrom);
-    pto      = pfrom;
-    pcpt     = GETPIECE(board, sqcpt);
+  /* check for first en passant pawn */
+  sqfrom  = (bbTemp)?popfirst1(&bbTemp):0x0;
+  sqto    = sqep;
+  sqcpt   = (stm)? sqep+8:sqep-8;
+  /* pack move into 64 bits, considering castle rights and halfmovecounter and score */
+  move    = (sqfrom)?MAKEMOVE(sqfrom, sqto, sqcpt, pfrom, pto, pcpt, 0, (u64)GETHMC(lastmove), (u64)score):MOVENONE;
+  /* legal moves only */
+  domove (board, move);
+  kic = kingincheck (board, stm);
+  undomove (board, move, lastmove, cr);
+  moves[movecounter] = move;
+  movecounter+=(sqfrom&&!kic)?1:0;
 
-    /* get score, non captures via static values, capture via MVV-LVA */
-    score = (pcpt==PNONE)? (evalmove (pto, sqto, stm)-evalmove(pfrom, sqfrom, stm)) : (EvalPieceValues[pcpt]*16-EvalPieceValues[pto]);
-    /* pack move into 64 bits, considering castle rights and halfmovecounter and score */
-    move = MAKEMOVE(sqfrom, sqto, sqcpt, pfrom, pto, pcpt, 0, (u64)GETHMC(lastmove), (u64)score);
-
-    /* legal moves only */
-    domove (board, move);
-    kic = kingincheck (board, stm);
-    if (!kic)
-    {
-      moves[movecounter] = move;
-      movecounter++;
-    }
-    undomove (board, move, lastmove, cr);
-  }
+  /* check for second en passant pawn */
+  sqfrom  = (bbTemp)?popfirst1(&bbTemp):0x0;
+  sqto    = sqep;
+  sqcpt   = (stm)? sqep+8:sqep-8;
+  /* pack move into 64 bits, considering castle rights and halfmovecounter and score */
+  move    = (sqfrom)?MAKEMOVE(sqfrom, sqto, sqcpt, pfrom, pto, pcpt, 0, (u64)GETHMC(lastmove), (u64)score):MOVENONE;
+  /* legal moves only */
+  domove (board, move);
+  kic = kingincheck (board, stm);
+  undomove (board, move, lastmove, cr);
+  moves[movecounter] = move;
+  movecounter+=(sqfrom&&!kic)?1:0;
 
   /* gen castle moves */
   /* get king square */

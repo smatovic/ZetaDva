@@ -49,7 +49,7 @@ Score perft (Bitboard *board, bool stm, u32 depth)
     return 0;
   }
 
-  movecounter = genmoves_general (board, moves, movecounter, stm, false);
+  movecounter = genmoves_general(board, moves, movecounter, stm, false);
 
   MOVECOUNT+= movecounter;
 
