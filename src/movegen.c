@@ -82,17 +82,6 @@ const u64 shifts4[7*4] =
    0, 1, 0, 8,              /* ROOK   */
    9, 1, 7, 8              /* QUEEN  */
 };
-/* kogge stone shifts */
-const u64 shifts8[7*8] =
-{
-   0,  0,  0,  0,  0,  0,  0,  0,       /* PNONE  */
-   9,  0,  7,  8, -9,  0, -7, -8,      /* PAWN   */
-  17, 10,  6, 15,-17,-10, -6,-15,     /* KNIGTH */
-   9,  1,  7,  8, -9, -1, -7, -8,    /* KING   */
-   9,  0,  7,  0, -9,  0, -7,  0,   /* BISHOP */
-   0,  1,  0,  8,  0, -1,  0, -8,  /* ROOK   */
-   9,  1,  7,  8, -9, -1, -7, -8  /* QUEEN  */
-};
 /* wraps for kogge stone shifts */
 const Bitboard wraps[8] =
 {
