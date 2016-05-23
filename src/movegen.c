@@ -113,12 +113,12 @@ int genmoves_general (Bitboard *board, Move *moves, int movecounter, bool stm, b
   Square sqcpt;
   Square sqep; 
   Move move;
-  Move lastmove = board[QBBLAST];
-  Cr cr = board[QBBPMVD];
+  Move lastmove;
+  Cr cr;
   Bitboard bbTemp;
   Bitboard bbWork;
   Bitboard bbMoves;
-  Bitboard bbBlockers = board[QBBP1]|board[QBBP2]|board[QBBP3];
+  Bitboard bbBlockers;
   Bitboard bbWrap;
   Bitboard bbPro;
   Bitboard bbGen;
@@ -127,10 +127,13 @@ int genmoves_general (Bitboard *board, Move *moves, int movecounter, bool stm, b
   int i;
   bool kic = false;
 
+  lastmove = board[QBBLAST];
+  cr = board[QBBPMVD];
+
+  bbBlockers    = board[QBBP1]|board[QBBP2]|board[QBBP3];
   bbBoth[WHITE] = board[QBBBLACK]^bbBlockers;
   bbBoth[BLACK] = board[QBBBLACK];
   bbWork        = bbBoth[stm];
-  
 
   /* for each piece of site to move */
   while (bbWork)
@@ -197,7 +200,8 @@ int genmoves_general (Bitboard *board, Move *moves, int movecounter, bool stm, b
       sqcpt     = sqto;
       pcpt      = GETPIECE(board, sqcpt);
 
-      sqep      = (GETPTYPE(pfrom)==PAWN && GETRRANK(sqto,(u64)stm)-GETRRANK(sqfrom,(u64)stm)==2)?(stm)?sqto+8:sqto-8:0x0; 
+      /* set en passant target square */
+      sqep      = (GETPTYPE(pfrom)==PAWN&&GETRRANK(sqto,stm)-GETRRANK(sqfrom,stm)==2)?(stm)?sqto+8:sqto-8:0x0; 
 
       /* handle pawn promo: knight */
       pto = (GETPTYPE(pfrom) == PAWN && GETRRANK(sqto,stm) == RANK_8)?MAKEPIECE(KNIGHT,(u64)stm):pfrom;
@@ -247,16 +251,16 @@ int genmoves_general (Bitboard *board, Move *moves, int movecounter, bool stm, b
   }
 
   /* gen en passant moves */
-  sqep = GETSQEP(board[QBBLAST]); 
-  bbPro  = bbBoth[stm]&(board[QBBP1]&~board[QBBP2]&~board[QBBP3]);
-  bbPro &= (stm)? 0xFF000000 : 0xFF00000000;
-  bbTemp = (sqep)? (stm)? bbPro&(SETMASKBB(sqep+7)|SETMASKBB(sqep+9)):
+  sqep    = GETSQEP(board[QBBLAST]); 
+  bbPro   = bbBoth[stm]&(board[QBBP1]&~board[QBBP2]&~board[QBBP3]);
+  bbPro   &= (stm)? 0xFF000000 : 0xFF00000000;
+  bbTemp  = (sqep)? (stm)? bbPro&(SETMASKBB(sqep+7)|SETMASKBB(sqep+9)):
                           bbPro&(SETMASKBB(sqep-7)|SETMASKBB(sqep-9))          
            : BBEMPTY;
 
   while (bbTemp)
   {
-    sqfrom   = popfirst1 (&bbTemp);
+    sqfrom   = popfirst1(&bbTemp);
     sqto     = sqep;
     sqcpt    = (stm)? sqep+8:sqep-8;
     pfrom    = GETPIECE(board, sqfrom);
@@ -266,7 +270,7 @@ int genmoves_general (Bitboard *board, Move *moves, int movecounter, bool stm, b
     /* get score, non captures via static values, capture via MVV-LVA */
     score = (pcpt==PNONE)? (evalmove (pto, sqto, stm)-evalmove(pfrom, sqfrom, stm)) : (EvalPieceValues[pcpt]*16-EvalPieceValues[pto]);
     /* pack move into 64 bits, considering castle rights and halfmovecounter and score */
-    move = MAKEMOVE(sqfrom, sqto, sqcpt, pfrom, pto, pcpt, sqep, (u64)GETHMC(lastmove), (u64)score);
+    move = MAKEMOVE(sqfrom, sqto, sqcpt, pfrom, pto, pcpt, 0, (u64)GETHMC(lastmove), (u64)score);
 
     /* legal moves only */
     domove (board, move);
@@ -282,16 +286,17 @@ int genmoves_general (Bitboard *board, Move *moves, int movecounter, bool stm, b
   /* gen castle moves */
   /* get king square */
   sqfrom  = first1(bbBoth[stm]&(board[QBBP1]&board[QBBP2]&~board[QBBP3]));
-  pfrom   = MAKEPIECE(KING,(u64)stm);
+  pfrom   = GETPIECE(board, sqfrom);
   /* get castle rights queenside */
   bbTemp  = (stm)?(((~board[QBBPMVD])&SMCRBLACKQ)==SMCRBLACKQ)?true:false:(((~board[QBBPMVD])&SMCRWHITEQ)==SMCRWHITEQ)?true:false;
   /* check for emtpty squares */
   bbPro   = ((bbBlockers&SETMASKBB(sqfrom-1))|(bbBlockers&SETMASKBB(sqfrom-2))|(bbBlockers&SETMASKBB(sqfrom-3)));
   /* check for kign and empty squares in check */
-  bbGen  =  (squareunderattack(board,stm,sqfrom)|squareunderattack(board,stm,sqfrom-1)|squareunderattack(board,stm,sqfrom-2));
+  bbGen  =  (squareunderattack(board,!stm,sqfrom)|squareunderattack(board,!stm,sqfrom-1)|squareunderattack(board,!stm,sqfrom-2));
   /* set castle move score */
   score   = INF-100;
   move    = (bbTemp&&!bbPro&&!bbGen)?MAKEMOVE(sqfrom, (sqfrom-2), (sqfrom-2), pfrom, pfrom, PNONE, 0, (u64)GETHMC(lastmove), (u64)score):MOVENONE;
+  move   |= (bbTemp&&!bbPro&&!bbGen)?MOVEISCRQ:BBEMPTY;
 
   moves[movecounter] = move;
   movecounter+=(bbTemp&&!bbPro&&!bbGen)?1:0;
@@ -301,10 +306,11 @@ int genmoves_general (Bitboard *board, Move *moves, int movecounter, bool stm, b
   /* check for emtpty squares */
   bbPro   = ((bbBlockers&SETMASKBB(sqfrom+1))|(bbBlockers&SETMASKBB(sqfrom+2)));
   /* check for kign and empty squares in check */
-  bbGen  =  (squareunderattack(board,stm,sqfrom)|squareunderattack(board,stm,sqfrom+1)|squareunderattack(board,stm,sqfrom+2));
+  bbGen  =  (squareunderattack(board,!stm,sqfrom)|squareunderattack(board,!stm,sqfrom+1)|squareunderattack(board,!stm,sqfrom+2));
   /* set castle move score */
   score   = INF-100;
   move    = (bbTemp&&!bbPro&&!bbGen)?MAKEMOVE(sqfrom, (sqfrom+2), (sqfrom+2), pfrom, pfrom, PNONE, 0, (u64)GETHMC(lastmove), (u64)score):MOVENONE;
+  move   |= (bbTemp&&!bbPro&&!bbGen)?MOVEISCRK:BBEMPTY;
 
   moves[movecounter] = move;
   movecounter+=(bbTemp&&!bbPro&&!bbGen)?1:0;

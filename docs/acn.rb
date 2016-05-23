@@ -68,7 +68,7 @@ File.open(argepd, 'r') do |f1|
     # wait for engine greetings 
     i=0
     while(i==0)
-      sleep(0.1)
+      sleep(0.3)
       i = IO.readlines(argfile).count
     end
     # init engine
@@ -80,7 +80,7 @@ File.open(argepd, 'r') do |f1|
     j = 0;
     # wait until result comes up in file
     while (j<=i)
-      sleep(0.1)
+      sleep(0.3)
       j = IO.readlines(argfile).count
     end
     # get computed node count

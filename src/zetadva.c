@@ -172,8 +172,7 @@ void domove (Bitboard *board, Move move)
   board[QBBPMVD]  |= SETMASKBB(sqcpt);
 
   /* handle castle rook, queenside */
-  pcastle = (GETPTYPE(pfrom)==KING&&sqfrom-2==sqto)?
-            MAKEPIECE(ROOK,GETCOLOR(pfrom)) : PNONE;
+  pcastle = (move&MOVEISCRQ)?((u64)ROOK<<1)|(pfrom&0x1):PNONE;
   /* unset castle rook from */
   bbTemp = (pcastle)?CLRMASKBB(sqfrom-4):BBFULL;
   board[QBBBLACK] &= bbTemp;
@@ -186,13 +185,12 @@ void domove (Bitboard *board, Move move)
   board[QBBP2]    |= ((pcastle>>2)&0x1)<<(sqto+1);
   board[QBBP3]    |= ((pcastle>>3)&0x1)<<(sqto+1);
   /* set piece moved flag, for castle rights */
-  board[QBBPMVD]  |= (pcastle)? SETMASKBB(sqfrom-4):BBEMPTY;
+  board[QBBPMVD]  |= (pcastle)?SETMASKBB(sqfrom-4):BBEMPTY;
   /* reset halfmoveclok */
   hmc = (pcastle)?0:hmc;  /* castle move */
 
   /* handle castle rook, kingside */
-  pcastle = (GETPTYPE(pfrom) == KING && sqto-2==sqfrom)?
-            MAKEPIECE(ROOK,GETCOLOR(pfrom)) : PNONE;
+  pcastle = (move&MOVEISCRK)?((u64)ROOK<<1)|(pfrom&0x1):PNONE;
   /* unset castle rook from */
   bbTemp = (pcastle)?CLRMASKBB(sqfrom+3):BBFULL;
   board[QBBBLACK] &= bbTemp;
@@ -202,10 +200,10 @@ void domove (Bitboard *board, Move move)
   /* set castle rook to */
   board[QBBBLACK] |= (pcastle&0x1)<<(sqto-1);
   board[QBBP1]    |= ((pcastle>>1)&0x1)<<(sqto-1);
-  board[QBBP3]    |= ((pcastle>>2)&0x1)<<(sqto-1);
+  board[QBBP2]    |= ((pcastle>>2)&0x1)<<(sqto-1);
   board[QBBP3]    |= ((pcastle>>3)&0x1)<<(sqto-1);
   /* set piece moved flag, for castle rights */
-  board[QBBPMVD]  |= (pcastle)? SETMASKBB(sqfrom+3):BBEMPTY;
+  board[QBBPMVD]  |= (pcastle)?SETMASKBB(sqfrom+3):BBEMPTY;
   /* reset halfmoveclok */
   hmc = (pcastle)?0:hmc;  /* castle move */
 
@@ -252,8 +250,7 @@ void undomove (Bitboard *board, Move move, Move lastmove, Cr cr)
   board[QBBP3]    |= ((pfrom>>3)&0x1)<<sqfrom;
 
   /* handle castle rook, queenside */
-  pcastle = (GETPTYPE(pfrom)==KING&&sqfrom-2==sqto)?
-            MAKEPIECE(ROOK,GETCOLOR(pfrom)) : PNONE;
+  pcastle = (move&MOVEISCRQ)?(u64)ROOK<<1|(pfrom&0x1):PNONE;
   /* unset castle rook to */
   bbTemp = (pcastle)?CLRMASKBB(sqto+1):BBFULL;
   board[QBBBLACK] &= bbTemp;
@@ -265,24 +262,22 @@ void undomove (Bitboard *board, Move move, Move lastmove, Cr cr)
   board[QBBP1]    |= ((pcastle>>1)&0x1)<<(sqfrom-4);
   board[QBBP2]    |= ((pcastle>>2)&0x1)<<(sqfrom-4);
   board[QBBP3]    |= ((pcastle>>3)&0x1)<<(sqfrom-4);
-
   /* handle castle rook, kingside */
-  pcastle = (GETPTYPE(pfrom) == KING && sqto-2==sqfrom)?
-            MAKEPIECE(ROOK,GETCOLOR(pfrom)) : PNONE;
-  /* unset castle rook to */
+  pcastle = (move&MOVEISCRK)?(u64)ROOK<<1|(pfrom&0x1):PNONE;
+  /* restore castle rook from */
   bbTemp = (pcastle)?CLRMASKBB(sqto-1):BBFULL;
   board[QBBBLACK] &= bbTemp;
   board[QBBP1]    &= bbTemp;
   board[QBBP2]    &= bbTemp;
   board[QBBP3]    &= bbTemp;
-  /* restore castle rook from */
+  /* set castle rook to */
   board[QBBBLACK] |= (pcastle&0x1)<<(sqfrom+3);
   board[QBBP1]    |= ((pcastle>>1)&0x1)<<(sqfrom+3);
   board[QBBP2]    |= ((pcastle>>2)&0x1)<<(sqfrom+3);
   board[QBBP3]    |= ((pcastle>>3)&0x1)<<(sqfrom+3);
 }
 /* is square attacked by an enemy piece, via superpiece approach */
-bool squareunderattack (Bitboard *board, Square sq, bool stm) 
+bool squareunderattack (Bitboard *board, bool stm, Square sq) 
 {
 
   Bitboard bbWrap;
@@ -467,7 +462,7 @@ bool kingincheck(Bitboard *board, bool stm)
 
   sqking  = first1 (bbKing);
 
-  return squareunderattack (board, sqking, !stm);
+  return squareunderattack (board, !stm, sqking);
 }
 /* check for two opposite kings */
 bool isvalid(Bitboard *board)
@@ -1364,7 +1359,6 @@ int main (int argc, char* argv[])
       else
         printf ("%llu nodes, seconds: %f, nps: %llu \n", NODECOUNT, elapsed, (u64)(NODECOUNT/elapsed));
 
-print_board(BOARD);
 
       fflush(stdout);
   

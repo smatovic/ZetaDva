@@ -39,11 +39,10 @@ extern u32 PLY;
 extern Move *Move_History;
 extern Hash *Hash_History;
 
-bool squareunderattack (Bitboard *board, Square sq, bool stm);
+bool squareunderattack (Bitboard *board, bool stm, Square sq);
 bool kingincheck(Bitboard *board, bool stm);
 void domove (Bitboard *board, Move move);
 void undomove (Bitboard *board, Move move, Move lastmove, Cr cr);
-
 
 #endif /* ZETA_H_INCLUDED */
 

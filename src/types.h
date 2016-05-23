@@ -74,7 +74,9 @@ typedef u64             Rank;
   26  - 29  piece capture
   30  - 35  square en passant target
   36  - 43  halfmove clock for fity move rule, last capture/castle/pawn move
-  44  - 47  4 bit free
+  44  - 45  2 bit free
+  46        move is castle kingside
+  47        move is castle queenside
   48  - 63  move score
 */
 /* engine defaults */
@@ -97,6 +99,9 @@ typedef u64             Rank;
 #define BISHOP              4
 #define ROOK                5
 #define QUEEN               6
+/* */
+#define MOVEISCRK           0x0000400000000000ULL
+#define MOVEISCRQ           0x0000800000000000ULL
 /* bitboard masks, computation prefered over lookup */
 #define SETMASKBB(sq)       (1ULL<<(sq))
 #define CLRMASKBB(sq)       (~(1ULL<<(sq)))
@@ -167,6 +172,9 @@ typedef u64             Rank;
                            |  (((board[2]>>(sq))&0x1)<<1) \
                            |  (((board[3]>>(sq))&0x1)<<2) \
                              )
+#define abs(v)              (((v)>0)?v:v*-1)
+#define FILEDIS(sqa,sqb)    (abs(GETFILE((sqa))-GETFILE((sqb))))
+
 /* file enumeration */
 enum Files
 {

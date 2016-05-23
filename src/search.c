@@ -31,12 +31,15 @@ Score perft (Bitboard *board, bool stm, u32 depth)
 {
 
   Move moves[MAXMOVES];
-  Move lastmove = board[QBBLAST];
-  Cr cr = board[QBBPMVD];
+  Move lastmove;
+  Cr cr;
   Score score = 0;
   int i = 0;
   int movecounter = 0;
   bool kic = false;
+
+  lastmove = board[QBBLAST];
+  cr = board[QBBPMVD];
 
   kic = kingincheck (board, stm);
 
