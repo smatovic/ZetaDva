@@ -174,6 +174,13 @@ void domove (Bitboard *board, Move move)
   /* handle castle rook, queenside */
   pcastle = (GETPTYPE(pfrom)==KING&&sqfrom-2==sqto)?
             MAKEPIECE(ROOK,GETCOLOR(pfrom)) : PNONE;
+  /* unset castle rook from */
+  bbTemp = (pcastle)?CLRMASKBB(sqfrom-4):BBFULL;
+  board[QBBBLACK] &= bbTemp;
+  board[QBBP1]    &= bbTemp;
+  board[QBBP2]    &= bbTemp;
+  board[QBBP3]    &= bbTemp;
+  /* set castle rook to */
   board[QBBBLACK] |= (pcastle&0x1)<<(sqto+1);
   board[QBBP1]    |= ((pcastle>>1)&0x1)<<(sqto+1);
   board[QBBP2]    |= ((pcastle>>2)&0x1)<<(sqto+1);
@@ -186,7 +193,13 @@ void domove (Bitboard *board, Move move)
   /* handle castle rook, kingside */
   pcastle = (GETPTYPE(pfrom) == KING && sqto-2==sqfrom)?
             MAKEPIECE(ROOK,GETCOLOR(pfrom)) : PNONE;
-
+  /* unset castle rook from */
+  bbTemp = (pcastle)?CLRMASKBB(sqfrom+3):BBFULL;
+  board[QBBBLACK] &= bbTemp;
+  board[QBBP1]    &= bbTemp;
+  board[QBBP2]    &= bbTemp;
+  board[QBBP3]    &= bbTemp;
+  /* set castle rook to */
   board[QBBBLACK] |= (pcastle&0x1)<<(sqto-1);
   board[QBBP1]    |= ((pcastle>>1)&0x1)<<(sqto-1);
   board[QBBP3]    |= ((pcastle>>2)&0x1)<<(sqto-1);
@@ -238,19 +251,31 @@ void undomove (Bitboard *board, Move move, Move lastmove, Cr cr)
   board[QBBP2]    |= ((pfrom>>2)&0x1)<<sqfrom;
   board[QBBP3]    |= ((pfrom>>3)&0x1)<<sqfrom;
 
-  /* restore castle rook, queenside */
+  /* handle castle rook, queenside */
   pcastle = (GETPTYPE(pfrom)==KING&&sqfrom-2==sqto)?
             MAKEPIECE(ROOK,GETCOLOR(pfrom)) : PNONE;
-
+  /* unset castle rook to */
+  bbTemp = (pcastle)?CLRMASKBB(sqto+1):BBFULL;
+  board[QBBBLACK] &= bbTemp;
+  board[QBBP1]    &= bbTemp;
+  board[QBBP2]    &= bbTemp;
+  board[QBBP3]    &= bbTemp;
+  /* restore castle rook from */
   board[QBBBLACK] |= (pcastle&0x1)<<(sqfrom-4);
   board[QBBP1]    |= ((pcastle>>1)&0x1)<<(sqfrom-4);
   board[QBBP2]    |= ((pcastle>>2)&0x1)<<(sqfrom-4);
   board[QBBP3]    |= ((pcastle>>3)&0x1)<<(sqfrom-4);
 
-  /* restore castle rook, kingside */
+  /* handle castle rook, kingside */
   pcastle = (GETPTYPE(pfrom) == KING && sqto-2==sqfrom)?
             MAKEPIECE(ROOK,GETCOLOR(pfrom)) : PNONE;
-
+  /* unset castle rook to */
+  bbTemp = (pcastle)?CLRMASKBB(sqto-1):BBFULL;
+  board[QBBBLACK] &= bbTemp;
+  board[QBBP1]    &= bbTemp;
+  board[QBBP2]    &= bbTemp;
+  board[QBBP3]    &= bbTemp;
+  /* restore castle rook from */
   board[QBBBLACK] |= (pcastle&0x1)<<(sqfrom+3);
   board[QBBP1]    |= ((pcastle>>1)&0x1)<<(sqfrom+3);
   board[QBBP2]    |= ((pcastle>>2)&0x1)<<(sqfrom+3);
@@ -739,8 +764,8 @@ static bool setboard (Bitboard *board, char *fenstring)
   char fencharstring[24] = {" PNKBRQ pnkbrq/12345678"}; /* mapping */
   u64 i;
   u64 j;
-  u64 hmc;        /* half move clock */
-  u64 fendepth;   /* game depth */
+  u64 hmc = 0;        /* half move clock */
+  u64 fendepth = 1;   /* game depth */
   File file;
   Rank rank;
   Piece piece;
@@ -1092,6 +1117,9 @@ int main (int argc, char* argv[])
   /* xboard command loop */
   for (;;)
   {
+    /* console mode */
+    if (!xboard_mode&&!epd_mode)
+      printf ("> ");
     /* just to be sure, flush the output...*/
     fflush (stdout);
     /* get Line */
@@ -1120,13 +1148,11 @@ int main (int argc, char* argv[])
     /* set epd mode */
     if (!strcmp (Command, "epd"))
     {
+      printf ("\n");
       xboard_mode = false;
       epd_mode = true;
       continue;
     }
-    /* console mode */
-    if (!xboard_mode&&!epd_mode)
-      printf ("> ");
     /* get xboard protocoll version */
     if (!strcmp(Command, "protover")) 
     {
@@ -1187,7 +1213,7 @@ int main (int argc, char* argv[])
 		if (!strcmp (Command, "setboard"))
     {
       sscanf (Line, "setboard %1023[0-9a-zA-Z /-]", Fen);
-      if(!setboard (BOARD, Fen))
+      if(*Fen != '\n' && *Fen != '\0'  && !setboard (BOARD, Fen))
       {
         printf ("Error (in setting chess psotition via fen string): setboard\n");        
       }
@@ -1245,6 +1271,8 @@ int main (int argc, char* argv[])
     if (!strcmp (Command, "sd"))
     {
       sscanf (Line, "sd %u", &SD);
+      if (SD>=MAXPLY)
+        SD = MAXPLY;
       continue;
     }
     /* turn on thinking output */
@@ -1335,6 +1363,8 @@ int main (int argc, char* argv[])
         printf ("%llu\n", NODECOUNT);
       else
         printf ("%llu nodes, seconds: %f, nps: %llu \n", NODECOUNT, elapsed, (u64)(NODECOUNT/elapsed));
+
+print_board(BOARD);
 
       fflush(stdout);
   
