@@ -68,19 +68,22 @@ File.open(argepd, 'r') do |f1|
     # wait for engine greetings 
     i=0
     while(i==0)
-      sleep(0.5)
+      sleep(0.1)
       i = IO.readlines(argfile).count
     end
     # init engine
     engineIO.puts("epd")
+    sleep(0.1)
     engineIO.puts("setboard "+fen)
+    sleep(0.1)
     engineIO.puts("sd " + depth.to_s)
+    sleep(0.1)
     i = IO.readlines(argfile).count
     engineIO.puts("perft")
     j = 0;
     # wait until result comes up in file
     while (j<=i)
-      sleep(0.5)
+      sleep(0.1)
       j = IO.readlines(argfile).count
     end
     # get computed node count

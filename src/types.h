@@ -99,7 +99,7 @@ typedef u64             Rank;
 #define BISHOP              4
 #define ROOK                5
 #define QUEEN               6
-/* */
+/* move is castle flag */
 #define MOVEISCRK           0x0000400000000000ULL
 #define MOVEISCRQ           0x0000800000000000ULL
 /* bitboard masks, computation prefered over lookup */
@@ -127,9 +127,9 @@ typedef u64             Rank;
 #define SMCRWHITE           0x0000000000000091ULL
 #define SMCRWHITEQ          0x0000000000000011ULL
 #define SMCRWHITEK          0x0000000000000090ULL
-#define SMCRBLACK           0x8900000000000000ULL
-#define SMCRBLACKQ          0x8800000000000000ULL
-#define SMCRBLACKK          0x0900000000000000ULL
+#define SMCRBLACK           0x9100000000000000ULL
+#define SMCRBLACKQ          0x1100000000000000ULL
+#define SMCRBLACKK          0x9000000000000000ULL
 /* move helpers */
 #define MAKEPIECE(p,c)     (((p)<<1)|c)
 #define GETCOLOR(p)        ((p)&0x1)

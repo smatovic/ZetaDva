@@ -174,7 +174,7 @@ void domove (Bitboard *board, Move move)
   /* handle castle rook, queenside */
   pcastle = (move&MOVEISCRQ)?MAKEPIECE(ROOK,GETCOLOR(pfrom)):PNONE;
   /* unset castle rook from */
-  bbTemp = (pcastle)?CLRMASKBB(sqfrom-4):BBFULL;
+  bbTemp  = (move&MOVEISCRQ)?CLRMASKBB(sqfrom-4):BBFULL;
   board[QBBBLACK] &= bbTemp;
   board[QBBP1]    &= bbTemp;
   board[QBBP2]    &= bbTemp;
@@ -192,7 +192,7 @@ void domove (Bitboard *board, Move move)
   /* handle castle rook, kingside */
   pcastle = (move&MOVEISCRK)?MAKEPIECE(ROOK,GETCOLOR(pfrom)):PNONE;
   /* unset castle rook from */
-  bbTemp = (pcastle)?CLRMASKBB(sqfrom+3):BBFULL;
+  bbTemp  = (move&MOVEISCRK)?CLRMASKBB(sqfrom+3):BBFULL;
   board[QBBBLACK] &= bbTemp;
   board[QBBP1]    &= bbTemp;
   board[QBBP2]    &= bbTemp;
@@ -252,7 +252,7 @@ void undomove (Bitboard *board, Move move, Move lastmove, Cr cr)
   /* handle castle rook, queenside */
   pcastle = (move&MOVEISCRQ)?MAKEPIECE(ROOK,GETCOLOR(pfrom)):PNONE;
   /* unset castle rook to */
-  bbTemp = (pcastle)?CLRMASKBB(sqto+1):BBFULL;
+  bbTemp  = (move&MOVEISCRQ)?CLRMASKBB(sqto+1):BBFULL;
   board[QBBBLACK] &= bbTemp;
   board[QBBP1]    &= bbTemp;
   board[QBBP2]    &= bbTemp;
@@ -265,7 +265,7 @@ void undomove (Bitboard *board, Move move, Move lastmove, Cr cr)
   /* handle castle rook, kingside */
   pcastle = (move&MOVEISCRK)?MAKEPIECE(ROOK,GETCOLOR(pfrom)):PNONE;
   /* restore castle rook from */
-  bbTemp = (pcastle)?CLRMASKBB(sqto-1):BBFULL;
+  bbTemp  = (move&MOVEISCRK)?CLRMASKBB(sqto-1):BBFULL;
   board[QBBBLACK] &= bbTemp;
   board[QBBP1]    &= bbTemp;
   board[QBBP2]    &= bbTemp;
