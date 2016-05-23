@@ -41,7 +41,7 @@ Score perft (Bitboard *board, bool stm, u32 depth)
   lastmove = board[QBBLAST];
   cr = board[QBBPMVD];
 
-  kic = kingincheck (board, stm);
+  kic = kingincheck(board, stm);
 
   if (depth == SD)
   {

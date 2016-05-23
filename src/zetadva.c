@@ -172,7 +172,7 @@ void domove (Bitboard *board, Move move)
   board[QBBPMVD]  |= SETMASKBB(sqcpt);
 
   /* handle castle rook, queenside */
-  pcastle = (move&MOVEISCRQ)?((u64)ROOK<<1)|(pfrom&0x1):PNONE;
+  pcastle = (move&MOVEISCRQ)?MAKEPIECE(ROOK,GETCOLOR(pfrom)):PNONE;
   /* unset castle rook from */
   bbTemp = (pcastle)?CLRMASKBB(sqfrom-4):BBFULL;
   board[QBBBLACK] &= bbTemp;
@@ -190,7 +190,7 @@ void domove (Bitboard *board, Move move)
   hmc = (pcastle)?0:hmc;  /* castle move */
 
   /* handle castle rook, kingside */
-  pcastle = (move&MOVEISCRK)?((u64)ROOK<<1)|(pfrom&0x1):PNONE;
+  pcastle = (move&MOVEISCRK)?MAKEPIECE(ROOK,GETCOLOR(pfrom)):PNONE;
   /* unset castle rook from */
   bbTemp = (pcastle)?CLRMASKBB(sqfrom+3):BBFULL;
   board[QBBBLACK] &= bbTemp;
@@ -250,7 +250,7 @@ void undomove (Bitboard *board, Move move, Move lastmove, Cr cr)
   board[QBBP3]    |= ((pfrom>>3)&0x1)<<sqfrom;
 
   /* handle castle rook, queenside */
-  pcastle = (move&MOVEISCRQ)?(u64)ROOK<<1|(pfrom&0x1):PNONE;
+  pcastle = (move&MOVEISCRQ)?MAKEPIECE(ROOK,GETCOLOR(pfrom)):PNONE;
   /* unset castle rook to */
   bbTemp = (pcastle)?CLRMASKBB(sqto+1):BBFULL;
   board[QBBBLACK] &= bbTemp;
@@ -263,7 +263,7 @@ void undomove (Bitboard *board, Move move, Move lastmove, Cr cr)
   board[QBBP2]    |= ((pcastle>>2)&0x1)<<(sqfrom-4);
   board[QBBP3]    |= ((pcastle>>3)&0x1)<<(sqfrom-4);
   /* handle castle rook, kingside */
-  pcastle = (move&MOVEISCRK)?(u64)ROOK<<1|(pfrom&0x1):PNONE;
+  pcastle = (move&MOVEISCRK)?MAKEPIECE(ROOK,GETCOLOR(pfrom)):PNONE;
   /* restore castle rook from */
   bbTemp = (pcastle)?CLRMASKBB(sqto-1):BBFULL;
   board[QBBBLACK] &= bbTemp;
@@ -454,13 +454,15 @@ bool squareunderattack (Bitboard *board, bool stm, Square sq)
 bool kingincheck(Bitboard *board, bool stm) 
 {
   Square sqking;
-  Bitboard bbKing = board[QBBP1]&board[QBBP2]&~board[QBBP3]; /* get kings */
+  Bitboard bbKing;
 
-  /* get colored king */
-  bbKing &= (stm)? board[QBBBLACK] : 
+  /* get colored pieces */
+  bbKing  = (stm)? board[QBBBLACK] : 
             (board[QBBBLACK]^(board[QBBP1]|board[QBBP2]|board[QBBP3]));
 
-  sqking  = first1 (bbKing);
+  /* get colored king */
+  bbKing &= board[QBBP1]&board[QBBP2]&~board[QBBP3];
+  sqking  = first1(bbKing);
 
   return squareunderattack (board, !stm, sqking);
 }
@@ -1358,7 +1360,6 @@ int main (int argc, char* argv[])
         printf ("%llu\n", NODECOUNT);
       else
         printf ("%llu nodes, seconds: %f, nps: %llu \n", NODECOUNT, elapsed, (u64)(NODECOUNT/elapsed));
-
 
       fflush(stdout);
   
