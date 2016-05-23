@@ -31,9 +31,9 @@ Score evalmove(PieceType piece, Square sq, bool stm)
 {
   Score score = 0;
 
-  score+= (stm)? EvalPieceValues[piece] :   EvalPieceValues[piece];
-  score+= (stm)? EvalTable[piece*64+sq] :   EvalTable[piece*64+FLOP(sq)];
-  score+= (stm)? EvalControl[sq]        :   EvalControl[FLOP(sq)];
+  score+= (stm)? EvalPieceValues[GETPTYPE(piece)-1]   : EvalPieceValues[GETPTYPE(piece)-1];
+  score+= (stm)? EvalTable[(GETPTYPE(piece)-1)*64+sq] : EvalTable[(GETPTYPE(piece)-1)*64+FLOP(sq)];
+  score+= (stm)? EvalControl[sq]                      : EvalControl[FLOP(sq)];
 
   return score;
 }

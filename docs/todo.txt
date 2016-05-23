@@ -2,7 +2,8 @@ A) root-structure
     - basic Xboard protocol                                           WIP
     - setboard with FEN                                 DONE
     - time control                                              TODO
-    - external test suite                                             WIP
+    - external test suite, node count                   DONE
+    - external test suite, bestomve from STS                    TODO
     - three fold repetition rule                                TODO
     - performance tuning                                        TODO
         - incremental hash                                      TODO
@@ -19,7 +20,7 @@ B) BoardPresentation
 + 1*8 Byte hash                                         DONE
 + 1*8 Byte lastmove+ep+castle+halfmoveclock+score       DONE
 
-C) MovGenerator (Board)                                               WIP
+C) MovGenerator (Board)
     - generalized Kogge-Stone move gen                  DONE
     - precalculated AttackTables                        DONE
       for white pawns, black pawns and knights          
@@ -27,9 +28,10 @@ C) MovGenerator (Board)                                               WIP
     - castling moves                                    DONE
     - pawn promotion                                    DONE
     - pieceincheck function                             DONE
-    - debug with test positions                                       WIP
-    - tighten attacktbales                                      TODO
-    - cleanup & performance tuning                              TODO
+    - debug with test positions                         DONE
+    - legal moves via pinned pieces                                   WIP
+    - tighten attacktbales                              DONE
+    - cleanup & performance tuning                                    WIP
 
 D) DoMove, UnDoMove
     - normal moves                                      DONE

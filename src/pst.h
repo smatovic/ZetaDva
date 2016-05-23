@@ -32,7 +32,7 @@
 /* static piece values */
 /* pnone, pawn, knight, king, bishop, rook, queen */
 /* const Score EvalPieceValues[9] = {0, 100, 300, 0, 300, 500, 900}; */
-const Score EvalPieceValues[7] = {0, 100, 400, 0, 400, 600, 1200};
+const Score EvalPieceValues[6] = {100, 400, 0, 400, 600, 1200};
 
 /* square control bonus, black view */
 /* flop square for white-index: sq^56*/
@@ -50,18 +50,8 @@ const Score EvalControl[64] =
 
 /* piece square tables, black view */
 /* flop square for white-index: sq^56*/
-const Score EvalTable[7*64] =
+const Score EvalTable[6*64] =
 {
-    /* none */
-    0,  0,  0,  0,  0,  0,  0,  0,
-    0,  0,  0,  0,  0,  0,  0,  0,
-    0,  0,  0,  0,  0,  0,  0,  0,
-    0,  0,  0,  0,  0,  0,  0,  0,
-    0,  0,  0,  0,  0,  0,  0,  0,
-    0,  0,  0,  0,  0,  0,  0,  0,
-    0,  0,  0,  0,  0,  0,  0,  0,
-    0,  0,  0,  0,  0,  0,  0,  0,
-
     /* pawn */
     0,  0,  0,  0,  0,  0,  0,  0,
    50, 50, 50, 50, 50, 50, 50, 50,

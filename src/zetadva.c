@@ -287,7 +287,6 @@ void undomove (Bitboard *board, Move move, Move lastmove, Cr cr)
 /* is square attacked by an enemy piece, via superpiece approach */
 bool squareunderattack (Bitboard *board, bool stm, Square sq) 
 {
-
   Bitboard bbWrap;
   Bitboard bbGen;
   Bitboard bbPro;
@@ -436,21 +435,21 @@ bool squareunderattack (Bitboard *board, bool stm, Square sq)
   }
   /* knights */
   bbWork = bbBoth[stm]&(~board[QBBP1]&board[QBBP2]&~board[QBBP3]);
-  bbMoves = AttackTablesTo[stm*7*64+KNIGHT*64+sq] ;
+  bbMoves = AttackTablesNK[sq] ;
   if (bbMoves&bbWork) 
   {
     return true;
   }
   /* pawns */
   bbWork = bbBoth[stm]&(board[QBBP1]&~board[QBBP2]&~board[QBBP3]);
-  bbMoves = AttackTablesTo[stm*7*64+PAWN*64+sq];
+  bbMoves = AttackTablesByPawns[stm*64+sq];
   if (bbMoves&bbWork)
   {
     return true;
   }
   /* king */
   bbWork = bbBoth[stm]&(board[QBBP1]&board[QBBP2]&~board[QBBP3]);
-  bbMoves = AttackTablesTo[stm*7*64+KING*64+sq];
+  bbMoves = AttackTablesNK[64+sq];
   if (bbMoves&bbWork)
   {
     return true;

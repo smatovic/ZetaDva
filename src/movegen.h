@@ -23,8 +23,10 @@
 #define MOVEGEN_H_INCLUDED
 
 extern const Bitboard AttackTablesTo[2*7*64];
+extern const Bitboard AttackTablesNK[2*64];
+extern const Bitboard AttackTablesByPawns[2*64];
 
 int genmoves_general (Bitboard *board, Move *moves, int movecounter, bool stm, bool qs);
-int genmoves_general_x8 (Bitboard *board, Move *moves, int movecounter, bool stm, bool qs);
+
 #endif /* MOVEGEN_H_INCLUDED */
 
