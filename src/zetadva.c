@@ -72,8 +72,8 @@ static void createfen (char *fenstring, Bitboard *board, bool stm, int gameply);
 static void move2alg (Move move, char * movec);
 static Move alg2move (char *usermove, Bitboard *board, bool stm);
 static void print_move(Move move);
-static void print_board(Bitboard *board);
-void print_bitboard(Bitboard board);
+static void printboard(Bitboard *board);
+void printbitboard(Bitboard board);
 
 /* release memory, files and tables */
 static bool release_inits (void)
@@ -487,7 +487,7 @@ bool isvalid(Bitboard *board)
   return false;
 }
 /* print bitboard */
-void print_bitboard (Bitboard board)
+void printbitboard (Bitboard board)
 {
 
   int rank;
@@ -611,7 +611,7 @@ static void move2alg (Move move, char * movec)
   }
 }
 /* print quadbitbooard */
-static void print_board (Bitboard *board)
+static void printboard (Bitboard *board)
 {
 
   int rank;
@@ -623,12 +623,12 @@ static void print_board (Bitboard *board)
   char fenstring[1024];
 
 /*
-print_bitboard(board[0]);
-print_bitboard(board[1]);
-print_bitboard(board[2]);
-print_bitboard(board[3]);
-print_bitboard(board[4]);
-print_bitboard(board[5]);
+printbitboard(board[0]);
+printbitboard(board[1]);
+printbitboard(board[2]);
+printbitboard(board[3]);
+printbitboard(board[4]);
+printbitboard(board[5]);
 */
   printf ("###ABCDEFGH###\n");
   for (rank = RANK_8; rank >= RANK_1; rank--) 
@@ -652,7 +652,36 @@ print_bitboard(board[5]);
   createfen (fenstring, BOARD, STM, GAMEPLY);
 
   printf ("#fen: %s\n",fenstring);
+  if (Log_File != NULL)
+  {
+    char timestring[256];
+    get_time_string (timestring);
+    fprintf(Log_File, "%s, ", timestring);
+    fprintf (Log_File, "#fen: %s\n",fenstring);
+    fprintf(Log_File, "%s, ", timestring);
+    fprintf(Log_File, "###ABCDEFGH###\n");
+    for (rank = RANK_8; rank >= RANK_1; rank--) 
+    {
+      fprintf(Log_File, "%s, ", timestring);
+      fprintf(Log_File, "#%i ",rank+1);
+      for (file = FILE_A; file < FILE_NONE; file++)
+      {
+        sq = MAKESQ(file, rank);
+        piece = GETPIECE(board, sq);
+        if (piece != PNONE && (piece&BLACK))
+          fprintf(Log_File, "%c", bpchars[piece>>1]);
+        else if (piece != PNONE)
+          fprintf(Log_File, "%c", wpchars[piece>>1]);
+        else 
+          fprintf(Log_File, "-");
+      }
+      fprintf(Log_File, "\n");
+    }
+    fprintf(Log_File, "%s, ", timestring);
+    fprintf(Log_File, "###ABCDEFGH###\n");
 
+    fflush (Log_File);
+  }
   fflush (stdout);
 }
 /* create fen string from board state */
@@ -1014,14 +1043,27 @@ static void selftest (void)
     SD = depths[done];
     
     printf ("# doing perft depth: %u for position\n", SD);  
-
+    if (Log_File != NULL)
+    {
+      char timestring[256];
+      get_time_string (timestring);
+      fprintf (Log_File, "%s, ", timestring);
+      fprintf (Log_File,"# doing perft depth: %u for position\n", SD);  
+    }
     if (!setboard(BOARD,  fenpositions[done]))
     {
       printf ("# Error (in setting fen position): setboard\n");        
+      if (Log_File != NULL)
+      {
+        char timestring[256];
+        get_time_string (timestring);
+        fprintf (Log_File, "%s, ", timestring);
+        fprintf (Log_File,"# Error (in setting fen position): setboard\n");        
+      }
       continue;
     }
     else
-      print_board(BOARD);
+      printboard(BOARD);
     
     start = get_time();
 
@@ -1035,9 +1077,25 @@ static void selftest (void)
     {
       passed++;
       printf ("# Nodecount Correct, %llu nodes in %f seconds with %llu nps.\n", NODECOUNT, elapsed, (u64)(NODECOUNT/elapsed));
+      if (Log_File != NULL)
+      {
+        char timestring[256];
+        get_time_string (timestring);
+        fprintf(Log_File, "%s, ", timestring);
+        fprintf(Log_File,"# Nodecount Correct, %llu nodes in %f seconds with %llu nps.\n", NODECOUNT, elapsed, (u64)(NODECOUNT/elapsed));
+      }
     }
     else
+    {
       printf ("# Nodecount Not Correct, %llu computed nodes != %llu nodes for depth %u.\n", NODECOUNT, nodecounts[done]), SD;
+      if (Log_File != NULL)
+      {
+        char timestring[256];
+        get_time_string (timestring);
+        fprintf(Log_File, "%s, ", timestring);
+        fprintf (Log_File,"# Nodecount Not Correct, %llu computed nodes != %llu nodes for depth %u.\n", NODECOUNT, nodecounts[done]), SD;
+      }
+    }
   }
 
   printf("\n###############################\n");
@@ -1066,12 +1124,13 @@ static void print_help (void)
   printf ("To play against the engine use an CECP v2 protocol capable chess GUI\n");
   printf ("like Arena, Winboard or Xboard.\n");
   printf ("\n");
-  printf ("Alternatively you can use Xboard commmands directly on commman Line,\n"); 
+  printf ("Alternatively you can use Xboard commmands directly on commmand Line,\n"); 
   printf ("e.g.:\n");
   printf ("new            // init new game from start position\n");
   printf ("level 40 4 0   // set time control to 40 moves in 4 minutes\n");
   printf ("go             // let engine play site to move\n");
-  printf ("usermove d7d5  // let engine apply usermove and start thinking\n");
+  printf ("usermove d7d5  // let engine apply usermove in coordinate algebraic\n");
+  printf ("               // notation and start thinking\n");
   printf ("\n");
   printf ("Non-Xboard commands:\n");
   printf ("perft          // perform a performance test, depth set by sd command\n");
@@ -1105,7 +1164,6 @@ int main (int argc, char* argv[])
   {
     {"help", 0, 0, 'h'},
     {"version", 0, 0, 'v'},
-    {"log", 0, 0, 'l'},
     {"selftest", 0, 0, 's'},
     {NULL, 0, NULL, 0}
   };
@@ -1115,6 +1173,19 @@ int main (int argc, char* argv[])
   setbuf (stdout, NULL);
   setbuf (stdin, NULL);
 
+  /* turn log on */
+  for (c=1;c<argc;c++)
+  {
+    if (!strcmp(argv[c], "-l") || !strcmp(argv[c],"--log"))
+    {
+      /* open/create log file */
+      Log_File = fopen ("zetadva.log", "a");
+      if (Log_File == NULL) 
+      {
+        printf ("Error (opening logfile zetadva.log): --log");
+      }
+    }
+  }
   /* getopt loop, parsing for help, version and logging */
   while ((c = getopt_long_only (argc, argv, "",
                long_options, &option_index)) != -1) {
@@ -1129,15 +1200,6 @@ int main (int argc, char* argv[])
         exit (EXIT_SUCCESS);
         break;
       case 2:
-        /* open/create log file */
-        Log_File = fopen ("zetadva.log", "a");
-        if (Log_File == NULL) 
-        {
-          printf ("Error (opening logfile zetadva.log): --log");
-          return false;
-        }
-        break;
-      case 3:
         selftest ();
         exit (EXIT_SUCCESS);
         break;
@@ -1181,6 +1243,8 @@ int main (int argc, char* argv[])
       printf ("> ");
     /* just to be sure, flush the output...*/
     fflush (stdout);
+    if (Log_File!=NULL)
+      fflush (Log_File);
     /* get Line */
     if (!fgets (Line, 1023, stdin)) {}
     /* ignore empty Lines */
@@ -1264,7 +1328,7 @@ int main (int argc, char* argv[])
         printf ("Error (in setting start postition): new\n");        
       }
       if (!xboard_mode&&!epd_mode)
-        print_board(BOARD);
+        printboard(BOARD);
       xboard_force  = false;
 			continue;
 		}
@@ -1277,7 +1341,7 @@ int main (int argc, char* argv[])
         printf ("Error (in setting chess psotition via fen string): setboard\n");        
       }
       if (!xboard_mode&&!epd_mode)
-        print_board(BOARD);
+        printboard(BOARD);
       continue;
 		}
     if (!strcmp(Command, "go"))
