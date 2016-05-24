@@ -23,7 +23,7 @@
 #define ZETA_H_INCLUDED
 
 /* global variables */
-extern FILE 	*Log_File;
+extern FILE 	*LogFile;
 /* counters */
 extern u64 NODECOUNT;
 extern u64 MOVECOUNT;
