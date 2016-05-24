@@ -348,3 +348,140 @@ int genmoves_general(Bitboard *board, Move *moves, int movecounter, bool stm, bo
   return movecounter;
 }
 
+Bitboard rook_attacks(Bitboard bbBlockers, Square sq)
+{
+  Bitboard bbWrap;
+  Bitboard bbPro;
+  Bitboard bbGen;
+  Bitboard bbMoves = BBEMPTY;
+
+  /* directions left shifting <<1 ROOK */
+  bbPro   = ~bbBlockers;
+  bbGen   = SETMASKBB(sq);
+  bbWrap  = BBNOTAFILE;
+  bbPro  &= bbWrap;
+  /* do kogge stone */
+  bbGen  |= bbPro &   (bbGen << 1);
+  bbPro  &=           (bbPro << 1);
+  bbGen  |= bbPro &   (bbGen << 2*1);
+  bbPro  &=           (bbPro << 2*1);
+  bbGen  |= bbPro &   (bbGen << 4*1);
+  /* shift one further */
+  bbGen   = bbWrap &  (bbGen << 1);
+  bbMoves|= bbGen;
+
+  /* directions left shifting <<8 ROOK */
+  bbPro   = ~bbBlockers;
+  bbGen   = SETMASKBB(sq);
+  /* do kogge stone */
+  bbGen  |= bbPro &   (bbGen << 8);
+  bbPro  &=           (bbPro << 8);
+  bbGen  |= bbPro &   (bbGen << 2*8);
+  bbPro  &=           (bbPro << 2*8);
+  bbGen  |= bbPro &   (bbGen << 4*8);
+  /* shift one further */
+  bbGen   =           (bbGen << 8);
+  bbMoves|= bbGen;
+
+  /* directions right shifting >>1 ROOK */
+  bbPro   = ~bbBlockers;
+  bbGen   = SETMASKBB(sq);
+  bbWrap  = BBNOTHFILE;
+  bbPro  &= bbWrap;
+  /* do kogge stone */
+  bbGen  |= bbPro &   (bbGen >> 1);
+  bbPro  &=           (bbPro >> 1);
+  bbGen  |= bbPro &   (bbGen >> 2*1);
+  bbPro  &=           (bbPro >> 2*1);
+  bbGen  |= bbPro &   (bbGen >> 4*1);
+  /* shift one further */
+  bbGen   = bbWrap &  (bbGen >> 1);
+  bbMoves|= bbGen;
+
+  /* directions right shifting >>8 ROOK */
+  bbPro   = ~bbBlockers;
+  bbGen   = SETMASKBB(sq);
+  /* do kogge stone */
+  bbGen  |= bbPro &   (bbGen >> 8);
+  bbPro  &=           (bbPro >> 8);
+  bbGen  |= bbPro &   (bbGen >> 2*8);
+  bbPro  &=           (bbPro >> 2*8);
+  bbGen  |= bbPro &   (bbGen >> 4*8);
+  /* shift one further */
+  bbGen   =           (bbGen >> 8);
+  bbMoves|= bbGen;  
+
+  return bbMoves;
+}
+
+Bitboard bishop_attacks(Bitboard bbBlockers, Square sq)
+{
+  Bitboard bbWrap;
+  Bitboard bbPro;
+  Bitboard bbGen;
+  Bitboard bbMoves = BBEMPTY;
+
+  /* directions left shifting <<9 BISHOP */
+  bbPro   = ~bbBlockers;
+  bbGen   = SETMASKBB(sq);
+
+  bbWrap  = BBNOTAFILE;
+  bbPro  &= bbWrap;
+  /* do kogge stone */
+  bbGen  |= bbPro &   (bbGen << 9);
+  bbPro  &=           (bbPro << 9);
+  bbGen  |= bbPro &   (bbGen << 2*9);
+  bbPro  &=           (bbPro << 2*9);
+  bbGen  |= bbPro &   (bbGen << 4*9);
+  /* shift one further */
+  bbGen   = bbWrap &  (bbGen << 9);
+  bbMoves|= bbGen;
+
+  /* directions left shifting <<7 BISHOP */
+  bbPro   = ~bbBlockers;
+  bbGen   = SETMASKBB(sq);
+  bbWrap  = BBNOTHFILE;
+  bbPro  &= bbWrap;
+  /* do kogge stone */
+  bbGen  |= bbPro &   (bbGen << 7);
+  bbPro  &=           (bbPro << 7);
+  bbGen  |= bbPro &   (bbGen << 2*7);
+  bbPro  &=           (bbPro << 2*7);
+  bbGen  |= bbPro &   (bbGen << 4*7);
+  /* shift one further */
+  bbGen   = bbWrap &  (bbGen << 7);
+  bbMoves|= bbGen;
+
+  /* directions right shifting >>9 ROOK */
+  bbPro   = ~bbBlockers;
+  bbGen   = SETMASKBB(sq);
+  bbWrap  = BBNOTHFILE;
+  bbPro  &= bbWrap;
+  /* do kogge stone */
+  bbGen  |= bbPro &   (bbGen >> 9);
+  bbPro  &=           (bbPro >> 9);
+  bbGen  |= bbPro &   (bbGen >> 2*9);
+  bbPro  &=           (bbPro >> 2*9);
+  bbGen  |= bbPro &   (bbGen >> 4*9);
+  /* shift one further */
+  bbGen   = bbWrap &  (bbGen >> 9);
+  bbMoves|= bbGen;
+
+  /* directions right shifting <<7 ROOK */
+  bbPro   = ~bbBlockers;
+  bbGen   = SETMASKBB(sq);
+  bbWrap  = BBNOTAFILE;
+  bbPro  &= bbWrap;
+  /* do kogge stone */
+  bbGen  |= bbPro &   (bbGen >> 7);
+  bbPro  &=           (bbPro >> 7);
+  bbGen  |= bbPro &   (bbGen >> 2*7);
+  bbPro  &=           (bbPro >> 2*7);
+  bbGen  |= bbPro &   (bbGen >> 4*7);
+  /* shift one further */
+  bbGen   = bbWrap &  (bbGen >> 7);
+  bbMoves|= bbGen;
+
+  return bbMoves;
+}
+

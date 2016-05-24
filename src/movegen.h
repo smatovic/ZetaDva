@@ -27,6 +27,7 @@ extern const Bitboard AttackTablesNK[2*64];
 extern const Bitboard AttackTablesByPawns[2*64];
 
 int genmoves_general(Bitboard *board, Move *moves, int movecounter, bool stm, bool qs);
-
+Bitboard rook_attacks(Bitboard bbBlockers, Square sq);
+Bitboard bishop_attacks(Bitboard bbBlockers, Square sq);
 #endif /* MOVEGEN_H_INCLUDED */
 

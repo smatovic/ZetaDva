@@ -288,9 +288,6 @@ void undomove(Bitboard *board, Move move, Move lastmove, Cr cr)
 /* is square attacked by an enemy piece, via superpiece approach */
 bool squareunderattack(Bitboard *board, bool stm, Square sq) 
 {
-  Bitboard bbWrap;
-  Bitboard bbGen;
-  Bitboard bbPro;
   Bitboard bbWork;
   Bitboard bbMoves;
   Bitboard bbBlockers;
@@ -300,133 +297,15 @@ bool squareunderattack(Bitboard *board, bool stm, Square sq)
   bbBoth[WHITE] = board[QBBBLACK]^bbBlockers;
   bbBoth[BLACK] = board[QBBBLACK];
 
-  bbMoves = BBEMPTY;
-  /* directions left shifting <<1 ROOK */
-  bbPro   = ~bbBlockers;
-  bbGen   = SETMASKBB(sq);
-  bbWrap  = BBNOTAFILE;
-  bbPro  &= bbWrap;
-  /* do kogge stone */
-  bbGen  |= bbPro &   (bbGen << 1);
-  bbPro  &=           (bbPro << 1);
-  bbGen  |= bbPro &   (bbGen << 2*1);
-  bbPro  &=           (bbPro << 2*1);
-  bbGen  |= bbPro &   (bbGen << 4*1);
-  /* shift one further */
-  bbGen   = bbWrap &  (bbGen << 1);
-  bbMoves|= bbGen;
-
-  /* directions left shifting <<8 ROOK */
-  bbPro   = ~bbBlockers;
-  bbGen   = SETMASKBB(sq);
-  /* do kogge stone */
-  bbGen  |= bbPro &   (bbGen << 8);
-  bbPro  &=           (bbPro << 8);
-  bbGen  |= bbPro &   (bbGen << 2*8);
-  bbPro  &=           (bbPro << 2*8);
-  bbGen  |= bbPro &   (bbGen << 4*8);
-  /* shift one further */
-  bbGen   =           (bbGen << 8);
-  bbMoves|= bbGen;
-
-  /* directions right shifting >>1 ROOK */
-  bbPro   = ~bbBlockers;
-  bbGen   = SETMASKBB(sq);
-  bbWrap  = BBNOTHFILE;
-  bbPro  &= bbWrap;
-  /* do kogge stone */
-  bbGen  |= bbPro &   (bbGen >> 1);
-  bbPro  &=           (bbPro >> 1);
-  bbGen  |= bbPro &   (bbGen >> 2*1);
-  bbPro  &=           (bbPro >> 2*1);
-  bbGen  |= bbPro &   (bbGen >> 4*1);
-  /* shift one further */
-  bbGen   = bbWrap &  (bbGen >> 1);
-  bbMoves|= bbGen;
-
-  /* directions right shifting >>8 ROOK */
-  bbPro   = ~bbBlockers;
-  bbGen   = SETMASKBB(sq);
-  /* do kogge stone */
-  bbGen  |= bbPro &   (bbGen >> 8);
-  bbPro  &=           (bbPro >> 8);
-  bbGen  |= bbPro &   (bbGen >> 2*8);
-  bbPro  &=           (bbPro >> 2*8);
-  bbGen  |= bbPro &   (bbGen >> 4*8);
-  /* shift one further */
-  bbGen   =           (bbGen >> 8);
-  bbMoves|= bbGen;
-
   /* rooks and queens */
+  bbMoves = rook_attacks(bbBlockers, sq);
   bbWork =    (bbBoth[stm]&(board[QBBP1]&~board[QBBP2]&board[QBBP3])) 
             | (bbBoth[stm]&(~board[QBBP1]&board[QBBP2]&board[QBBP3]));
   if (bbMoves&bbWork)
   {
     return true;
   }
-
-  bbMoves = BBEMPTY;
-  /* directions left shifting <<9 BISHOP */
-  bbPro   = ~bbBlockers;
-  bbGen   = SETMASKBB(sq);
-
-  bbWrap  = BBNOTAFILE;
-  bbPro  &= bbWrap;
-  /* do kogge stone */
-  bbGen  |= bbPro &   (bbGen << 9);
-  bbPro  &=           (bbPro << 9);
-  bbGen  |= bbPro &   (bbGen << 2*9);
-  bbPro  &=           (bbPro << 2*9);
-  bbGen  |= bbPro &   (bbGen << 4*9);
-  /* shift one further */
-  bbGen   = bbWrap &  (bbGen << 9);
-  bbMoves|= bbGen;
-
-  /* directions left shifting <<7 BISHOP */
-  bbPro   = ~bbBlockers;
-  bbGen   = SETMASKBB(sq);
-  bbWrap  = BBNOTHFILE;
-  bbPro  &= bbWrap;
-  /* do kogge stone */
-  bbGen  |= bbPro &   (bbGen << 7);
-  bbPro  &=           (bbPro << 7);
-  bbGen  |= bbPro &   (bbGen << 2*7);
-  bbPro  &=           (bbPro << 2*7);
-  bbGen  |= bbPro &   (bbGen << 4*7);
-  /* shift one further */
-  bbGen   = bbWrap &  (bbGen << 7);
-  bbMoves|= bbGen;
-
-  /* directions right shifting >>9 ROOK */
-  bbPro   = ~bbBlockers;
-  bbGen   = SETMASKBB(sq);
-  bbWrap  = BBNOTHFILE;
-  bbPro  &= bbWrap;
-  /* do kogge stone */
-  bbGen  |= bbPro &   (bbGen >> 9);
-  bbPro  &=           (bbPro >> 9);
-  bbGen  |= bbPro &   (bbGen >> 2*9);
-  bbPro  &=           (bbPro >> 2*9);
-  bbGen  |= bbPro &   (bbGen >> 4*9);
-  /* shift one further */
-  bbGen   = bbWrap &  (bbGen >> 9);
-  bbMoves|= bbGen;
-
-  /* directions right shifting <<7 ROOK */
-  bbPro   = ~bbBlockers;
-  bbGen   = SETMASKBB(sq);
-  bbWrap  = BBNOTAFILE;
-  bbPro  &= bbWrap;
-  /* do kogge stone */
-  bbGen  |= bbPro &   (bbGen >> 7);
-  bbPro  &=           (bbPro >> 7);
-  bbGen  |= bbPro &   (bbGen >> 2*7);
-  bbPro  &=           (bbPro >> 2*7);
-  bbGen  |= bbPro &   (bbGen >> 4*7);
-  /* shift one further */
-  bbGen   = bbWrap &  (bbGen >> 7);
-  bbMoves|= bbGen;
-
+  bbMoves = bishop_attacks(bbBlockers, sq);
   /* bishops and queens */
   bbWork =  (bbBoth[stm]&(~board[QBBP1]&~board[QBBP2]&board[QBBP3])) 
           | (bbBoth[stm]&(~board[QBBP1]&board[QBBP2]&board[QBBP3]));
@@ -579,16 +458,171 @@ static Move can2move(char *usermove, Bitboard *board, bool stm)
 
   return move;
 }
-/* TODO: convert internal move to algebraic notation */
-static void move2san(Bitboard *board, Move move, char * movec) 
-{
-}
 /* packed move to move in coordinate algebraic notation,
   e.g. 
   e2e4 
   e1c1 => when king, indicates castle queenside  
   e7e8q => indicates pawn promotion to queen
 */
+/* TODO: convert internal move to algebraic notation */
+static void move2san(Bitboard *board, Move move, char *san) 
+{
+    bool stm;
+    bool kic = 0;
+    char rankc[] = "12345678";
+    char filec[] = "abcdefgh";
+    char piecetypes[] = "-PNKBRQ";
+    int i = 0;
+    int checkfile = 0;
+    int checkrank = 0;
+    Move tempmove = 0;
+    Square sq = 0;
+    Piece piece = 0;
+    Piece piececpt = 0;
+    Square sqfrom = GETSQFROM(move);
+    Square sqto   = GETSQTO(move);
+    Square sqcpt  = GETSQCPT(move);
+    PieceType pfrom = GETPTYPE(GETPFROM(move));
+    PieceType pto   = GETPTYPE(GETPTO(move));
+    PieceType pcpt  = GETPTYPE(GETPCPT(move));
+    Bitboard bbMe   = BBEMPTY;
+    Bitboard bbWork = BBEMPTY;
+    Bitboard bbMoves = BBEMPTY;
+    Bitboard bbBlockers = board[QBBP1]|board[QBBP2]|board[QBBP3];
+
+    stm   = GETCOLOR(GETPFROM(move));
+    bbMe  = (stm)?board[QBBBLACK]:board[QBBBLACK]^bbBlockers;
+
+    /* castle kingside */
+    if (pfrom == KING && (move&MOVEISCRK)) 
+    {
+      san[0] = 'O';
+      san[1] = '-';
+      san[2] = 'O';
+      san[3] = '\0';
+      return;
+    }
+    /* castle queenside */
+    if (pfrom == KING && (move&MOVEISCRQ)) 
+    {
+      san[0] = 'O';
+      san[1] = '-';
+      san[2] = 'O';
+      san[3] = '-';
+      san[4] = 'O';
+      san[5] = '\0';
+      return;
+    }
+    /* pawns */
+    if (pfrom == PAWN) 
+    {
+      if (pcpt == PNONE) 
+      {
+        san[i++] = filec[GETFILE(sqto)];
+        san[i++] = rankc[GETRANK(sqto)];
+      }
+      else
+      {
+        san[i++] = filec[GETFILE(sqto)];
+      }
+    }
+    /* non pawns */
+    else
+    {
+      san[i++] = piecetypes[pfrom];
+
+      bbMoves = 0;
+      if (pfrom == ROOK || pfrom == QUEEN )
+          bbMoves = rook_attacks(bbBlockers, sqfrom);
+      if (pfrom == BISHOP  || pfrom == QUEEN )
+          bbMoves |= bishop_attacks(bbBlockers, sqfrom);
+
+      if (pfrom == KNIGHT)
+          bbMoves = AttackTablesNK[sqto];
+
+      bbWork = bbMoves&bbMe;
+
+      piececpt = GETPTYPE(GETPIECE(board,sqto));
+
+      /* TODO: rook n queens */
+      while (bbWork) 
+      {
+
+        sq = popfirst1(&bbWork);
+
+        if (sq == sqfrom)
+          continue;
+    
+        piece = GETPTYPE(GETPIECE(board,sqfrom));
+    
+        if ( (piece&0x7) != (pfrom&0x7))
+          continue;
+ 
+
+        /* make move */
+        tempmove = MAKEMOVE(sq, sqto, sqto, piece, piece, piececpt, 0x0ULL, 0x0ULL, 0x0ULL);
+
+        domove(board,tempmove);
+
+        kic = kingincheck(board, stm);
+
+        undomove(board,tempmove, 0, 0);
+
+        /* king in check so ignore this piece */
+        if (kic)
+          continue;
+
+        checkfile = 1;
+
+        /* check rank */
+        if ( (sqfrom&7) == (sq&7) )
+        {
+            checkrank = 1;
+        }           
+      }
+
+      if ( checkfile == 1 )
+      {
+        san[i++] = filec[GETFILE(sqfrom)];
+      }           
+      if ( checkrank == 1 )
+      {
+        san[i++] = rankc[GETRANK(sqfrom)];
+      }           
+    }    
+    /* captures */
+    if (pcpt != PNONE)
+    {
+      san[i++] = 'x';
+      san[i++] = filec[GETFILE(sqcpt)];
+      san[i++] = rankc[GETRANK(sqcpt)];
+    }
+    /* non pawn to */
+    else if (pfrom != PAWN) 
+    {
+      san[i++] = filec[GETFILE(sqto)];
+      san[i++] = rankc[GETRANK(sqto)];
+    }
+    /* pawn promo to queen */
+    if (pfrom == PAWN && pto == QUEEN)
+    {
+      san[i++] = 'Q';
+    }
+    else if (pfrom == PAWN && pto == KNIGHT)
+    {
+      san[i++] = 'N';
+    }
+    else if (pfrom == PAWN && pto == ROOK)
+    {
+      san[i++] = 'R';
+    }
+    else if (pfrom == PAWN && pto == BISHOP)
+    {
+      san[i++] = 'B';
+    }
+
+    san[i] = '\0';
+}
 static void move2can(Move move, char * movec) 
 {
   char rankc[8] = "12345678";
