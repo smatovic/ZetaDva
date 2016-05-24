@@ -105,6 +105,7 @@ typedef u64             Rank;
 /* bitboard masks, computation prefered over lookup */
 #define SETMASKBB(sq)       (1ULL<<(sq))
 #define CLRMASKBB(sq)       (~(1ULL<<(sq)))
+/* u64 defaults */
 #define BBEMPTY             0x0000000000000000ULL
 #define BBFULL              0xFFFFFFFFFFFFFFFFULL
 #define MOVENONE            0x0000000000000000ULL
@@ -123,7 +124,7 @@ typedef u64             Rank;
 #define CMHMC               0xFFFFF00FFFFFFFFFULL
 #define CMCRALL             0x76FFFFFFFFFFFF6EULL
 #define CMSCORE             0x0000FFFFFFFFFFFFULL
-/* castle right set masks big endian */
+/* castle right masks */
 #define SMCRWHITE           0x0000000000000091ULL
 #define SMCRWHITEQ          0x0000000000000011ULL
 #define SMCRWHITEK          0x0000000000000090ULL
