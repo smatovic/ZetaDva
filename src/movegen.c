@@ -24,7 +24,7 @@
 #include "bitboard.h"   /* for population count, pop_count */
 #include "eval.h"       /* for evalmove and eval */
 #include "types.h"      /* custom types, board defs, data structures, macros */
-#include "zetadva.h"   /* for global vars */
+#include "zetadva.h"    /* for global vars */
 
 /* move generator costants */
 /* pawn attack tables */
