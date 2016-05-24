@@ -17,7 +17,6 @@ A) root-structure
     - pondering                                                 TODO
     - SMP, mutlicore                                            TODO
 
-
 B) BoardPresentation
   4*8 Bytes QuatBitbaord board presentation             DONE
 + 1*8 Byte hash                                         DONE

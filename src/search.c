@@ -27,9 +27,8 @@
 #include "types.h"      /* custom types, board defs, data structures, macros */
 #include "zetadva.h"    /* for global vars */
 
-Score perft (Bitboard *board, bool stm, u32 depth)
+Score perft(Bitboard *board, bool stm, u32 depth)
 {
-
   Move moves[MAXMOVES];
   Move lastmove;
   Cr cr;

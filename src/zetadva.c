@@ -64,78 +64,78 @@ Bitboard BOARD[7];
   7   lastmove + ep target + halfmove clock + move score
 */
 /* forward declarations */
-static void print_help (void);
-static void print_version (void);
-static void selftest (void);
-static bool setboard (Bitboard *board, char *fenstring);
-static void createfen (char *fenstring, Bitboard *board, bool stm, int gameply);
-static void move2alg (Move move, char * movec);
-static Move alg2move (char *usermove, Bitboard *board, bool stm);
+static void print_help(void);
+static void print_version(void);
+static void selftest(void);
+static bool setboard(Bitboard *board, char *fenstring);
+static void createfen(char *fenstring, Bitboard *board, bool stm, int gameply);
+static void move2can(Move move, char * movec);
+static Move can2move(char *usermove, Bitboard *board, bool stm);
 static void print_move(Move move);
 static void printboard(Bitboard *board);
 void printbitboard(Bitboard board);
 
 /* release memory, files and tables */
-static bool release_inits (void)
+static bool release_inits(void)
 {
   /* close log file */
-  if (Log_File != NULL)
+  if (Log_File!= NULL)
     fclose (Log_File);
   /* release memory */
-  if (Line != NULL) 
+  if (Line!=NULL) 
     free(Line);
-  if (Command != NULL) 
+  if (Command!=NULL) 
     free(Command);
-  if (Fen != NULL) 
+  if (Fen!=NULL) 
     free(Fen);
-  if (Move_History != NULL) 
+  if (Move_History!=NULL) 
     free(Move_History);
-  if (Hash_History != NULL) 
+  if (Hash_History!=NULL) 
     free(Hash_History);
 
   return true;
 }
 /* innitialize memory, files and tables */
-static bool inits (void)
+static bool inits(void)
 {
   /* memory allocation */
-  Line         = malloc (1024       * sizeof (char));
-  Command      = malloc (1024       * sizeof (char));
-  Fen          = malloc (1024       * sizeof (char));
-  Move_History = malloc (MAXGAMEPLY * sizeof (Move));
-  Hash_History = malloc (MAXGAMEPLY * sizeof (Hash));
+  Line         = malloc(1024       * sizeof (char));
+  Command      = malloc(1024       * sizeof (char));
+  Fen          = malloc(1024       * sizeof (char));
+  Move_History = malloc(MAXGAMEPLY * sizeof (Move));
+  Hash_History = malloc(MAXGAMEPLY * sizeof (Hash));
 
-  if (Line == NULL) 
+  if (Line==NULL) 
   {
-    printf ("Error (memory allocation failed): char Line[%d]", 1024);
+    printf("Error (memory allocation failed): char Line[%d]", 1024);
     return false;
   }
-  if (Command == NULL) 
+  if (Command==NULL) 
   {
-    printf ("Error (memory allocation failed): char Command[%d]", 1024);
+    printf("Error (memory allocation failed): char Command[%d]", 1024);
     return false;
   }
-  if (Fen == NULL) 
+  if (Fen==NULL) 
   {
-    printf ("Error (memory allocation failed): char Fen[%d]", 1024);
+    printf("Error (memory allocation failed): char Fen[%d]", 1024);
     return false;
   }
-  if (Move_History == NULL) 
+  if (Move_History==NULL) 
   {
-    printf ("Error (memory allocation failed): u64 Move_History[%d]",
+    printf("Error (memory allocation failed): u64 Move_History[%d]",
              MAXGAMEPLY);
     return false;
   }
-  if (Hash_History == NULL) 
+  if (Hash_History==NULL) 
   {
-    printf ("Error (memory allocation failed): u64 Hash_History[%d]",
+    printf("Error (memory allocation failed): u64 Hash_History[%d]",
             MAXGAMEPLY);
     return false;
   }
   return true;
 }
 /* apply move on board */
-void domove (Bitboard *board, Move move)
+void domove(Bitboard *board, Move move)
 {
   Square sqfrom   = GETSQFROM(move);
   Square sqto     = GETSQTO(move);
@@ -158,7 +158,7 @@ void domove (Bitboard *board, Move move)
   board[QBBLAST] = move;
 
   /* unset square from, square capture and square to */
-  bbTemp = CLRMASKBB(sqfrom) & CLRMASKBB(sqcpt) & CLRMASKBB(sqto);
+  bbTemp = CLRMASKBB(sqfrom)&CLRMASKBB(sqcpt)&CLRMASKBB(sqto);
   board[QBBBLACK] &= bbTemp;
   board[QBBP1]    &= bbTemp;
   board[QBBP2]    &= bbTemp;
@@ -219,7 +219,7 @@ void domove (Bitboard *board, Move move)
   board[QBBLAST] = SETHMC(board[QBBLAST], hmc);
 }
 /* restore board again */
-void undomove (Bitboard *board, Move move, Move lastmove, Cr cr)
+void undomove(Bitboard *board, Move move, Move lastmove, Cr cr)
 {
   Square sqfrom   = GETSQFROM(move);
   Square sqto     = GETSQTO(move);
@@ -239,7 +239,7 @@ void undomove (Bitboard *board, Move move, Move lastmove, Cr cr)
   board[QBBPMVD] = cr;
 
   /* unset square capture, square to */
-  bbTemp = CLRMASKBB(sqcpt) & CLRMASKBB(sqto);
+  bbTemp = CLRMASKBB(sqcpt)&CLRMASKBB(sqto);
   board[QBBBLACK] &= bbTemp;
   board[QBBP1]    &= bbTemp;
   board[QBBP2]    &= bbTemp;
@@ -285,7 +285,7 @@ void undomove (Bitboard *board, Move move, Move lastmove, Cr cr)
   board[QBBP3]    |= ((pcastle>>3)&0x1)<<(sqfrom+3);
 }
 /* is square attacked by an enemy piece, via superpiece approach */
-bool squareunderattack (Bitboard *board, bool stm, Square sq) 
+bool squareunderattack(Bitboard *board, bool stm, Square sq) 
 {
   Bitboard bbWrap;
   Bitboard bbGen;
@@ -487,43 +487,42 @@ bool isvalid(Bitboard *board)
   return false;
 }
 /* print bitboard */
-void printbitboard (Bitboard board)
+void printbitboard(Bitboard board)
 {
-
   int rank;
   int file;
   Square sq;
 
-  printf ("###ABCDEFGH###\n");
-  for(rank = RANK_8; rank >= RANK_1; rank--) {
-    printf ("#%i ",rank+1);
-    for(file = FILE_A; file < FILE_NONE; file++) {
+  printf("###ABCDEFGH###\n");
+  for(rank=RANK_8;rank>=RANK_1;rank--) {
+    printf("#%i ",rank+1);
+    for(file=FILE_A;file<FILE_NONE;file++) {
       sq = MAKESQ(file, rank);
       if (board&SETMASKBB(sq)) 
-        printf ("x");
+        printf("x");
       else 
-        printf ("-");
+        printf("-");
     }
-    printf ("\n");
+    printf("\n");
   }
-  printf ("###ABCDEFGH###\n");
+  printf("###ABCDEFGH###\n");
 
   fflush(stdout);
 }
-static void print_move (Move move)
+static void printmove(Move move)
 {
-  printf ("sqfrom:%llu\n",GETSQFROM(move));
-  printf ("sqto:%llu\n",GETSQTO(move));
-  printf ("sqcpt:%llu\n",GETSQCPT(move));
-  printf ("pfrom:%llu\n",GETPFROM(move));
-  printf ("pto:%llu\n",GETPTO(move));
-  printf ("pcpt:%llu\n",GETPCPT(move));
-  printf ("sqep:%llu\n",GETSQEP(move));
-  printf ("hmc:%u\n",(u32)GETHMC(move));
-  printf ("score:%i\n",(Score)GETSCORE(move));
+  printf("sqfrom:%llu\n",GETSQFROM(move));
+  printf("sqto:%llu\n",GETSQTO(move));
+  printf("sqcpt:%llu\n",GETSQCPT(move));
+  printf("pfrom:%llu\n",GETPFROM(move));
+  printf("pto:%llu\n",GETPTO(move));
+  printf("pcpt:%llu\n",GETPCPT(move));
+  printf("sqep:%llu\n",GETSQEP(move));
+  printf("hmc:%u\n",(u32)GETHMC(move));
+  printf("score:%i\n",(Score)GETSCORE(move));
 }
 /* move in algebraic notation, eg. e2e4, to internal packed move  */
-static Move alg2move (char *usermove, Bitboard *board, bool stm) 
+static Move can2move(char *usermove, Bitboard *board, bool stm) 
 {
 
   File file;
@@ -580,7 +579,7 @@ static Move alg2move (char *usermove, Bitboard *board, bool stm)
   return move;
 }
 /* packed move to move in algebraic notation, eg. e2e4 */
-static void move2alg (Move move, char * movec) 
+static void move2can(Move move, char * movec) 
 {
   char rankc[8] = "12345678";
   char filec[8] = "abcdefgh";
@@ -588,7 +587,6 @@ static void move2alg (Move move, char * movec)
   Square to     = GETSQTO(move);
   Piece pfrom   = GETPFROM(move);
   Piece pto     = GETPTO(move);
-
 
   movec[0] = filec[GETFILE(from)];
   movec[1] = rankc[GETRANK(from)];
@@ -611,7 +609,7 @@ static void move2alg (Move move, char * movec)
   }
 }
 /* print quadbitbooard */
-static void printboard (Bitboard *board)
+static void printboard(Bitboard *board)
 {
 
   int rank;
@@ -622,42 +620,34 @@ static void printboard (Bitboard *board)
   char bpchars[] = "-pnkbrq";
   char fenstring[1024];
 
-/*
-printbitboard(board[0]);
-printbitboard(board[1]);
-printbitboard(board[2]);
-printbitboard(board[3]);
-printbitboard(board[4]);
-printbitboard(board[5]);
-*/
-  printf ("###ABCDEFGH###\n");
+  printf("###ABCDEFGH###\n");
   for (rank = RANK_8; rank >= RANK_1; rank--) 
   {
-    printf ("#%i ",rank+1);
+    printf("#%i ",rank+1);
     for (file = FILE_A; file < FILE_NONE; file++)
     {
       sq = MAKESQ(file, rank);
       piece = GETPIECE(board, sq);
       if (piece != PNONE && (piece&BLACK))
-        printf ("%c", bpchars[piece>>1]);
+        printf("%c", bpchars[piece>>1]);
       else if (piece != PNONE)
-        printf ("%c", wpchars[piece>>1]);
+        printf("%c", wpchars[piece>>1]);
       else 
-        printf ("-");
+        printf("-");
     }
-    printf ("\n");
+    printf("\n");
   }
-  printf ("###ABCDEFGH###\n");
+  printf("###ABCDEFGH###\n");
 
   createfen (fenstring, BOARD, STM, GAMEPLY);
+  printf("#fen: %s\n",fenstring);
 
-  printf ("#fen: %s\n",fenstring);
   if (Log_File != NULL)
   {
     char timestring[256];
     get_time_string (timestring);
     fprintf(Log_File, "%s, ", timestring);
-    fprintf (Log_File, "#fen: %s\n",fenstring);
+    fprintf(Log_File, "#fen: %s\n",fenstring);
     fprintf(Log_File, "%s, ", timestring);
     fprintf(Log_File, "###ABCDEFGH###\n");
     for (rank = RANK_8; rank >= RANK_1; rank--) 
@@ -685,9 +675,8 @@ printbitboard(board[5]);
   fflush (stdout);
 }
 /* create fen string from board state */
-static void createfen (char *fenstring, Bitboard *board, bool stm, int gameply)
+static void createfen(char *fenstring, Bitboard *board, bool stm, int gameply)
 {
-
   int rank;
   int file;
   Square sq;
@@ -710,84 +699,84 @@ static void createfen (char *fenstring, Bitboard *board, bool stm, int gameply)
       /* handle empty squares */
       if (spaces > 0 && piece != PNONE)
       {
-        stringptr+=sprintf (stringptr, "%d", spaces);
+        stringptr+=sprintf(stringptr, "%d", spaces);
         spaces=0;
       }
       /* handle pieces, black and white */
       if (piece != PNONE && (piece&BLACK))
-        stringptr+=sprintf (stringptr, "%c", bpchars[piece>>1]);
+        stringptr+=sprintf(stringptr, "%c", bpchars[piece>>1]);
       else if (piece != PNONE)
-        stringptr+=sprintf (stringptr, "%c", wpchars[piece>>1]);
+        stringptr+=sprintf(stringptr, "%c", wpchars[piece>>1]);
       else
         spaces++;
     }
     /* handle empty squares */
     if (spaces > 0)
     {
-      stringptr+=sprintf (stringptr, "%d", spaces);
+      stringptr+=sprintf(stringptr, "%d", spaces);
       spaces=0;
     }
     /* handle rows delimeter */
     if (rank <= RANK_8 && rank > RANK_1)
-      stringptr+=sprintf (stringptr, "/");
+      stringptr+=sprintf(stringptr, "/");
   }
 
-  stringptr+=sprintf (stringptr, " ");
+  stringptr+=sprintf(stringptr, " ");
 
   /* add site to move */
   if (stm&BLACK)
   {
-    stringptr+=sprintf (stringptr, "b");
+    stringptr+=sprintf(stringptr, "b");
   }
   else
   {
-    stringptr+=sprintf (stringptr, "w");
+    stringptr+=sprintf(stringptr, "w");
   }
 
-  stringptr+=sprintf (stringptr, " ");
+  stringptr+=sprintf(stringptr, " ");
 
   /* add castle rights */
   if (((~board[QBBPMVD])&SMCRALL)==BBEMPTY)
-    stringptr+=sprintf (stringptr, "-");
+    stringptr+=sprintf(stringptr, "-");
   else
   {
     /* white kingside */
     if (((~board[QBBPMVD])&SMCRWHITEK)==SMCRWHITEK)
-      stringptr+=sprintf (stringptr, "K");
+      stringptr+=sprintf(stringptr, "K");
     /* white queenside */
     if (((~board[QBBPMVD])&SMCRWHITEQ)==SMCRWHITEQ)
-      stringptr+=sprintf (stringptr, "Q");
+      stringptr+=sprintf(stringptr, "Q");
     /* black kingside */
     if (((~board[QBBPMVD])&SMCRBLACKK)==SMCRBLACKK)
-      stringptr+=sprintf (stringptr, "k");
+      stringptr+=sprintf(stringptr, "k");
     /* black queenside */
     if (((~board[QBBPMVD])&SMCRBLACKQ)==SMCRBLACKQ)
-      stringptr+=sprintf (stringptr, "q");
+      stringptr+=sprintf(stringptr, "q");
   }
 
-  stringptr+=sprintf (stringptr," ");
+  stringptr+=sprintf(stringptr," ");
 
   /* add en passant target square */
   sq = GETSQEP(board[QBBLAST]);
   if (sq > 0)
   {
-    stringptr+=sprintf (stringptr, "%c", filec[GETFILE(sq)]);
-    stringptr+=sprintf (stringptr, "%c", rankc[GETRANK(sq)]);
+    stringptr+=sprintf(stringptr, "%c", filec[GETFILE(sq)]);
+    stringptr+=sprintf(stringptr, "%c", rankc[GETRANK(sq)]);
   }
   else
-    stringptr+=sprintf (stringptr, "-");
+    stringptr+=sprintf(stringptr, "-");
 
-  stringptr+=sprintf (stringptr," ");
+  stringptr+=sprintf(stringptr," ");
 
   /* add halpfmove clock  */
-  stringptr+=sprintf (stringptr, "%d",GETHMC(board[QBBLAST]));
-  stringptr+=sprintf (stringptr, " ");
+  stringptr+=sprintf(stringptr, "%d",GETHMC(board[QBBLAST]));
+  stringptr+=sprintf(stringptr, " ");
 
-  stringptr+=sprintf (stringptr, "%d", (gameply/2));
+  stringptr+=sprintf(stringptr, "%d", (gameply/2));
 
 }
 /* set internal chess board presentation to fen string */
-static bool setboard (Bitboard *board, char *fenstring)
+static bool setboard(Bitboard *board, char *fenstring)
 {
   char tempchar;
   char *position; /* piece types and position, row_8, file_a, to row_1, file_h*/
@@ -810,22 +799,22 @@ static bool setboard (Bitboard *board, char *fenstring)
   position  = malloc (1024 * sizeof (char));
   if (position == NULL) 
   {
-    printf ("Error (memory allocation failed): char position[%d]", 1024);
+    printf("Error (memory allocation failed): char position[%d]", 1024);
   }
   cstm  = malloc (1024 * sizeof (char));
   if (cstm == NULL) 
   {
-    printf ("Error (memory allocation failed): char cstm[%d]", 1024);
+    printf("Error (memory allocation failed): char cstm[%d]", 1024);
   }
   castle  = malloc (1024 * sizeof (char));
   if (castle == NULL) 
   {
-    printf ("Error (memory allocation failed): char castle[%d]", 1024);
+    printf("Error (memory allocation failed): char castle[%d]", 1024);
   }
   cep  = malloc (1024 * sizeof (char));
   if (cep == NULL) 
   {
-    printf ("Error (memory allocation failed): char cep[%d]", 1024);
+    printf("Error (memory allocation failed): char cep[%d]", 1024);
   }
   if (position==NULL||cstm==NULL||castle==NULL||cep==NULL)
   {
@@ -977,14 +966,14 @@ static bool setboard (Bitboard *board, char *fenstring)
   /* board valid check */
   if (!isvalid(board))
   {
-    printf ("Error (given fen position is illegal): setboard\n");        
+    printf("Error (given fen position is illegal): setboard\n");        
     return false;
   }
 
   return true;
 }
 /* run internal selftest */
-static void selftest (void) 
+static void selftest(void) 
 {
   u64 done;
   u64 passed = 0;
@@ -1042,23 +1031,23 @@ static void selftest (void)
 
     SD = depths[done];
     
-    printf ("# doing perft depth: %u for position\n", SD);  
+    printf("# doing perft depth: %u for position\n", SD);  
     if (Log_File != NULL)
     {
       char timestring[256];
       get_time_string (timestring);
-      fprintf (Log_File, "%s, ", timestring);
-      fprintf (Log_File,"# doing perft depth: %u for position\n", SD);  
+      fprintf(Log_File, "%s, ", timestring);
+      fprintf(Log_File,"# doing perft depth: %u for position\n", SD);  
     }
     if (!setboard(BOARD,  fenpositions[done]))
     {
-      printf ("# Error (in setting fen position): setboard\n");        
+      printf("# Error (in setting fen position): setboard\n");        
       if (Log_File != NULL)
       {
         char timestring[256];
         get_time_string (timestring);
-        fprintf (Log_File, "%s, ", timestring);
-        fprintf (Log_File,"# Error (in setting fen position): setboard\n");        
+        fprintf(Log_File, "%s, ", timestring);
+        fprintf(Log_File,"# Error (in setting fen position): setboard\n");        
       }
       continue;
     }
@@ -1076,7 +1065,7 @@ static void selftest (void)
     if(NODECOUNT==nodecounts[done])
     {
       passed++;
-      printf ("# Nodecount Correct, %llu nodes in %f seconds with %llu nps.\n", NODECOUNT, elapsed, (u64)(NODECOUNT/elapsed));
+      printf("# Nodecount Correct, %llu nodes in %f seconds with %llu nps.\n", NODECOUNT, elapsed, (u64)(NODECOUNT/elapsed));
       if (Log_File != NULL)
       {
         char timestring[256];
@@ -1087,13 +1076,13 @@ static void selftest (void)
     }
     else
     {
-      printf ("# Nodecount Not Correct, %llu computed nodes != %llu nodes for depth %u.\n", NODECOUNT, nodecounts[done]), SD;
+      printf("# Nodecount Not Correct, %llu computed nodes != %llu nodes for depth %u.\n", NODECOUNT, nodecounts[done]), SD;
       if (Log_File != NULL)
       {
         char timestring[256];
         get_time_string (timestring);
         fprintf(Log_File, "%s, ", timestring);
-        fprintf (Log_File,"# Nodecount Not Correct, %llu computed nodes != %llu nodes for depth %u.\n", NODECOUNT, nodecounts[done]), SD;
+        fprintf(Log_File,"# Nodecount Not Correct, %llu computed nodes != %llu nodes for depth %u.\n", NODECOUNT, nodecounts[done]), SD;
       }
     }
   }
@@ -1103,54 +1092,54 @@ static void selftest (void)
   printf("###############################\n");
 }
 /* print engine info to console */
-static void print_version (void)
+static void print_version(void)
 {
-  printf ("Zeta Dva version: %s\n",VERSION);
-  printf ("Yet another amateur level chess engine.\n");
-  printf ("Copyright (C) 2011-2016 Srdja Matovic, Montenegro\n");
-  printf ("This is free software, licensed under GPL >= v2\n");
+  printf("Zeta Dva version: %s\n",VERSION);
+  printf("Yet another amateur level chess engine.\n");
+  printf("Copyright (C) 2011-2016 Srdja Matovic, Montenegro\n");
+  printf("This is free software, licensed under GPL >= v2\n");
 }
 /* engine options and usage */
-static void print_help (void)
+static void print_help(void)
 {
-  printf ("Zeta Dva, yet another amateur level chess engine.\n");
-  printf ("\n");
-  printf ("Options:\n");
-  printf (" -l, --log          Write output/debug to file zetadva.log\n");
-  printf (" -v, --version      Print Zeta Dva version info.\n");
-  printf (" -h, --help         Print Zeta Dva program usage help.\n");
-  printf (" -s, --selftest     Run an internal test, usefull after compile.\n");
-  printf ("\n");
-  printf ("To play against the engine use an CECP v2 protocol capable chess GUI\n");
-  printf ("like Arena, Winboard or Xboard.\n");
-  printf ("\n");
-  printf ("Alternatively you can use Xboard commmands directly on commmand Line,\n"); 
-  printf ("e.g.:\n");
-  printf ("new            // init new game from start position\n");
-  printf ("level 40 4 0   // set time control to 40 moves in 4 minutes\n");
-  printf ("go             // let engine play site to move\n");
-  printf ("usermove d7d5  // let engine apply usermove in coordinate algebraic\n");
-  printf ("               // notation and start thinking\n");
-  printf ("\n");
-  printf ("Non-Xboard commands:\n");
-  printf ("perft          // perform a performance test, depth set by sd command\n");
-  printf ("selftest       // run an internal test\n");
-  printf ("help           // print usage hints\n");
-  printf ("log            // toggle log flag\n");
-  printf ("\n");
-  printf ("Not supported Xboard commands:\n");
-  printf ("analyze        // enter analyze mode\n");
-  printf ("undo/remove    // take back last moves\n");
-  printf ("?              // move now\n");
-  printf ("draw           // handle draw offers\n");
-  printf ("hard/easy      // turn on/off pondering\n");
-  printf ("hint           // give user a hint move\n");
-  printf ("bk             // book Lines\n");
-  printf ("pause/resume   // pause the engine\n");
-  printf ("\n");
+  printf("Zeta Dva, yet another amateur level chess engine.\n");
+  printf("\n");
+  printf("Options:\n");
+  printf(" -l, --log          Write output/debug to file zetadva.log\n");
+  printf(" -v, --version      Print Zeta Dva version info.\n");
+  printf(" -h, --help         Print Zeta Dva program usage help.\n");
+  printf(" -s, --selftest     Run an internal test, usefull after compile.\n");
+  printf("\n");
+  printf("To play against the engine use an CECP v2 protocol capable chess GUI\n");
+  printf("like Arena, Winboard or Xboard.\n");
+  printf("\n");
+  printf("Alternatively you can use Xboard commmands directly on commmand Line,\n"); 
+  printf("e.g.:\n");
+  printf("new            // init new game from start position\n");
+  printf("level 40 4 0   // set time control to 40 moves in 4 minutes\n");
+  printf("go             // let engine play site to move\n");
+  printf("usermove d7d5  // let engine apply usermove in coordinate algebraic\n");
+  printf("               // notation and start thinking\n");
+  printf("\n");
+  printf("Non-Xboard commands:\n");
+  printf("perft          // perform a performance test, depth set by sd command\n");
+  printf("selftest       // run an internal test\n");
+  printf("help           // print usage hints\n");
+  printf("log            // toggle log flag\n");
+  printf("\n");
+  printf("Not supported Xboard commands:\n");
+  printf("analyze        // enter analyze mode\n");
+  printf("undo/remove    // take back last moves\n");
+  printf("?              // move now\n");
+  printf("draw           // handle draw offers\n");
+  printf("hard/easy      // turn on/off pondering\n");
+  printf("hint           // give user a hint move\n");
+  printf("bk             // book Lines\n");
+  printf("pause/resume   // pause the engine\n");
+  printf("\n");
 }
 /* Zeta Dva, amateur level chess engine  */
-int main (int argc, char* argv[])
+int main(int argc, char* argv[])
 {
   /* xboard states */
   bool xboard_mode    = false;  /* chess GUI sets to true */
@@ -1179,10 +1168,10 @@ int main (int argc, char* argv[])
     if (!strcmp(argv[c], "-l") || !strcmp(argv[c],"--log"))
     {
       /* open/create log file */
-      Log_File = fopen ("zetadva.log", "a");
+      Log_File = fopen("zetadva.log", "a");
       if (Log_File == NULL) 
       {
-        printf ("Error (opening logfile zetadva.log): --log");
+        printf("Error (opening logfile zetadva.log): --log");
       }
     }
   }
@@ -1219,18 +1208,18 @@ int main (int argc, char* argv[])
     setbuf(Log_File, NULL);
     /* print binary call to log */
     get_time_string (timestring);
-    fprintf (Log_File, "%s, ", timestring);
+    fprintf(Log_File, "%s, ", timestring);
     for (c=0;c<argc;c++)
     {
-      fprintf (Log_File, "%s ",argv[c]);
+      fprintf(Log_File, "%s ",argv[c]);
     }
-    fprintf (Log_File, "\n");
+    fprintf(Log_File, "\n");
   }
   /* print engine info to console */
-  printf ("Zeta Dva %s\n",VERSION);
-  printf ("Yet another amateur level chess engine.\n");
-  printf ("Copyright (C) 2011-2016 Srdja Matovic, Montenegro\n");
-  printf ("This is free software, licensed under GPL >= v2\n");
+  printf("Zeta Dva %s\n",VERSION);
+  printf("Yet another amateur level chess engine.\n");
+  printf("Copyright (C) 2011-2016 Srdja Matovic, Montenegro\n");
+  printf("This is free software, licensed under GPL >= v2\n");
 
   /* init starting position */
   setboard(BOARD,"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
@@ -1240,7 +1229,7 @@ int main (int argc, char* argv[])
   {
     /* console mode */
     if (!xboard_mode&&!epd_mode)
-      printf ("> ");
+      printf("> ");
     /* just to be sure, flush the output...*/
     fflush (stdout);
     if (Log_File!=NULL)
@@ -1255,23 +1244,23 @@ int main (int argc, char* argv[])
     {
       char timestring[256];
       get_time_string (timestring);
-      fprintf (Log_File, "%s, ", timestring);
-      fprintf (Log_File, "%s\n",Line);
+      fprintf(Log_File, "%s, ", timestring);
+      fprintf(Log_File, "%s\n",Line);
     }
     /* get command */
     sscanf (Line, "%s", Command);
     /* xboard commands */
     /* set xboard mode */
-    if (!strcmp (Command, "xboard"))
+    if (!strcmp(Command, "xboard"))
     {
-      printf ("feature done=0\n");  
+      printf("feature done=0\n");  
       xboard_mode = true;
       continue;
     }
     /* set epd mode */
-    if (!strcmp (Command, "epd"))
+    if (!strcmp(Command, "epd"))
     {
-      printf ("\n");
+      printf("\n");
       xboard_mode = false;
       epd_mode = true;
       continue;
@@ -1283,49 +1272,49 @@ int main (int argc, char* argv[])
       /* zeta supports only CECP >= v2 */
       if (xboard_mode && xboard_protover<2)
       {
-        printf ("Error (unsupported protocoll version,  < v2): protover\n");
-        printf ("tellusererror (unsupported protocoll version, < v2): protover\n");
+        printf("Error (unsupported protocoll version,  < v2): protover\n");
+        printf("tellusererror (unsupported protocoll version, < v2): protover\n");
       }
       else
       {
         /* send feature list to xboard */
-        printf ("feature myname=\"Zeta Dva %s\"\n",VERSION);
-        printf ("feature ping=0\n");
-        printf ("feature setboard=1\n");
-        printf ("feature playother=0\n");
-        printf ("feature san=0\n");
-        printf ("feature usermove=1\n");
-        printf ("feature time=1\n");
-        printf ("feature draw=0\n");
-        printf ("feature sigint=0\n");
-        printf ("feature reuse=1\n");
-        printf ("feature analyze=0\n");
-        printf ("feature variants=normal\n");
-        printf ("feature colors=0\n");
-        printf ("feature ics=0\n");
-        printf ("feature name=0\n");
-        printf ("feature pause=0\n");
-        printf ("feature nps=0\n");
-        printf ("feature debug=0\n");
-        printf ("feature memory=1\n");
-        printf ("feature smp=0\n");
-        printf ("feature san=0\n");
-        printf ("feature debug=0\n");
-        printf ("feature exclude=0\n");
-        printf ("feature setscore=0\n");
-        printf ("feature highlight=0\n");
-        printf ("feature setscore=0\n");
-        printf ("feature done=1\n");
+        printf("feature myname=\"Zeta Dva %s\"\n",VERSION);
+        printf("feature ping=0\n");
+        printf("feature setboard=1\n");
+        printf("feature playother=0\n");
+        printf("feature san=0\n");
+        printf("feature usermove=1\n");
+        printf("feature time=1\n");
+        printf("feature draw=0\n");
+        printf("feature sigint=0\n");
+        printf("feature reuse=1\n");
+        printf("feature analyze=0\n");
+        printf("feature variants=normal\n");
+        printf("feature colors=0\n");
+        printf("feature ics=0\n");
+        printf("feature name=0\n");
+        printf("feature pause=0\n");
+        printf("feature nps=0\n");
+        printf("feature debug=0\n");
+        printf("feature memory=1\n");
+        printf("feature smp=0\n");
+        printf("feature san=0\n");
+        printf("feature debug=0\n");
+        printf("feature exclude=0\n");
+        printf("feature setscore=0\n");
+        printf("feature highlight=0\n");
+        printf("feature setscore=0\n");
+        printf("feature done=1\n");
       }
       continue;
     }
     /* initialize new game */
-		if (!strcmp (Command, "new"))
+		if (!strcmp(Command, "new"))
     {
       if (!setboard 
           (BOARD, "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"))
       {
-        printf ("Error (in setting start postition): new\n");        
+        printf("Error (in setting start postition): new\n");        
       }
       if (!xboard_mode&&!epd_mode)
         printboard(BOARD);
@@ -1333,12 +1322,12 @@ int main (int argc, char* argv[])
 			continue;
 		}
     /* set board to position in FEN */
-		if (!strcmp (Command, "setboard"))
+		if (!strcmp(Command, "setboard"))
     {
       sscanf (Line, "setboard %1023[0-9a-zA-Z /-]", Fen);
       if(*Fen != '\n' && *Fen != '\0'  && !setboard (BOARD, Fen))
       {
-        printf ("Error (in setting chess psotition via fen string): setboard\n");        
+        printf("Error (in setting chess psotition via fen string): setboard\n");        
       }
       if (!xboard_mode&&!epd_mode)
         printboard(BOARD);
@@ -1349,8 +1338,8 @@ int main (int argc, char* argv[])
       /* zeta supports only CECP >= v2 */
       if (xboard_mode && xboard_protover<2)
       {
-        printf ("Error (unsupported protocoll version, < v2): go\n");
-        printf ("tellusererror (unsupported protocoll version. < v2): go\n");
+        printf("Error (unsupported protocoll version, < v2): go\n");
+        printf("tellusererror (unsupported protocoll version. < v2): go\n");
       }
       xboard_force = false;
       PLY++;
@@ -1358,18 +1347,18 @@ int main (int argc, char* argv[])
       continue;
     }
     /* set xboard force mode, no thinking just apply moves */
-		if (!strcmp (Command, "force"))
+		if (!strcmp(Command, "force"))
     {
       xboard_force = true;
       continue;
     }
     /* set time control */
-		if (!strcmp (Command, "level"))
+		if (!strcmp(Command, "level"))
     {
       continue;
     }
     /* set time control to n seconds per move */
-		if (!strcmp (Command, "st"))
+		if (!strcmp(Command, "st"))
     {
       continue;
     }
@@ -1378,20 +1367,20 @@ int main (int argc, char* argv[])
       /* zeta supports only CECP >= v2 */
       if (xboard_mode && xboard_protover<2)
       {
-        printf ("Error (unsupported protocoll version, < v2): usermove\n");
-        printf ("tellusererror (unsupported protocoll version, <v2): usermove\n");
+        printf("Error (unsupported protocoll version, < v2): usermove\n");
+        printf("tellusererror (unsupported protocoll version, <v2): usermove\n");
       }
       PLY++;
       STM = !STM;
       continue;
     }
     /* exit program */
-		if (!strcmp (Command, "quit"))
+		if (!strcmp(Command, "quit"))
     {
       break;
     }
     /* set search depth */
-    if (!strcmp (Command, "sd"))
+    if (!strcmp(Command, "sd"))
     {
       sscanf (Line, "sd %u", &SD);
       if (SD>=MAXPLY)
@@ -1399,80 +1388,80 @@ int main (int argc, char* argv[])
       continue;
     }
     /* turn on thinking output */
-		if (!strcmp (Command, "post"))
+		if (!strcmp(Command, "post"))
     {
       xboard_post = true;
       continue;
     }
     /* turn off thinking output */
-		if (!strcmp (Command, "nopost"))
+		if (!strcmp(Command, "nopost"))
     {
       xboard_post = false;
       continue;
     }
     /* xboard commands to ignore */
-		if (!strcmp (Command, "white"))
+		if (!strcmp(Command, "white"))
     {
       continue;
     }
-		if (!strcmp (Command, "black"))
+		if (!strcmp(Command, "black"))
     {
       continue;
     }
-		if (!strcmp (Command, "draw"))
+		if (!strcmp(Command, "draw"))
     {
       continue;
     }
-		if (!strcmp (Command, "ping"))
+		if (!strcmp(Command, "ping"))
     {
       continue;
     }
-		if (!strcmp (Command, "result"))
+		if (!strcmp(Command, "result"))
     {
       continue;
     }
-		if (!strcmp (Command, "hint"))
+		if (!strcmp(Command, "hint"))
     {
       continue;
     }
-		if (!strcmp (Command, "bk"))
+		if (!strcmp(Command, "bk"))
     {
       continue;
     }
-		if (!strcmp (Command, "hard"))
+		if (!strcmp(Command, "hard"))
     {
       continue;
     }
-		if (!strcmp (Command, "easy"))
+		if (!strcmp(Command, "easy"))
     {
       continue;
     }
-		if (!strcmp (Command, "name"))
+		if (!strcmp(Command, "name"))
     {
       continue;
     }
-		if (!strcmp (Command, "rating"))
+		if (!strcmp(Command, "rating"))
     {
       continue;
     }
-		if (!strcmp (Command, "ics"))
+		if (!strcmp(Command, "ics"))
     {
       continue;
     }
-		if (!strcmp (Command, "computer"))
+		if (!strcmp(Command, "computer"))
     {
       continue;
     }
     /* non xboard commands */
     /* do an node count to depth defined via sd  */
-    if (!xboard_mode && !strcmp (Command, "perft"))
+    if (!xboard_mode && !strcmp(Command, "perft"))
     {
 
       NODECOUNT = 0;
       MOVECOUNT = 0;
 
       if (!epd_mode)
-        printf ("### doing perft depth %u: ###\n", SD);  
+        printf("### doing perft depth %u: ###\n", SD);  
 
       start = get_time();
 
@@ -1483,28 +1472,28 @@ int main (int argc, char* argv[])
       elapsed /= 1000;
 
       if (epd_mode)
-        printf ("%llu\n", NODECOUNT);
+        printf("%llu\n", NODECOUNT);
       else
-        printf ("%llu nodes, seconds: %f, nps: %llu \n", NODECOUNT, elapsed, (u64)(NODECOUNT/elapsed));
+        printf("%llu nodes, seconds: %f, nps: %llu \n", NODECOUNT, elapsed, (u64)(NODECOUNT/elapsed));
 
       fflush(stdout);
   
       continue;
     }
     /* do an internal self test */
-    if (!xboard_mode && !strcmp (Command, "selftest"))
+    if (!xboard_mode && !strcmp(Command, "selftest"))
     {
       selftest();
       continue;
     }
     /* print help */
-    if (!xboard_mode && !strcmp (Command, "help"))
+    if (!xboard_mode && !strcmp(Command, "help"))
     {
       print_help();
       continue;
     }
     /* toggle log flag */
-    if (!xboard_mode && !strcmp (Command, "log"))
+    if (!xboard_mode && !strcmp(Command, "log"))
     {
       /* close log file */
       if (Log_File != NULL)
@@ -1512,65 +1501,65 @@ int main (int argc, char* argv[])
       /* open/create log file */
       else if (Log_File == NULL) 
       {
-        Log_File = fopen ("zetadva.log", "a");
+        Log_File = fopen("zetadva.log", "a");
         if (Log_File == NULL) 
         {
-          printf ("Error (opening logfile zetadva.log): log");
+          printf("Error (opening logfile zetadva.log): log");
         }
       }
       continue;
     }
     /* not supported xboard commands...tell user */
-		if (!strcmp (Command, "edit"))
+		if (!strcmp(Command, "edit"))
     {
-      printf ("Error (unsupported command): %s\n",Command);
-      printf ("tellusererror (unsupported command): %s\n",Command);
-      printf ("tellusererror engine supports only CECP (Xboard) version >=2\n");
+      printf("Error (unsupported command): %s\n",Command);
+      printf("tellusererror (unsupported command): %s\n",Command);
+      printf("tellusererror engine supports only CECP (Xboard) version >=2\n");
       continue;
     }
-		if (!strcmp (Command, "undo"))
+		if (!strcmp(Command, "undo"))
     {
-      printf ("Error (unsupported command): %s\n",Command);
-      printf ("tellusererror (unsupported command): %s\n",Command);
+      printf("Error (unsupported command): %s\n",Command);
+      printf("tellusererror (unsupported command): %s\n",Command);
       continue;
     }
-		if (!strcmp (Command, "remove"))
+		if (!strcmp(Command, "remove"))
     {
-      printf ("Error (unsupported command): %s\n",Command);
-      printf ("tellusererror (unsupported command): %s\n",Command);
+      printf("Error (unsupported command): %s\n",Command);
+      printf("tellusererror (unsupported command): %s\n",Command);
       continue;
     }
-		if (!strcmp (Command, "remove"))
+		if (!strcmp(Command, "remove"))
     {
-      printf ("Error (unsupported command): %s\n",Command);
-      printf ("tellusererror (unsupported command): %s\n",Command);
+      printf("Error (unsupported command): %s\n",Command);
+      printf("tellusererror (unsupported command): %s\n",Command);
       continue;
     }
-		if (!strcmp (Command, "analyze"))
+		if (!strcmp(Command, "analyze"))
     {
-      printf ("Error (unsupported command): %s\n",Command);
-      printf ("tellusererror (unsupported command): %s\n",Command);
+      printf("Error (unsupported command): %s\n",Command);
+      printf("tellusererror (unsupported command): %s\n",Command);
       continue;
     }
-		if (!strcmp (Command, "pause"))
+		if (!strcmp(Command, "pause"))
     {
-      printf ("Error (unsupported command): %s\n",Command);
-      printf ("tellusererror (unsupported command): %s\n",Command);
+      printf("Error (unsupported command): %s\n",Command);
+      printf("tellusererror (unsupported command): %s\n",Command);
       continue;
     }
-		if (!strcmp (Command, "resume"))
+		if (!strcmp(Command, "resume"))
     {
-      printf ("Error (unsupported command): %s\n",Command);
-      printf ("tellusererror (unsupported command): %s\n",Command);
+      printf("Error (unsupported command): %s\n",Command);
+      printf("tellusererror (unsupported command): %s\n",Command);
       continue;
     }
     /* unknown command...*/
-    printf ("Error (unsupported command): %s\n",Command);
+    printf("Error (unsupported command): %s\n",Command);
   }
 
   /* release memory, files and tables */
-  release_inits ();
+  release_inits();
 
-  exit (EXIT_SUCCESS);
+  exit(EXIT_SUCCESS);
 }
 

@@ -22,7 +22,7 @@
 #ifndef SEARCH_H_INCLUDED
 #define SEARCH_H_INCLUDED
 
-Score perft (Bitboard *board, bool stm, u32 depth);
+Score perft(Bitboard *board, bool stm, u32 depth);
 
 #endif /* SEARCH_H_INCLUDED */
 
