@@ -66,7 +66,7 @@ Bitboard BOARD[7];
 /* forward declarations */
 static void print_help (void);
 static void print_version (void);
-static void self_test (void);
+static void selftest (void);
 static bool setboard (Bitboard *board, char *fenstring);
 static void createfen (char *fenstring, Bitboard *board, bool stm, int gameply);
 static void move2alg (Move move, char * movec);
@@ -955,39 +955,94 @@ static bool setboard (Bitboard *board, char *fenstring)
   return true;
 }
 /* run internal selftest */
-static void self_test (void) 
+static void selftest (void) 
 {
-  u64 perftdepth4  = 197281;
+  u64 done;
+  u64 passed = 0;
+  const u64 todo = 23;
 
-  NODECOUNT = 0;
-  MOVECOUNT = 0;
-  SD = 4;
-
-  printf ("# doing perft depth: %u for position\n", SD);  
-
-  if (!setboard 
-      (BOARD, "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"))
+  char fenpositions[23][256]  =
   {
-    printf ("# Error (in setting start postition): new\n");        
-    return;
+    "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq -",
+    "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq -",
+    "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq -",
+    "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq -",
+    "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - ",
+    "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - ",
+    "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - ",
+    "8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - ",
+    "8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - ",
+    "8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - ",
+    "8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - ",
+    "8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - ",
+    "r3k2r/Pppp1ppp/1b3nbN/nP6/BBP1P3/q4N2/Pp1P2PP/R2Q1RK1 w kq -",
+    "r3k2r/Pppp1ppp/1b3nbN/nP6/BBP1P3/q4N2/Pp1P2PP/R2Q1RK1 w kq -",
+    "r3k2r/Pppp1ppp/1b3nbN/nP6/BBP1P3/q4N2/Pp1P2PP/R2Q1RK1 w kq -",
+    "r3k2r/Pppp1ppp/1b3nbN/nP6/BBP1P3/q4N2/Pp1P2PP/R2Q1RK1 w kq -",
+    "rnbq1k1r/pp1Pbppp/2p5/8/2B5/8/PPP1NnPP/RNBQK2R w KQ -",
+    "rnbq1k1r/pp1Pbppp/2p5/8/2B5/8/PPP1NnPP/RNBQK2R w KQ -",
+    "rnbq1k1r/pp1Pbppp/2p5/8/2B5/8/PPP1NnPP/RNBQK2R w KQ -",
+    "rnbq1k1r/pp1Pbppp/2p5/8/2B5/8/PPP1NnPP/RNBQK2R w KQ -",
+    "r4rk1/1pp1qppp/p1np1n2/2b1p1B1/2B1P1b1/P1NP1N2/1PP1QPPP/R4RK1 w - -",
+    "r4rk1/1pp1qppp/p1np1n2/2b1p1B1/2B1P1b1/P1NP1N2/1PP1QPPP/R4RK1 w - -",
+    "r4rk1/1pp1qppp/p1np1n2/2b1p1B1/2B1P1b1/P1NP1N2/1PP1QPPP/R4RK1 w - -"
+  };
+  u32 depths[] =
+  {
+    1,2,3,4,
+    1,2,3,
+    1,2,3,4,5,
+    1,2,3,4,
+    1,2,3,4,
+    1,2,3
+  };
+  u64 nodecounts[] =
+  {
+    20,400,8902,197281,
+    48,2039,97862,
+    14,191,2812,43238,674624,
+    6,264,9467,422333,
+    44,1486,62379,2103487,
+    46,2079,89890,3894594
+  };
+
+  for (done=0;done<todo;done++)
+  {
+    NODECOUNT = 0;
+    MOVECOUNT = 0;
+
+    SD = depths[done];
+    
+    printf ("# doing perft depth: %u for position\n", SD);  
+
+    if (!setboard(BOARD,  fenpositions[done]))
+    {
+      printf ("# Error (in setting fen position): setboard\n");        
+      continue;
+    }
+    else
+      print_board(BOARD);
+    
+    start = get_time();
+
+    perft(BOARD, STM, 0);
+
+    end = get_time();   
+    elapsed = end-start;
+    elapsed /= 1000;
+
+    if(NODECOUNT==nodecounts[done])
+    {
+      passed++;
+      printf ("# Nodecount Correct, %llu nodes in %f seconds with %llu nps.\n", NODECOUNT, elapsed, (u64)(NODECOUNT/elapsed));
+    }
+    else
+      printf ("# Nodecount Not Correct, %llu computed nodes != %llu nodes for depth %u.\n", NODECOUNT, nodecounts[done]), SD;
   }
-  else
-    print_board(BOARD);
-  
-  start = get_time();
 
-  perft (BOARD, STM, 0);
-
-  end = get_time();   
-  elapsed = end-start;
-  elapsed /= 1000;
-
-  if(NODECOUNT==perftdepth4)
-    printf ("# Nodecount Correct, %llu nodes in %f seconds with %llu nps.\n", NODECOUNT, elapsed, (u64)(NODECOUNT/elapsed));
-  else
-    printf ("# Nodecount Not Correct, %llu computed nodes != %llu nodes for depth 4.\n", NODECOUNT, perftdepth4);
-
-  return;
+  printf("\n###############################\n");
+  printf("### passed %llu from %llu tests ###\n", passed, todo);
+  printf("###############################\n");
 }
 /* print engine info to console */
 static void print_version (void)
@@ -1083,7 +1138,7 @@ int main (int argc, char* argv[])
         }
         break;
       case 3:
-        self_test ();
+        selftest ();
         exit (EXIT_SUCCESS);
         break;
     }
@@ -1375,7 +1430,7 @@ int main (int argc, char* argv[])
     /* do an internal self test */
     if (!xboard_mode && !strcmp (Command, "selftest"))
     {
-      self_test();
+      selftest();
       continue;
     }
     /* print help */

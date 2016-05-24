@@ -1,6 +1,6 @@
 # process epd file with node count for perft, opcode "acn"
 # call:
-# ruby ./acn.rb /home/srdja/Projects/ZetaDva/src/zetadva /home/srdja/Projects/ZetaDva/src/tmp.log /home/srdja/Projects/ZetaDva/docs/test.epd
+# ruby ./acn.rb /home/srdja/Projects/ZetaDva/src/zetadva /home/srdja/Projects/ZetaDva/src/tmp.log /home/srdja/Projects/ZetaDva/docs/perft.epd
 
 argengine=ARGV[0]
 argfile=ARGV[1]

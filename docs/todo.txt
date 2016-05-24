@@ -1,7 +1,10 @@
 A) root-structure
     - basic Xboard protocol                                           WIP
     - setboard with FEN                                 DONE
+    - coordinate algebraic notation                     DONE
+    - SAN                                                       TODO
     - time control                                              TODO
+    - internal selftest, perft with nodecount           DONE
     - external test suite, node count                   DONE
     - external test suite, bestomve from STS                    TODO
     - three fold repetition rule                                TODO
@@ -18,7 +21,8 @@ A) root-structure
 B) BoardPresentation
   4*8 Bytes QuatBitbaord board presentation             DONE
 + 1*8 Byte hash                                         DONE
-+ 1*8 Byte lastmove+ep+castle+halfmoveclock+score       DONE
++ 1*8 Byte Piece moved flags, for castle rights         DONE
++ 1*8 Byte lastmove+ep+halfmoveclock+castle+score       DONE
 
 C) MovGenerator (Board)
     - generalized Kogge-Stone move gen                  DONE
