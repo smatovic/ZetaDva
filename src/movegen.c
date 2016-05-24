@@ -121,7 +121,6 @@ const Bitboard wraps[8] =
   0x00ffffffffffffff  /* >>8 */
 };
 
-
 /* generate legal moves via generalized KoggeStone bitboard approach */
 /* based on work by Steffan Westcott */
 /* http://chessprogramming.wikispaces.com/Kogge-Stone+Algorithm */
