@@ -29,16 +29,12 @@
 
 Score perft(Bitboard *board, bool stm, u32 depth)
 {
-  Move moves[MAXMOVES];
-  Move lastmove;
-  Cr cr;
-  Score score = 0;
+  bool kic = false;
   int i = 0;
   int movecounter = 0;
-  bool kic = false;
-
-  lastmove = board[QBBLAST];
-  cr = board[QBBPMVD];
+  Cr cr = board[QBBPMVD];
+  Move lastmove = board[QBBLAST];
+  Move moves[MAXMOVES];
 
   kic = kingincheck(board, stm);
 
@@ -65,9 +61,134 @@ Score perft(Bitboard *board, bool stm, u32 depth)
   for (i=0;i<movecounter;i++)
   {
     domove (board, moves[i]);
-    score = -perft(board, !stm, depth+1);
+    perft(board, !stm, depth+1);
     undomove (board, moves[i], lastmove, cr);
   }
   return 0;
 }
+Score qsearch(Bitboard *board, bool stm, Score alpha, Score beta, u32 depth)
+{
+  bool kic = false;
+  int i = 0;
+  int movecounter = 0;
+  Score score = 0;
+  Cr cr = board[QBBPMVD];
+  Move lastmove = board[QBBLAST];
+  Move moves[MAXMOVES];
 
+  kic = kingincheck(board, stm);
+
+  movecounter = genmoves_general(board, moves, movecounter, stm, true);
+  MOVECOUNT+= movecounter;
+
+  /* iterate through moves */
+  /* iterate through moves */
+  for (i=0;i<movecounter;i++)
+  {
+    domove (board, moves[i]);
+    score = -qsearch(board, !stm, -beta, -alpha, depth+1);
+    undomove (board, moves[i], lastmove, cr);
+
+    if(score>=alpha)
+      alpha=score;
+  }
+  return score;
+}
+
+Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, u32 depth)
+{
+  bool kic = false;
+  int i = 0;
+  int movecounter = 0;
+  Score score = 0;
+  Cr cr = board[QBBPMVD];
+  Move lastmove = board[QBBLAST];
+  Move moves[MAXMOVES];
+
+  NODECOUNT++;
+
+  kic = kingincheck(board, stm);
+
+  movecounter = genmoves_general(board, moves, movecounter, stm, false);
+  MOVECOUNT+= movecounter;
+
+  if (movecounter == 0 && kic)
+    return -MATESCORE+PLY;
+  if (movecounter == 0 && !kic) 
+    return STALEMATESCORE;
+
+  if (depth == SD)
+  {
+    score = eval(board);
+    score = (stm)? -score:score;  /* negate blacks score */
+    return score;
+  }
+
+  /* iterate through moves */
+  for (i=0;i<movecounter;i++)
+  {
+    domove (board, moves[i]);
+    score = -negamax(board, !stm, -beta, -alpha, depth+1);
+    undomove (board, moves[i], lastmove, cr);
+
+    if(score>=beta)
+      return score;
+
+    if(score>=alpha)
+      alpha=score;
+  }
+  return score;
+}
+Move search(Bitboard *board, bool stm)
+{
+  bool kic = false;
+  int i = 0;
+  int movecounter = 0;
+  Score score = 0;
+  Score alpha = -INF;
+  Score beta  =  INF;
+  Cr cr = board[QBBPMVD];
+  Move bestmove = MOVENONE;
+  Move lastmove = board[QBBLAST];
+  Move moves[MAXMOVES];
+
+  kic = kingincheck(board, stm);
+
+  movecounter = genmoves_general(board, moves, movecounter, stm, false);
+
+  MOVECOUNT+= movecounter;
+
+  if (movecounter == 0 && kic)
+  {
+    if (stm)
+    {
+      printf("result 1-0 { checkmate }");
+    }
+    else if (!stm)
+    {
+      printf("result 0-1 { checkmate }");
+    }
+    
+    return MOVENONE;
+  }
+  if (movecounter == 0 && !kic) 
+  {
+    printf("result 1/2-1/2 { stalemate }");
+    return 0;
+  }
+
+  /* iterate through moves */
+  for (i=0;i<movecounter;i++)
+  {
+    domove (board, moves[i]);
+    score = -negamax(board, !stm, alpha, beta, 1);
+    undomove (board, moves[i], lastmove, cr);
+
+    if(score>=alpha)
+    {
+      alpha=score;
+      bestmove = moves[i];
+    }
+  }
+  return bestmove;
+}

@@ -219,6 +219,32 @@ void domove(Bitboard *board, Move move)
   /* store hmc in board */  
   board[QBBLAST] = SETHMC(board[QBBLAST], hmc);
 }
+/* apply move on board, quick during move generation */
+void domovequick(Bitboard *board, Move move)
+{
+  Square sqfrom   = GETSQFROM(move);
+  Square sqto     = GETSQTO(move);
+  Square sqcpt    = GETSQCPT(move);
+  Piece pto       = GETPTO(move);
+  Bitboard bbTemp = BBEMPTY;
+
+  /* check for edges */
+  if (move==MOVENONE)
+    return;
+
+  /* unset square from, square capture and square to */
+  bbTemp = CLRMASKBB(sqfrom)&CLRMASKBB(sqcpt)&CLRMASKBB(sqto);
+  board[QBBBLACK] &= bbTemp;
+  board[QBBP1]    &= bbTemp;
+  board[QBBP2]    &= bbTemp;
+  board[QBBP3]    &= bbTemp;
+
+  /* set piece to */
+  board[QBBBLACK] |= (pto&0x1)<<sqto;
+  board[QBBP1]    |= ((pto>>1)&0x1)<<sqto;
+  board[QBBP2]    |= ((pto>>2)&0x1)<<sqto;
+  board[QBBP3]    |= ((pto>>3)&0x1)<<sqto;
+}
 /* restore board again */
 void undomove(Bitboard *board, Move move, Move lastmove, Cr cr)
 {
@@ -284,6 +310,39 @@ void undomove(Bitboard *board, Move move, Move lastmove, Cr cr)
   board[QBBP1]    |= ((pcastle>>1)&0x1)<<(sqfrom+3);
   board[QBBP2]    |= ((pcastle>>2)&0x1)<<(sqfrom+3);
   board[QBBP3]    |= ((pcastle>>3)&0x1)<<(sqfrom+3);
+}
+/* restore board again, quick during move generation */
+void undomovequick(Bitboard *board, Move move)
+{
+  Square sqfrom   = GETSQFROM(move);
+  Square sqto     = GETSQTO(move);
+  Square sqcpt    = GETSQCPT(move);
+  Piece pfrom     = GETPFROM(move);
+  Piece pcpt      = GETPCPT(move);
+  Bitboard bbTemp = BBEMPTY;
+
+  /* check for edges */
+  if (move==MOVENONE)
+    return;
+
+  /* unset square capture, square to */
+  bbTemp = CLRMASKBB(sqcpt)&CLRMASKBB(sqto);
+  board[QBBBLACK] &= bbTemp;
+  board[QBBP1]    &= bbTemp;
+  board[QBBP2]    &= bbTemp;
+  board[QBBP3]    &= bbTemp;
+
+  /* restore piece capture */
+  board[QBBBLACK] |= (pcpt&0x1)<<sqcpt;
+  board[QBBP1]    |= ((pcpt>>1)&0x1)<<sqcpt;
+  board[QBBP2]    |= ((pcpt>>2)&0x1)<<sqcpt;
+  board[QBBP3]    |= ((pcpt>>3)&0x1)<<sqcpt;
+
+  /* restore piece from */
+  board[QBBBLACK] |= (pfrom&0x1)<<sqfrom;
+  board[QBBP1]    |= ((pfrom>>1)&0x1)<<sqfrom;
+  board[QBBP2]    |= ((pfrom>>2)&0x1)<<sqfrom;
+  board[QBBP3]    |= ((pfrom>>3)&0x1)<<sqfrom;
 }
 /* is square attacked by an enemy piece, via superpiece approach */
 bool squareunderattack(Bitboard *board, bool stm, Square sq) 
@@ -1404,9 +1463,27 @@ int main(int argc, char* argv[])
         printf("Error (unsupported protocoll version, < v2): go\n");
         printf("tellusererror (unsupported protocoll version. < v2): go\n");
       }
-      xboard_force = false;
-      PLY++;
-      STM = !STM;
+      else 
+      {
+        Move move;
+        char movec[6];
+        xboard_force = false;
+
+        start = get_time();
+
+        move = search(BOARD,STM);
+
+        end = get_time();   
+        elapsed = end-start;
+        elapsed /= 1000;
+
+        move2can(move,movec);
+        printf("usermove %s\n",movec);
+        if (!xboard_mode&&!epd_mode)
+          printf("#%llu searched nodes in %f seconds, nps: %llu \n", NODECOUNT, elapsed, (u64)(NODECOUNT/elapsed));
+        PLY++;
+        STM = !STM;
+      }
       continue;
     }
     /* set xboard force mode, no thinking just apply moves */

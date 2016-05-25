@@ -137,7 +137,6 @@ int genmoves_general(Bitboard *board, Move *moves, int movecounter, bool stm, bo
   Square sqep; 
   Move move;
   Move lastmove;
-  Cr cr;
   Bitboard bbTemp;
   Bitboard bbWork;
   Bitboard bbMoves;
@@ -151,7 +150,6 @@ int genmoves_general(Bitboard *board, Move *moves, int movecounter, bool stm, bo
   bool kic = false;
 
   lastmove = board[QBBLAST];
-  cr = board[QBBPMVD];
 
   bbBlockers    = board[QBBP1]|board[QBBP2]|board[QBBP3];
   bbBoth[WHITE] = board[QBBBLACK]^bbBlockers;
@@ -236,14 +234,14 @@ int genmoves_general(Bitboard *board, Move *moves, int movecounter, bool stm, bo
       move = MAKEMOVE(sqfrom, sqto, sqcpt, pfrom, pto, pcpt, sqep, (u64)GETHMC(lastmove), (u64)score);
 
       /* legal moves only */
-      domove(board, move);
+      domovequick(board, move);
       kic = kingincheck(board, stm);
       if (!kic)
       {
         moves[movecounter] = move;
         movecounter++;
       }
-      undomove(board, move, lastmove, cr);
+      undomovequick(board, move);
 
       /* TODO: in non-perft do queen promo only? */
       /* handle pawn promo: bishop */
@@ -294,9 +292,9 @@ int genmoves_general(Bitboard *board, Move *moves, int movecounter, bool stm, bo
   /* pack move into 64 bits, considering castle rights and halfmovecounter and score */
   move    = (sqfrom)?MAKEMOVE(sqfrom, sqto, sqcpt, pfrom, pto, pcpt, 0, (u64)GETHMC(lastmove), (u64)score):MOVENONE;
   /* legal moves only */
-  domove(board, move);
+  domovequick(board, move);
   kic = kingincheck(board, stm);
-  undomove(board, move, lastmove, cr);
+  undomovequick(board, move);
   moves[movecounter] = move;
   movecounter+=(sqfrom&&!kic)?1:0;
 
@@ -307,9 +305,9 @@ int genmoves_general(Bitboard *board, Move *moves, int movecounter, bool stm, bo
   /* pack move into 64 bits, considering castle rights and halfmovecounter and score */
   move    = (sqfrom)?MAKEMOVE(sqfrom, sqto, sqcpt, pfrom, pto, pcpt, 0, (u64)GETHMC(lastmove), (u64)score):MOVENONE;
   /* legal moves only */
-  domove(board, move);
+  domovequick(board, move);
   kic = kingincheck(board, stm);
-  undomove(board, move, lastmove, cr);
+  undomovequick(board, move);
   moves[movecounter] = move;
   movecounter+=(sqfrom&&!kic)?1:0;
 

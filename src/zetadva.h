@@ -43,6 +43,8 @@ bool squareunderattack (Bitboard *board, bool stm, Square sq);
 bool kingincheck(Bitboard *board, bool stm);
 void domove (Bitboard *board, Move move);
 void undomove (Bitboard *board, Move move, Move lastmove, Cr cr);
+void domovequick (Bitboard *board, Move move);
+void undomovequick (Bitboard *board, Move move);
 
 #endif /* ZETA_H_INCLUDED */
 
