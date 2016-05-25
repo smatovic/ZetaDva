@@ -1469,6 +1469,8 @@ int main(int argc, char* argv[])
         char movec[6];
         xboard_force = false;
 
+        NODECOUNT = 0;
+        MOVECOUNT = 0;
         start = get_time();
 
         move = search(BOARD,STM);
