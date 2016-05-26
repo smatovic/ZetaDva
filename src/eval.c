@@ -69,11 +69,11 @@ Score eval(Bitboard *board)
       /* piece bonus */
       score+= (side)? -10 : 10;
       /* wodd count */
-      score+= (side)? -EvalPieceValues[piecet-1]    : EvalPieceValues[piecet-1];
+      score+= (side)? -EvalPieceValues[piecet-1]   : EvalPieceValues[piecet-1];
       /* piece square tables */
-      score+= (side)? -EvalTable[(piecet-1)*64+sq]  : EvalTable[(piecet-1)*64+FLOP(sq)];
+      score+= (side)? -EvalTable[(piecet-1)*64+sq] : EvalTable[(piecet-1)*64+FLOP(sq)];
       /* square control table */
-      score+= (side)? -EvalControl[sq]              : EvalControl[FLOP(sq)];
+      score+= (side)? -EvalControl[sq]             : EvalControl[FLOP(sq)];
 
       /* simple pawn structure */
       /* blocked */
@@ -83,9 +83,9 @@ Score eval(Bitboard *board)
         if ( (bbPawns | board[!side]) & SETMASKBB(sq+8))
           score-= 15;
         /* chain */
-        if ( GETFILE(sq) < FILE_H  && ( bbPawns & board[side] & SETMASKBB(sq-7))  )
+        if ( GETFILE(sq) < FILE_H  && (bbPawns & board[side] & SETMASKBB(sq-7)))
           score+= 10;
-        if ( GETFILE(sq) > FILE_A  && ( bbPawns & board[side] & SETMASKBB(sq-9))  )
+        if ( GETFILE(sq) > FILE_A  && (bbPawns & board[side] & SETMASKBB(sq-9)))
           score+= 10;
       }
       if (piecet == PAWN && side)
@@ -94,14 +94,17 @@ Score eval(Bitboard *board)
         if ( (bbPawns | board[!side]) & SETMASKBB(sq-8))
           score+= 15;
         /* chain */
-        if ( GETFILE(sq) > FILE_A  && ( bbPawns & board[side] & SETMASKBB(sq+7))  )
+        if ( GETFILE(sq) > FILE_A  && (bbPawns & board[side] & SETMASKBB(sq+7)))
           score-= 10;
-        if ( GETFILE(sq) < FILE_H  && ( bbPawns & board[side] & SETMASKBB(sq+9))  )
+        if ( GETFILE(sq) < FILE_H  && (bbPawns & board[side] & SETMASKBB(sq+9)))
           score-= 10;
       }
     }
     /* duble bishop */
-    score+= (popcount(bbBoth[side]&(~board[QBBP1]&~board[QBBP2]&board[QBBP3]))>=2)?side?-25:25:0;
+    score+= (popcount(
+                      bbBoth[side]&(~board[QBBP1]&~board[QBBP2]&board[QBBP3])
+                      )>=2)?
+                      (side)?-25:25:0;
   }
   return score;
 }

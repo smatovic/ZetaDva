@@ -728,7 +728,6 @@ int genmoves_noncaptures(Bitboard *board, Move *moves, int movecounter, bool stm
 /* http://chessprogramming.wikispaces.com/Kogge-Stone+Algorithm */
 int genmoves_piecewiese(Bitboard *board, Move *moves, int movecounter, bool stm, bool qs) 
 {
-
   bool kic = false;
   Score score;
   Piece pfrom;
