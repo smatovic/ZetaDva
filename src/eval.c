@@ -45,7 +45,7 @@ Score evalmove(Piece piece, Square sq, bool stm)
 /* evaluate board position, no checkmates or stalemates */
 Score eval(Bitboard *board)
 {
-  u8 side;
+  u32 side;
   Score score = 0;
   Square sq;
   PieceType piecet;
@@ -60,6 +60,7 @@ Score eval(Bitboard *board)
   for(side=WHITE;side<=BLACK;side++) 
   {
     bbWork = bbBoth[side];
+
     while (bbWork) 
     {
       sq      = popfirst1(&bbWork);
@@ -76,7 +77,8 @@ Score eval(Bitboard *board)
 
       /* simple pawn structure */
       /* blocked */
-      if (piecet == PAWN && !side) {
+      if (piecet == PAWN && !side) 
+      {
         /* blocked */
         if ( (bbPawns | board[!side]) & SETMASKBB(sq+8))
           score-= 15;
@@ -86,7 +88,8 @@ Score eval(Bitboard *board)
         if ( GETFILE(sq) > FILE_A  && ( bbPawns & board[side] & SETMASKBB(sq-9))  )
           score+= 10;
       }
-      if (piecet == PAWN && side) {
+      if (piecet == PAWN && side)
+      {
         /* blocked */
         if ( (bbPawns | board[!side]) & SETMASKBB(sq-8))
           score+= 15;

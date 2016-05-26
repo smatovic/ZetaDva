@@ -46,6 +46,9 @@ void domove (Bitboard *board, Move move);
 void undomove (Bitboard *board, Move move, Move lastmove, Cr cr);
 void domovequick (Bitboard *board, Move move);
 void undomovequick (Bitboard *board, Move move);
+void printboard(Bitboard *board);
+void printbitboard(Bitboard board);
+void printmove(Move move);
 
 #endif /* ZETA_H_INCLUDED */
 

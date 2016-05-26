@@ -72,7 +72,7 @@ static void move2can(Move move, char *movec);
 static void move2san(Bitboard *board, Move move, char *movec);
 static Move can2move(char *usermove, Bitboard *board, bool stm);
 static void print_move(Move move);
-static void printboard(Bitboard *board);
+void printboard(Bitboard *board);
 void printbitboard(Bitboard board);
 
 /* release memory, files and tables */
@@ -454,7 +454,7 @@ void printbitboard(Bitboard board)
 
   fflush(stdout);
 }
-static void printmove(Move move)
+void printmove(Move move)
 {
   printf("sqfrom:%llu\n",GETSQFROM(move));
   printf("sqto:%llu\n",GETSQTO(move));
@@ -718,7 +718,7 @@ static void move2can(Move move, char * movec)
   }
 }
 /* print quadbitbooard */
-static void printboard(Bitboard *board)
+void printboard(Bitboard *board)
 {
 
   int rank;
@@ -1265,6 +1265,11 @@ int main(int argc, char* argv[])
     {NULL, 0, NULL, 0}
   };
   s32 option_index = 0;
+
+/*
+printbitboard(AttackTablesPawns[1*64+48]);
+printbitboard(AttackTablesPawns[1*64+49]);
+*/
 
   /* no buffers */
   setbuf (stdout, NULL);

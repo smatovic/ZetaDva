@@ -121,12 +121,15 @@ const Bitboard wraps[8] =
   0x00ffffffffffffff  /* >>8 */
 };
 
+/* forward declarations */
+Bitboard rook_attacks(Bitboard bbBlockers, Square sq);
+Bitboard bishop_attacks(Bitboard bbBlockers, Square sq);
+
 /* generate legal moves via generalized KoggeStone bitboard approach */
 /* based on work by Steffan Westcott */
 /* http://chessprogramming.wikispaces.com/Kogge-Stone+Algorithm */
 int genmoves_general(Bitboard *board, Move *moves, int movecounter, bool stm, bool qs) 
 {
-
   Score score;
   Piece pfrom;
   Piece pto;
@@ -162,7 +165,8 @@ int genmoves_general(Bitboard *board, Move *moves, int movecounter, bool stm, bo
     sqfrom   = popfirst1 (&bbWork);
     pfrom   = GETPIECE(board, sqfrom);
     bbTemp  = BBEMPTY;
-
+    bbMoves = BBEMPTY;
+  
     /* directions left shifting */
     for (i=0;i<4;i++)
     {
@@ -345,7 +349,591 @@ int genmoves_general(Bitboard *board, Move *moves, int movecounter, bool stm, bo
 
   return movecounter;
 }
+/* promotion pawns only */
+int genmoves_promo(Bitboard *board, Move *moves, int movecounter, bool stm) 
+{
+  bool kic = false;
+  Score score;
+  Piece pfrom;
+  Piece pto;
+  Piece pcpt;
+  Square sqfrom;
+  Square sqto;
+  Square sqcpt;
+  Move move;
+  Move lastmove;
+  Bitboard bbTempA    = BBEMPTY;
+  Bitboard bbWork     = BBEMPTY;
+  Bitboard bbMoves    = BBEMPTY;
+  Bitboard bbBlockers = BBEMPTY;
+  Bitboard bbBoth[2];
 
+  lastmove = board[QBBLAST];
+
+  bbBlockers    = board[QBBP1]|board[QBBP2]|board[QBBP3];
+  bbBoth[WHITE] = board[QBBBLACK]^bbBlockers;
+  bbBoth[BLACK] = board[QBBBLACK];
+  bbWork        = bbBoth[stm]&(board[QBBP1]&~board[QBBP2]&~board[QBBP3]);
+
+  /* for each pawn of site to move */
+  while (bbWork)
+  {
+    sqfrom   = popfirst1(&bbWork);
+    pfrom    = GETPIECE(board, sqfrom);
+    bbTempA  = BBEMPTY;
+    bbMoves  = BBEMPTY;
+
+    /* pawn promo only */
+    if(GETRRANK(sqfrom,stm)!=RANK_7)
+      continue;
+
+    /* pawn attacks via attack tables  */
+    bbTempA  = AttackTablesPawns[stm*64+sqfrom]&bbBoth[!stm];
+    /* white pawn push */
+    bbTempA |= (!stm&&((~bbBlockers)&SETMASKBB(sqfrom+8)))? SETMASKBB(sqfrom+8) : bbTempA;
+    /* black pawn push */
+    bbTempA |= (stm&&((~bbBlockers)&SETMASKBB(sqfrom-8)))?  SETMASKBB(sqfrom-8) : bbTempA;
+
+    bbMoves  = bbTempA;
+
+    /* extract moves */
+    while (bbMoves)
+    {
+      sqto      = popfirst1(&bbMoves);
+      sqcpt     = sqto;
+      pcpt      = GETPIECE(board, sqcpt);
+
+      /* handle pawn promo: knight */
+      pto = MAKEPIECE(KNIGHT, GETCOLOR(pfrom));
+      /* get score, non captures via static values, capture via MVV-LVA */
+      score = (pcpt==PNONE)? (evalmove (pto, sqto, stm)-evalmove(pfrom, sqfrom, stm)):(EvalPieceValues[GETPTYPE(pcpt)-1]*16-EvalPieceValues[GETPTYPE(pto)-1]);
+      /* pack move into 64 bits, considering castle rights and halfmovecounter and score */
+      move = MAKEMOVE(sqfrom, sqto, sqcpt, pfrom, pto, pcpt, 0, (u64)GETHMC(lastmove), (u64)score);
+
+      /* legal moves only */
+      domovequick(board, move);
+      kic = kingincheck(board, stm);
+      if (!kic)
+      {
+        moves[movecounter] = move;
+        movecounter++;
+      }
+      undomovequick(board, move);
+
+      /* TODO: in non-perft do queen promo only? */
+      /* handle pawn promo: bishop */
+      pto = (!kic)?MAKEPIECE(BISHOP, GETCOLOR(pfrom)):PNONE;
+      /* get score, non captures via static values, capture via MVV-LVA */
+      score = (pcpt==PNONE)? (evalmove (pto, sqto, stm)-evalmove(pfrom, sqfrom, stm)):(EvalPieceValues[GETPTYPE(pcpt)-1]*16-EvalPieceValues[GETPTYPE(pto)-1]);
+      /* pack move into 64 bits, considering castle rights and halfmovecounter and score */
+      move = (pto==PNONE)?MOVENONE:MAKEMOVE(sqfrom, sqto, sqcpt, pfrom, pto, pcpt, 0, (u64)GETHMC(lastmove), (u64)score);
+      moves[movecounter] = move;
+      movecounter+=(pto==PNONE)?0:1;
+
+      /* handle pawn promo: rook */
+      pto = (!kic)?MAKEPIECE(ROOK, GETCOLOR(pfrom)):PNONE;
+      /* get score, non captures via static values, capture via MVV-LVA */
+      score = (pcpt==PNONE)? (evalmove (pto, sqto, stm)-evalmove(pfrom, sqfrom, stm)):(EvalPieceValues[GETPTYPE(pcpt)-1]*16-EvalPieceValues[GETPTYPE(pto)-1]);
+      /* pack move into 64 bits, considering castle rights and halfmovecounter and score */
+      move = (pto==PNONE)?MOVENONE:MAKEMOVE(sqfrom, sqto, sqcpt, pfrom, pto, pcpt, 0, (u64)GETHMC(lastmove), (u64)score);
+      moves[movecounter] = move;
+      movecounter+=(pto==PNONE)?0:1;
+
+      /* handle pawn promo: queen */
+      pto = (!kic)?MAKEPIECE(QUEEN, GETCOLOR(pfrom)):PNONE;
+      /* get score, non captures via static values, capture via MVV-LVA */
+      score = (pcpt==PNONE)? (evalmove (pto, sqto, stm)-evalmove(pfrom, sqfrom, stm)):(EvalPieceValues[GETPTYPE(pcpt)-1]*16-EvalPieceValues[GETPTYPE(pto)-1]);
+      /* pack move into 64 bits, considering castle rights and halfmovecounter and score */
+      move = (pto==PNONE)?MOVENONE:MAKEMOVE(sqfrom, sqto, sqcpt, pfrom, pto, pcpt, 0, (u64)GETHMC(lastmove), (u64)score);
+      moves[movecounter] = move;
+      movecounter+=(pto==PNONE)?0:1;
+    }
+  }
+
+  return movecounter;
+}
+/* castle moves only */
+int genmoves_castles(Bitboard *board, Move *moves, int movecounter, bool stm) 
+{
+  Score score;
+  Piece pfrom;
+  Square sqfrom;
+  Move move;
+  Move lastmove;
+  Bitboard bbBlockers = BBEMPTY;
+  Bitboard bbTempA    = BBEMPTY;
+  Bitboard bbTempB    = BBEMPTY;
+  Bitboard bbTempC    = BBEMPTY;
+  Bitboard bbBoth[2];
+
+  lastmove = board[QBBLAST];
+
+  bbBlockers    = board[QBBP1]|board[QBBP2]|board[QBBP3];
+  bbBoth[WHITE] = board[QBBBLACK]^bbBlockers;
+  bbBoth[BLACK] = board[QBBBLACK];
+
+  /* gen castle moves */
+  /* get king square */
+  sqfrom  = first1(bbBoth[stm]&(board[QBBP1]&board[QBBP2]&~board[QBBP3]));
+  pfrom   = GETPIECE(board, sqfrom);
+  /* get castle rights queenside */
+  bbTempA  = (stm)?(((~board[QBBPMVD])&SMCRBLACKQ)==SMCRBLACKQ)?true:false:(((~board[QBBPMVD])&SMCRWHITEQ)==SMCRWHITEQ)?true:false;
+  /* check for emtpty squares */
+  bbTempB   = ((bbBlockers&SETMASKBB(sqfrom-1))|(bbBlockers&SETMASKBB(sqfrom-2))|(bbBlockers&SETMASKBB(sqfrom-3)));
+  /* check for kign and empty squares in check */
+  bbTempC  =  (squareunderattack(board,!stm,sqfrom)|squareunderattack(board,!stm,sqfrom-1)|squareunderattack(board,!stm,sqfrom-2));
+  /* set castle move score */
+  score   = INF-100;
+  move    = (bbTempA&&!bbTempB&&!bbTempC)?MAKEMOVE(sqfrom, (sqfrom-2), (sqfrom-2), pfrom, pfrom, PNONE, 0, (u64)GETHMC(lastmove), (u64)score):MOVENONE;
+  move   |= (bbTempA&&!bbTempB&&!bbTempC)?MOVEISCRQ:BBEMPTY;
+
+  moves[movecounter] = move;
+  movecounter+=(bbTempA&&!bbTempB&&!bbTempC)?1:0;
+
+  /* get castle rights kingside */
+  bbTempA  = (stm)?(((~board[QBBPMVD])&SMCRBLACKK)==SMCRBLACKK)?true:false:(((~board[QBBPMVD])&SMCRWHITEK)==SMCRWHITEK)?true:false;
+  /* check for emtpty squares */
+  bbTempB   = ((bbBlockers&SETMASKBB(sqfrom+1))|(bbBlockers&SETMASKBB(sqfrom+2)));
+  /* check for kign and empty squares in check */
+  bbTempC  =  (squareunderattack(board,!stm,sqfrom)|squareunderattack(board,!stm,sqfrom+1)|squareunderattack(board,!stm,sqfrom+2));
+  /* set castle move score */
+  score   = INF-100;
+  move    = (bbTempA&&!bbTempB&&!bbTempC)?MAKEMOVE(sqfrom, (sqfrom+2), (sqfrom+2), pfrom, pfrom, PNONE, 0, (u64)GETHMC(lastmove), (u64)score):MOVENONE;
+  move   |= (bbTempA&&!bbTempB&&!bbTempC)?MOVEISCRK:BBEMPTY;
+
+  moves[movecounter] = move;
+  movecounter+=(bbTempA&&!bbTempB&&!bbTempC)?1:0;
+
+  return movecounter;
+}
+/* captures only */
+int genmoves_captures(Bitboard *board, Move *moves, int movecounter, bool stm) 
+{
+  bool kic = false;
+  Score score;
+  Piece pfrom;
+  Piece pto;
+  Piece pcpt;
+  Square sqfrom;
+  Square sqto;
+  Square sqcpt;
+  Square sqep = 0; 
+  Move move;
+  Move lastmove;
+  Bitboard bbTempA;
+  Bitboard bbWork;
+  Bitboard bbMoves;
+  Bitboard bbBlockers;
+  Bitboard bbBoth[2];
+
+  lastmove = board[QBBLAST];
+
+  bbBlockers    = board[QBBP1]|board[QBBP2]|board[QBBP3];
+  bbBoth[WHITE] = bbBlockers^board[QBBBLACK];
+  bbBoth[BLACK] = board[QBBBLACK];
+  bbWork        = bbBoth[stm];
+
+  /* for each piece of site to move */
+  while (bbWork)
+  {
+    sqfrom  = popfirst1 (&bbWork);
+    pfrom   = GETPIECE(board, sqfrom);
+    bbTempA = BBEMPTY;
+    bbMoves = BBEMPTY;
+
+    /* no pawn promo */
+    if(GETPTYPE(pfrom)==PAWN&&GETRRANK(sqfrom,stm)==RANK_7)
+      continue;
+
+    /* queens and rooks via KoggeStone */
+    bbTempA = (GETPTYPE(pfrom)==ROOK||GETPTYPE(pfrom)==QUEEN)? rook_attacks(bbBlockers, sqfrom) : BBEMPTY;
+
+    /* queens and bishops via KoggeStone */
+    bbTempA|= (GETPTYPE(pfrom)==BISHOP||GETPTYPE(pfrom)==QUEEN)? bishop_attacks(bbBlockers, sqfrom) : bbTempA;
+
+    /* knights and king via attack tables */
+    bbTempA|= (GETPTYPE(pfrom)==KNIGHT||GETPTYPE(pfrom)==KING)? AttackTablesNK[(GETPTYPE(pfrom)-2)*64+sqfrom] : bbTempA;
+
+    /* pawn attacks via attack tables  */
+    bbTempA|= (GETPTYPE(pfrom)==PAWN)?(AttackTablesPawns[stm*64+sqfrom]&bbBoth[!stm]) : bbTempA;
+
+    /* captures only */    
+    bbMoves = bbTempA&bbBoth[!stm];
+
+    /* extract moves */
+    while (bbMoves)
+    {
+      sqto      = popfirst1(&bbMoves);
+      sqcpt     = sqto;
+      pcpt      = GETPIECE(board, sqcpt);
+      pto       = pfrom;
+
+      /* get score, capture via MVV-LVA */
+      score = (EvalPieceValues[GETPTYPE(pcpt)-1]*16-EvalPieceValues[GETPTYPE(pto)-1]);
+      /* pack move into 64 bits, considering castle rights and halfmovecounter and score */
+      move = MAKEMOVE(sqfrom, sqto, sqcpt, pfrom, pto, pcpt, 0, (u64)GETHMC(lastmove), (u64)score);
+
+      /* legal moves only */
+      domovequick(board, move);
+      kic = kingincheck(board, stm);
+      if (!kic)
+      {
+        moves[movecounter] = move;
+        movecounter++;
+      }
+      undomovequick(board, move);
+    }
+  }
+
+  /* gen en passant moves */
+  sqep    = GETSQEP(board[QBBLAST]); 
+  bbWork  = bbBoth[stm]&(board[QBBP1]&~board[QBBP2]&~board[QBBP3]);
+  bbWork &= (stm)? 0xFF000000 : 0xFF00000000;
+  bbTempA  = (sqep)? (stm)? bbWork&(SETMASKBB(sqep+7)|SETMASKBB(sqep+9)):
+                          bbWork&(SETMASKBB(sqep-7)|SETMASKBB(sqep-9))          
+           : BBEMPTY;
+  pfrom   = MAKEPIECE(PAWN,stm);
+  pto     = pfrom; 
+  pcpt    = MAKEPIECE(PAWN,(u64)!stm);
+  score   = EvalPieceValues[PAWN-1]*16-EvalPieceValues[PAWN-1];
+
+  /* check for first en passant pawn */
+  sqfrom  = (bbTempA)?popfirst1(&bbTempA):0x0;
+  sqto    = sqep;
+  sqcpt   = (stm)? sqep+8:sqep-8;
+  /* pack move into 64 bits, considering castle rights and halfmovecounter and score */
+  move    = (sqfrom)?MAKEMOVE(sqfrom, sqto, sqcpt, pfrom, pto, pcpt, 0, (u64)GETHMC(lastmove), (u64)score):MOVENONE;
+  /* legal moves only */
+  domovequick(board, move);
+  kic = kingincheck(board, stm);
+  undomovequick(board, move);
+  moves[movecounter] = move;
+  movecounter+=(sqfrom&&!kic)?1:0;
+
+  /* check for second en passant pawn */
+  sqfrom  = (bbTempA)?popfirst1(&bbTempA):0x0;
+  sqto    = sqep;
+  sqcpt   = (stm)? sqep+8:sqep-8;
+  /* pack move into 64 bits, considering castle rights and halfmovecounter and score */
+  move    = (sqfrom)?MAKEMOVE(sqfrom, sqto, sqcpt, pfrom, pto, pcpt, 0, (u64)GETHMC(lastmove), (u64)score):MOVENONE;
+  /* legal moves only */
+  domovequick(board, move);
+  kic = kingincheck(board, stm);
+  undomovequick(board, move);
+  moves[movecounter] = move;
+  movecounter+=(sqfrom&&!kic)?1:0;
+
+  return movecounter;
+}
+/* generate slider moves via KoggeStone bitboard approach */
+/* based on work by Steffan Westcott */
+/* http://chessprogramming.wikispaces.com/Kogge-Stone+Algorithm */
+int genmoves_noncaptures(Bitboard *board, Move *moves, int movecounter, bool stm) 
+{
+  bool kic = false;
+  Score score;
+  Piece pfrom;
+  Piece pto;
+  Piece pcpt;
+  Square sqfrom;
+  Square sqto;
+  Square sqcpt;
+  Square sqep; 
+  Move move;
+  Move lastmove;
+  Bitboard bbTempA;
+  Bitboard bbWork;
+  Bitboard bbMoves;
+  Bitboard bbBlockers;
+  Bitboard bbBoth[2];
+
+  lastmove = board[QBBLAST];
+
+  bbBlockers    = board[QBBP1]|board[QBBP2]|board[QBBP3];
+  bbBoth[WHITE] = board[QBBBLACK]^bbBlockers;
+  bbBoth[BLACK] = board[QBBBLACK];
+  bbWork        = bbBoth[stm];
+
+  /* for each piece of site to move */
+  while (bbWork)
+  {
+    sqfrom   = popfirst1 (&bbWork);
+    pfrom    = GETPIECE(board, sqfrom);
+    bbTempA  = BBEMPTY;
+    bbMoves  = BBEMPTY;
+
+    /* no pawn promo */
+    if(GETPTYPE(pfrom)==PAWN&&GETRRANK(sqfrom,stm)==RANK_7)
+      continue;
+
+    /* queens and rooks via KoggeStone */
+    bbTempA  = (GETPTYPE(pfrom)==ROOK||GETPTYPE(pfrom)==QUEEN)? rook_attacks(bbBlockers, sqfrom) : BBEMPTY;
+
+    /* queens and bishops via KoggeStone */
+    bbTempA |= (GETPTYPE(pfrom)==BISHOP||GETPTYPE(pfrom)==QUEEN)? bishop_attacks(bbBlockers, sqfrom) : bbTempA;
+
+    /* knights and king via attack tables */
+    bbTempA |= (GETPTYPE(pfrom)==KNIGHT||GETPTYPE(pfrom)==KING)? AttackTablesNK[(GETPTYPE(pfrom)-2)*64+sqfrom] : bbTempA;
+
+    /* white pawn push */
+    bbTempA |= (GETPTYPE(pfrom)==PAWN&&!stm)?(~bbBlockers&SETMASKBB(sqfrom+8)) : bbTempA;
+
+    /* black pawn push */
+    bbTempA |= (GETPTYPE(pfrom)==PAWN&&stm)?(~bbBlockers&SETMASKBB(sqfrom-8)) : bbTempA;
+
+    /* white pawn double push */
+    bbTempA |= (GETPTYPE(pfrom)==PAWN&&!stm&&GETRANK(sqfrom)==RANK_2&&(~bbBlockers&SETMASKBB(sqfrom+8)&&(~bbBlockers&SETMASKBB(sqfrom+16))))?
+              (~bbBlockers&SETMASKBB(sqfrom+16)) : bbMoves;
+
+    /* black pawn double push */
+    bbTempA |= (GETPTYPE(pfrom)==PAWN&&stm&&GETRANK(sqfrom)==RANK_7&&(~bbBlockers&SETMASKBB(sqfrom-8)&&(~bbBlockers&SETMASKBB(sqfrom-16))))?
+              (~bbBlockers&SETMASKBB(sqfrom-16)) : bbMoves;
+
+    /* non captures only */
+
+    bbMoves  =  bbTempA & (~bbBlockers);
+
+    /* extract moves */
+    while (bbMoves)
+    {
+      sqto      = popfirst1(&bbMoves);
+      sqcpt     = sqto;
+      pto       = pfrom;
+      pcpt      = PNONE;
+
+      /* set en passant target square */
+      sqep      = (GETPTYPE(pfrom)==PAWN&&GETRRANK(sqto,stm)-GETRRANK(sqfrom,stm)==2)?(stm)?sqto+8:sqto-8:0x0; 
+
+      /* get score, non captures via static values, capture via MVV-LVA */
+      score = (evalmove (pto, sqto, stm)-evalmove(pfrom, sqfrom, stm));
+      /* pack move into 64 bits, considering castle rights and halfmovecounter and score */
+      move = MAKEMOVE(sqfrom, sqto, sqcpt, pfrom, pto, pcpt, sqep, (u64)GETHMC(lastmove), (u64)score);
+
+      /* legal moves only */
+      domovequick(board, move);
+      kic = kingincheck(board, stm);
+      if (!kic)
+      {
+        moves[movecounter] = move;
+        movecounter++;
+      }
+      undomovequick(board, move);
+    }
+  }
+
+  return movecounter;
+}
+/* generate slider moves via KoggeStone bitboard approach */
+/* based on work by Steffan Westcott */
+/* http://chessprogramming.wikispaces.com/Kogge-Stone+Algorithm */
+int genmoves_piecewiese(Bitboard *board, Move *moves, int movecounter, bool stm, bool qs) 
+{
+
+  bool kic = false;
+  Score score;
+  Piece pfrom;
+  Piece pto;
+  Piece pcpt;
+  Square sqfrom;
+  Square sqto;
+  Square sqcpt;
+  Square sqep; 
+  Move move;
+  Move lastmove;
+  Bitboard bbTempA;
+  Bitboard bbWork;
+  Bitboard bbMoves;
+  Bitboard bbBlockers;
+  Bitboard bbTempB;
+  Bitboard bbTempC;
+  Bitboard bbBoth[2];
+
+  lastmove = board[QBBLAST];
+
+  bbBlockers    = board[QBBP1]|board[QBBP2]|board[QBBP3];
+  bbBoth[WHITE] = board[QBBBLACK]^bbBlockers;
+  bbBoth[BLACK] = board[QBBBLACK];
+  bbWork        = bbBoth[stm];
+
+  /* for each piece of site to move */
+  while (bbWork)
+  {
+    sqfrom  = popfirst1 (&bbWork);
+    pfrom   = GETPIECE(board, sqfrom);
+    bbTempA = BBEMPTY;
+    bbMoves = BBEMPTY;
+
+    /* queens and rooks via KoggeStone */
+    bbTempA = (GETPTYPE(pfrom)==ROOK||GETPTYPE(pfrom)==QUEEN)? rook_attacks(bbBlockers, sqfrom) : BBEMPTY;
+    /* queens and bishops via KoggeStone */
+    bbTempA|= (GETPTYPE(pfrom)==BISHOP||GETPTYPE(pfrom)==QUEEN)? bishop_attacks(bbBlockers, sqfrom) : bbTempA;
+
+    /* knights and king via attack tables */
+    bbTempA|= (GETPTYPE(pfrom)==KNIGHT||GETPTYPE(pfrom)==KING)? AttackTablesNK[(GETPTYPE(pfrom)-2)*64+sqfrom] : bbTempA;
+
+    /* pawn attacks via attack tables  */
+    bbTempA|= (GETPTYPE(pfrom)==PAWN)?(AttackTablesPawns[stm*64+sqfrom]&bbBoth[!stm]) : bbTempA;
+
+    /* white pawn push */
+    bbTempA|= (GETPTYPE(pfrom)==PAWN&&!stm)?(~bbBlockers&SETMASKBB(sqfrom+8)) : bbTempA;
+    /* black pawn push */
+    bbTempA|= (GETPTYPE(pfrom)==PAWN&&stm)?(~bbBlockers&SETMASKBB(sqfrom-8)) : bbTempA;
+    /* white pawn double push */
+    bbTempA|= (GETPTYPE(pfrom)==PAWN&&!stm&&GETRANK(sqfrom)==RANK_2&&(~bbBlockers&SETMASKBB(sqfrom+8)&&(~bbBlockers&SETMASKBB(sqfrom+16))))?
+              (~bbBlockers&SETMASKBB(sqfrom+16)) : bbTempA;
+    /* black pawn double push */
+    bbTempA|= (GETPTYPE(pfrom)==PAWN&&stm&&GETRANK(sqfrom)==RANK_7&&(~bbBlockers&SETMASKBB(sqfrom-8)&&(~bbBlockers&SETMASKBB(sqfrom-16))))?
+              (~bbBlockers&SETMASKBB(sqfrom-16)) : bbTempA;
+
+    /* captures */    
+    bbMoves  = bbTempA&bbBoth[!stm];
+    /* non captures */    
+    bbMoves |= (qs)?BBEMPTY:(bbTempA&~bbBlockers);
+
+    /* extract moves */
+    while (bbMoves)
+    {
+      sqto      = popfirst1(&bbMoves);
+      sqcpt     = sqto;
+      pcpt      = GETPIECE(board, sqcpt);
+
+      /* set en passant target square */
+      sqep      = (GETPTYPE(pfrom)==PAWN&&GETRRANK(sqto,stm)-GETRRANK(sqfrom,stm)==2)?(stm)?sqto+8:sqto-8:0x0; 
+
+      /* handle pawn promo: knight */
+      pto = (GETPTYPE(pfrom)==PAWN&&GETRRANK(sqto,stm)==RANK_8)?MAKEPIECE(KNIGHT, GETCOLOR(pfrom)):pfrom;
+      /* get score, non captures via static values, capture via MVV-LVA */
+      score = (pcpt==PNONE)? (evalmove (pto, sqto, stm)-evalmove(pfrom, sqfrom, stm)):(EvalPieceValues[GETPTYPE(pcpt)-1]*16-EvalPieceValues[GETPTYPE(pto)-1]);
+      /* pack move into 64 bits, considering castle rights and halfmovecounter and score */
+      move = MAKEMOVE(sqfrom, sqto, sqcpt, pfrom, pto, pcpt, sqep, (u64)GETHMC(lastmove), (u64)score);
+
+      /* legal moves only */
+      domovequick(board, move);
+      kic = kingincheck(board, stm);
+      if (!kic)
+      {
+        moves[movecounter] = move;
+        movecounter++;
+      }
+      undomovequick(board, move);
+
+      /* TODO: in non-perft do queen promo only? */
+      /* handle pawn promo: bishop */
+      pto = (!kic&&GETPTYPE(pfrom)==PAWN&&GETRRANK(sqto,stm)==RANK_8)?MAKEPIECE(BISHOP, GETCOLOR(pfrom)):PNONE;
+      /* get score, non captures via static values, capture via MVV-LVA */
+      score = (pcpt==PNONE)? (evalmove (pto, sqto, stm)-evalmove(pfrom, sqfrom, stm)):(EvalPieceValues[GETPTYPE(pcpt)-1]*16-EvalPieceValues[GETPTYPE(pto)-1]);
+      /* pack move into 64 bits, considering castle rights and halfmovecounter and score */
+      move = (pto==PNONE)?MOVENONE:MAKEMOVE(sqfrom, sqto, sqcpt, pfrom, pto, pcpt, 0, (u64)GETHMC(lastmove), (u64)score);
+      moves[movecounter] = move;
+      movecounter+=(pto==PNONE)?0:1;
+
+      /* handle pawn promo: rook */
+      pto = (!kic&&GETPTYPE(pfrom)==PAWN&&GETRRANK(sqto,stm)==RANK_8)?MAKEPIECE(ROOK, GETCOLOR(pfrom)):PNONE;
+      /* get score, non captures via static values, capture via MVV-LVA */
+      score = (pcpt==PNONE)? (evalmove (pto, sqto, stm)-evalmove(pfrom, sqfrom, stm)):(EvalPieceValues[GETPTYPE(pcpt)-1]*16-EvalPieceValues[GETPTYPE(pto)-1]);
+      /* pack move into 64 bits, considering castle rights and halfmovecounter and score */
+      move = (pto==PNONE)?MOVENONE:MAKEMOVE(sqfrom, sqto, sqcpt, pfrom, pto, pcpt, 0, (u64)GETHMC(lastmove), (u64)score);
+      moves[movecounter] = move;
+      movecounter+=(pto==PNONE)?0:1;
+
+      /* handle pawn promo: queen */
+      pto = (!kic&&GETPTYPE(pfrom)==PAWN&&GETRRANK(sqto,stm)==RANK_8)?MAKEPIECE(QUEEN, GETCOLOR(pfrom)):PNONE;
+      /* get score, non captures via static values, capture via MVV-LVA */
+      score = (pcpt==PNONE)? (evalmove (pto, sqto, stm)-evalmove(pfrom, sqfrom, stm)):(EvalPieceValues[GETPTYPE(pcpt)-1]*16-EvalPieceValues[GETPTYPE(pto)-1]);
+      /* pack move into 64 bits, considering castle rights and halfmovecounter and score */
+      move = (pto==PNONE)?MOVENONE:MAKEMOVE(sqfrom, sqto, sqcpt, pfrom, pto, pcpt, 0, (u64)GETHMC(lastmove), (u64)score);
+      moves[movecounter] = move;
+      movecounter+=(pto==PNONE)?0:1;
+    }
+  }
+
+  /* gen en passant moves */
+  sqep    = GETSQEP(board[QBBLAST]); 
+  bbWork  = bbBoth[stm]&(board[QBBP1]&~board[QBBP2]&~board[QBBP3]);
+  bbWork &= (stm)? 0xFF000000 : 0xFF00000000;
+  bbTempA  = (sqep)? (stm)? bbWork&(SETMASKBB(sqep+7)|SETMASKBB(sqep+9)):
+                          bbWork&(SETMASKBB(sqep-7)|SETMASKBB(sqep-9))          
+           : BBEMPTY;
+  pfrom   = MAKEPIECE(PAWN,stm);
+  pto     = pfrom; 
+  pcpt    = MAKEPIECE(PAWN,(u64)!stm);
+  score   = EvalPieceValues[PAWN-1]*16-EvalPieceValues[PAWN-1];
+
+  /* check for first en passant pawn */
+  sqfrom  = (bbTempA)?popfirst1(&bbTempA):0x0;
+  sqto    = sqep;
+  sqcpt   = (stm)? sqep+8:sqep-8;
+  /* pack move into 64 bits, considering castle rights and halfmovecounter and score */
+  move    = (sqfrom)?MAKEMOVE(sqfrom, sqto, sqcpt, pfrom, pto, pcpt, 0, (u64)GETHMC(lastmove), (u64)score):MOVENONE;
+  /* legal moves only */
+  domovequick(board, move);
+  kic = kingincheck(board, stm);
+  undomovequick(board, move);
+  moves[movecounter] = move;
+  movecounter+=(sqfrom&&!kic)?1:0;
+
+  /* check for second en passant pawn */
+  sqfrom  = (bbTempA)?popfirst1(&bbTempA):0x0;
+  sqto    = sqep;
+  sqcpt   = (stm)? sqep+8:sqep-8;
+  /* pack move into 64 bits, considering castle rights and halfmovecounter and score */
+  move    = (sqfrom)?MAKEMOVE(sqfrom, sqto, sqcpt, pfrom, pto, pcpt, 0, (u64)GETHMC(lastmove), (u64)score):MOVENONE;
+  /* legal moves only */
+  domovequick(board, move);
+  kic = kingincheck(board, stm);
+  undomovequick(board, move);
+  moves[movecounter] = move;
+  movecounter+=(sqfrom&&!kic)?1:0;
+
+  /* gen castle moves */
+  /* get king square */
+  sqfrom  = first1(bbBoth[stm]&(board[QBBP1]&board[QBBP2]&~board[QBBP3]));
+  pfrom   = GETPIECE(board, sqfrom);
+  /* get castle rights queenside */
+  bbTempA  = (stm)?(((~board[QBBPMVD])&SMCRBLACKQ)==SMCRBLACKQ)?true:false:(((~board[QBBPMVD])&SMCRWHITEQ)==SMCRWHITEQ)?true:false;
+  /* check for emtpty squares */
+  bbTempB   = ((bbBlockers&SETMASKBB(sqfrom-1))|(bbBlockers&SETMASKBB(sqfrom-2))|(bbBlockers&SETMASKBB(sqfrom-3)));
+  /* check for kign and empty squares in check */
+  bbTempC  =  (squareunderattack(board,!stm,sqfrom)|squareunderattack(board,!stm,sqfrom-1)|squareunderattack(board,!stm,sqfrom-2));
+  /* set castle move score */
+  score   = INF-100;
+  move    = (bbTempA&&!bbTempB&&!bbTempC)?MAKEMOVE(sqfrom, (sqfrom-2), (sqfrom-2), pfrom, pfrom, PNONE, 0, (u64)GETHMC(lastmove), (u64)score):MOVENONE;
+  move   |= (bbTempA&&!bbTempB&&!bbTempC)?MOVEISCRQ:BBEMPTY;
+
+  moves[movecounter] = move;
+  movecounter+=(bbTempA&&!bbTempB&&!bbTempC)?1:0;
+
+  /* get castle rights kingside */
+  bbTempA  = (stm)?(((~board[QBBPMVD])&SMCRBLACKK)==SMCRBLACKK)?true:false:(((~board[QBBPMVD])&SMCRWHITEK)==SMCRWHITEK)?true:false;
+  /* check for emtpty squares */
+  bbTempB   = ((bbBlockers&SETMASKBB(sqfrom+1))|(bbBlockers&SETMASKBB(sqfrom+2)));
+  /* check for kign and empty squares in check */
+  bbTempC  =  (squareunderattack(board,!stm,sqfrom)|squareunderattack(board,!stm,sqfrom+1)|squareunderattack(board,!stm,sqfrom+2));
+  /* set castle move score */
+  score   = INF-100;
+  move    = (bbTempA&&!bbTempB&&!bbTempC)?MAKEMOVE(sqfrom, (sqfrom+2), (sqfrom+2), pfrom, pfrom, PNONE, 0, (u64)GETHMC(lastmove), (u64)score):MOVENONE;
+  move   |= (bbTempA&&!bbTempB&&!bbTempC)?MOVEISCRK:BBEMPTY;
+
+  moves[movecounter] = move;
+  movecounter+=(bbTempA&&!bbTempB&&!bbTempC)?1:0;
+
+  return movecounter;
+}
+int genmoves(Bitboard *board, Move *moves, int movecounter, bool stm, bool qs)
+{
+/*
+  return genmoves_piecewiese(board, moves, movecounter, stm, qs);
+*/
+  movecounter = genmoves_promo(board, moves, movecounter, stm);
+  if (!qs)
+    movecounter = genmoves_castles(board, moves, movecounter, stm);
+  movecounter = genmoves_captures(board, moves, movecounter, stm);
+  if (!qs)
+    movecounter = genmoves_noncaptures(board, moves, movecounter, stm);
+
+  return movecounter;
+}
+/* generate rook moves via koggestone shifts */
 Bitboard rook_attacks(Bitboard bbBlockers, Square sq)
 {
   Bitboard bbWrap;
@@ -411,7 +999,7 @@ Bitboard rook_attacks(Bitboard bbBlockers, Square sq)
 
   return bbMoves;
 }
-
+/* generate bishop moves via koggestone shifts */
 Bitboard bishop_attacks(Bitboard bbBlockers, Square sq)
 {
   Bitboard bbWrap;

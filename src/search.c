@@ -48,7 +48,7 @@ Score perft(Bitboard *board, bool stm, s32 depth)
     return 0;
   }
 
-  movecounter = genmoves_general(board, moves, movecounter, stm, false);
+  movecounter = genmoves(board, moves, movecounter, stm, false);
 
 /*
   MOVECOUNT+= movecounter;
@@ -75,7 +75,6 @@ Score perft(Bitboard *board, bool stm, s32 depth)
 Score qsearch(Bitboard *board, bool stm, Score alpha, Score beta, u32 depth)
 {
   bool kic = false;
-  bool qs = true;
   int i = 0;
   int movecounter = 0;
   Score score = 0;
@@ -87,9 +86,6 @@ Score qsearch(Bitboard *board, bool stm, Score alpha, Score beta, u32 depth)
 
   NODECOUNT++;
 
-  if (kic)
-    qs = false;
-
   score = eval(board);
   score = (stm)? -score : score;  /* negate blacks score */
 
@@ -99,7 +95,10 @@ Score qsearch(Bitboard *board, bool stm, Score alpha, Score beta, u32 depth)
   if( !kic && alpha < score )
       alpha = score;
 
-  movecounter = genmoves_general(board, moves, movecounter, stm, qs);
+  if (kic)
+    movecounter = genmoves(board, moves, movecounter, stm, false);
+  else
+    movecounter = genmoves_captures(board, moves, movecounter, stm);
 
   /* sort moves */
   qsort(moves, movecounter, sizeof(Move), cmp_move_desc);
@@ -132,6 +131,7 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, u32 depth)
   bool kic = false;
   int i = 0;
   int movecounter = 0;
+  int legalmovecounter = 0;
   Score score = 0;
   Cr cr = board[QBBPMVD];
   Move lastmove = board[QBBLAST];
@@ -150,21 +150,11 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, u32 depth)
 
   NODECOUNT++;
 
-  movecounter = genmoves_general(board, moves, movecounter, stm, false);
-
+  /* generate pawn promo moves first */  
+  movecounter = genmoves_promo(board, moves, 0, stm);
+  legalmovecounter+= movecounter;
   /* sort moves */
   qsort(moves, movecounter, sizeof(Move), cmp_move_desc);
-/*
-  MOVECOUNT+= movecounter;
-*/
-
-  /* checkmate */
-  if (movecounter == 0 && kic)
-    return -INF+PLY;
-  /* stalemate */
-  if (movecounter == 0 && !kic) 
-    return STALEMATESCORE;
-
   /* iterate through moves */
   for (i=0;i<movecounter;i++)
   {
@@ -178,6 +168,67 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, u32 depth)
     if(score>=alpha)
       alpha=score;
   }
+  /* generate capturing moves next */  
+  movecounter = genmoves_captures(board, moves, 0, stm);
+  legalmovecounter+= movecounter;
+  /* sort moves */
+  qsort(moves, movecounter, sizeof(Move), cmp_move_desc);
+  /* iterate through moves */
+  for (i=0;i<movecounter;i++)
+  {
+    domove (board, moves[i]);
+    score = -negamax(board, !stm, -beta, -alpha, depth-1);
+    undomove (board, moves[i], lastmove, cr);
+
+    if(score>=beta)
+      return score;
+
+    if(score>=alpha)
+      alpha=score;
+  }
+  /* generate castle moves next */  
+  movecounter = genmoves_castles(board, moves, 0, stm);
+  legalmovecounter+= movecounter;
+  /* sort moves */
+  qsort(moves, movecounter, sizeof(Move), cmp_move_desc);
+  /* iterate through moves, caputres */
+  for (i=0;i<movecounter;i++)
+  {
+    domove (board, moves[i]);
+    score = -negamax(board, !stm, -beta, -alpha, depth-1);
+    undomove (board, moves[i], lastmove, cr);
+
+    if(score>=beta)
+      return score;
+
+    if(score>=alpha)
+      alpha=score;
+  }
+  /* generate quit moves last */  
+  movecounter = genmoves_noncaptures(board, moves, 0, stm);
+  legalmovecounter+= movecounter;
+  /* sort moves */
+  qsort(moves, movecounter, sizeof(Move), cmp_move_desc);
+  /* iterate through moves, caputres */
+  for (i=0;i<movecounter;i++)
+  {
+    domove (board, moves[i]);
+    score = -negamax(board, !stm, -beta, -alpha, depth-1);
+    undomove (board, moves[i], lastmove, cr);
+
+    if(score>=beta)
+      return score;
+
+    if(score>=alpha)
+      alpha=score;
+  }
+  /* checkmate */
+  if (legalmovecounter == 0 && kic)
+    return -INF+PLY;
+  /* stalemate */
+  if (legalmovecounter == 0 && !kic) 
+    return STALEMATESCORE;
+
   return score;
 }
 Move rootsearch(Bitboard *board, bool stm, s32 depth)
@@ -195,7 +246,7 @@ Move rootsearch(Bitboard *board, bool stm, s32 depth)
 
   kic = kingincheck(board, stm);
 
-  movecounter = genmoves_general(board, moves, movecounter, stm, false);
+  movecounter = genmoves(board, moves, movecounter, stm, false);
 
   /* sort moves */
   qsort(moves, movecounter, sizeof(Move), cmp_move_desc);
