@@ -33,7 +33,7 @@ extern double end;
 extern double elapsed;
 /* game state */
 extern bool STM;
-extern u32 SD;
+extern s32 SD;
 extern u32 GAMEPLY;
 extern u32 PLY;
 extern Move *Move_History;
@@ -41,6 +41,7 @@ extern Hash *Hash_History;
 
 bool squareunderattack (Bitboard *board, bool stm, Square sq);
 bool kingincheck(Bitboard *board, bool stm);
+int cmp_move_desc(const void *ap, const void *bp);
 void domove (Bitboard *board, Move move);
 void undomove (Bitboard *board, Move move, Move lastmove, Cr cr);
 void domovequick (Bitboard *board, Move move);

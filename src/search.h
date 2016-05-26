@@ -22,9 +22,9 @@
 #ifndef SEARCH_H_INCLUDED
 #define SEARCH_H_INCLUDED
 
-Score perft(Bitboard *board, bool stm, u32 depth);
-Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, u32 depth);
-Move search(Bitboard *board, bool stm);
+Score perft(Bitboard *board, bool stm, s32 depth);
+Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth);
+Move rootsearch(Bitboard *board, bool stm, s32 depth);
 
 #endif /* SEARCH_H_INCLUDED */
 

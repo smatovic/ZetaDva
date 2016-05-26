@@ -28,13 +28,16 @@
   https://chessprogramming.wikispaces.com/Simplified+evaluation+function
 */
 
-Score evalmove(PieceType piece, Square sq, bool stm)
+Score evalmove(Piece piece, Square sq, bool stm)
 {
   Score score = 0;
 
-  score+= (stm)? EvalPieceValues[GETPTYPE(piece)-1]   : EvalPieceValues[GETPTYPE(piece)-1];
+  /* wood count */
+  score+= EvalPieceValues[GETPTYPE(piece)-1];
+  /* sqaure control */
+  score+= EvalControl[sq];
+  /* piece square tables */
   score+= (stm)? EvalTable[(GETPTYPE(piece)-1)*64+sq] : EvalTable[(GETPTYPE(piece)-1)*64+FLOP(sq)];
-  score+= (stm)? EvalControl[sq]                      : EvalControl[FLOP(sq)];
 
   return score;
 }
@@ -74,7 +77,7 @@ Score eval(Bitboard *board)
       /* blocked */
       if (piecet == PAWN && !side) {
         /* blocked */
-        if ( GETRANK(sq) < RANK_8 && ( (bbPawns | board[!side]) & SETMASKBB(sq+8)))
+        if ( (bbPawns | board[!side]) & SETMASKBB(sq+8))
           score-= 15;
         /* chain */
         if ( GETFILE(sq) < FILE_H  && ( bbPawns & board[side] & SETMASKBB(sq-7))  )
@@ -84,7 +87,7 @@ Score eval(Bitboard *board)
       }
       if (piecet == PAWN && side) {
         /* blocked */
-        if ( GETRANK(sq) > RANK_1 && ( (bbPawns | board[!side]) & SETMASKBB(sq-8)))
+        if ( (bbPawns | board[!side]) & SETMASKBB(sq-8))
           score+= 15;
         /* chain */
         if ( GETFILE(sq) > FILE_A  && ( bbPawns & board[side] & SETMASKBB(sq+7))  )

@@ -18,7 +18,6 @@
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
   GNU General Public License for more details.
 */
-
 #include <stdio.h>      /* for print and scan */
 #include <stdlib.h>     /* for malloc free */
 #include <string.h>     /* for string compare */ 
@@ -45,7 +44,7 @@ double end          = 0;
 double elapsed      = 0;
 /* game state */
 bool STM            = WHITE;  /* site to move */
-u32 SD              = MAXPLY; /* max search depth*/
+s32 SD              = MAXPLY; /* max search depth*/
 u32 GAMEPLY         = 0;      /* total ply, considering depth via fen string */
 u32 PLY             = 0;      /* engine specifix ply counter */
 Move *Move_History;           /* last game moves indexed by ply */
@@ -134,6 +133,13 @@ static bool inits(void)
     return false;
   }
   return true;
+}
+int cmp_move_desc(const void *ap, const void *bp)
+{
+    const Move *a = ap;
+    const Move *b = bp;
+
+    return GETSCORE(*b) - GETSCORE(*a);
 }
 /* apply move on board */
 void domove(Bitboard *board, Move move)
@@ -1132,13 +1138,13 @@ static void selftest(void)
 
     SD = depths[done];
     
-    printf("# doing perft depth: %u for position\n", SD);  
+    printf("# doing perft depth: %d for position\n", SD);  
     if (LogFile != NULL)
     {
       char timestring[256];
       get_time_string (timestring);
       fprintf(LogFile, "%s, ", timestring);
-      fprintf(LogFile,"# doing perft depth: %u for position\n", SD);  
+      fprintf(LogFile,"# doing perft depth: %d for position\n", SD);  
     }
     if (!setboard(BOARD,  fenpositions[done]))
     {
@@ -1157,7 +1163,7 @@ static void selftest(void)
     
     start = get_time();
 
-    perft(BOARD, STM, 0);
+    perft(BOARD, STM, SD);
 
     end = get_time();   
     elapsed = end-start;
@@ -1177,13 +1183,13 @@ static void selftest(void)
     }
     else
     {
-      printf("# Nodecount Not Correct, %llu computed nodes != %llu nodes for depth %u.\n", NODECOUNT, nodecounts[done]), SD;
+      printf("# Nodecount Not Correct, %llu computed nodes != %llu nodes for depth %d.\n", NODECOUNT, nodecounts[done]), SD;
       if (LogFile != NULL)
       {
         char timestring[256];
         get_time_string (timestring);
         fprintf(LogFile, "%s, ", timestring);
-        fprintf(LogFile,"# Nodecount Not Correct, %llu computed nodes != %llu nodes for depth %u.\n", NODECOUNT, nodecounts[done]), SD;
+        fprintf(LogFile,"# Nodecount Not Correct, %llu computed nodes != %llu nodes for depth %d.\n", NODECOUNT, nodecounts[done]), SD;
       }
     }
   }
@@ -1473,7 +1479,7 @@ int main(int argc, char* argv[])
         MOVECOUNT = 0;
         start = get_time();
 
-        move = search(BOARD,STM);
+        move = rootsearch(BOARD,STM, SD);
 
         end = get_time();   
         elapsed = end-start;
@@ -1524,7 +1530,7 @@ int main(int argc, char* argv[])
     /* set search depth */
     if (!strcmp(Command, "sd"))
     {
-      sscanf (Line, "sd %u", &SD);
+      sscanf (Line, "sd %d", &SD);
       if (SD>=MAXPLY)
         SD = MAXPLY;
       continue;
@@ -1603,11 +1609,11 @@ int main(int argc, char* argv[])
       MOVECOUNT = 0;
 
       if (!epd_mode)
-        printf("### doing perft depth %u: ###\n", SD);  
+        printf("### doing perft depth %d: ###\n", SD);  
 
       start = get_time();
 
-      perft (BOARD, STM, 0);
+      perft(BOARD, STM, SD);
 
       end = get_time();   
       elapsed = end-start;
