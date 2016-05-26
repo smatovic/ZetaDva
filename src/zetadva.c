@@ -52,7 +52,7 @@ Hash *Hash_History;           /* last game hashes indexed by ply */
 /* Quad Bitboard */
 /* based on http://chessprogramming.wikispaces.com/Quad-Bitboards */
 /* by Gerd Isenberg */
-Bitboard BOARD[7];
+Bitboard BOARD[8];
 /* quad bitboard array index definition
   0   pieces white
   1   piece type first bit
@@ -144,6 +144,8 @@ int cmp_move_desc(const void *ap, const void *bp)
 /* apply move on board */
 void domove(Bitboard *board, Move move)
 {
+  Score boardscore;
+  Score score     = 0;
   Square sqfrom   = GETSQFROM(move);
   Square sqto     = GETSQTO(move);
   Square sqcpt    = GETSQCPT(move);
@@ -199,6 +201,11 @@ void domove(Bitboard *board, Move move)
   board[QBBPMVD]  |= (pcastle)?SETMASKBB(sqfrom-4):BBEMPTY;
   /* reset halfmoveclok */
   hmc = (pcastle)?0:hmc;  /* castle move */
+  /* do score increment */
+  /* sub piece from */
+  score-= (pcastle==PNONE)?0:evalmove(pcastle, sqfrom-4);
+  /* add piece to */
+  score+= (pcastle==PNONE)?0:evalmove(pcastle, sqto+1);
 
   /* handle castle rook, kingside */
   pcastle = (move&MOVEISCRK)?MAKEPIECE(ROOK,GETCOLOR(pfrom)):PNONE;
@@ -217,6 +224,11 @@ void domove(Bitboard *board, Move move)
   board[QBBPMVD]  |= (pcastle)?SETMASKBB(sqfrom+3):BBEMPTY;
   /* reset halfmoveclok */
   hmc = (pcastle)?0:hmc;  /* castle move */
+  /* do score increment */
+  /* sub piece from */
+  score-= (pcastle==PNONE)?0:evalmove(pcastle, sqfrom+3);
+  /* add piece to */
+  score+= (pcastle==PNONE)?0:evalmove(pcastle, sqto-1);
 
   /* handle halfmove clock */
   hmc = (GETPTYPE(pfrom)==PAWN)?0:hmc;   /* pawn move */
@@ -224,6 +236,21 @@ void domove(Bitboard *board, Move move)
 
   /* store hmc in board */  
   board[QBBLAST] = SETHMC(board[QBBLAST], hmc);
+
+  /* do score increment */
+  /* sub piece from */
+  score-= evalmove(pfrom, sqfrom);
+  /* sub piece cpt */
+  score-= (pcpt==PNONE)?0:evalmove(pcpt, sqcpt);
+  /* add piece to */
+  score+= evalmove(pto, sqto);
+  /* negated values for black please */
+  score= (GETCOLOR(pfrom))? -score:score;
+  /* get incremental,static, board score */
+  boardscore = (Score)board[QBBSCORE];
+  boardscore+= score;
+  /* store score in board */
+  board[QBBSCORE] = (u64)boardscore;
 }
 /* apply move on board, quick during move generation */
 void domovequick(Bitboard *board, Move move)
@@ -252,7 +279,7 @@ void domovequick(Bitboard *board, Move move)
   board[QBBP3]    |= ((pto>>3)&0x1)<<sqto;
 }
 /* restore board again */
-void undomove(Bitboard *board, Move move, Move lastmove, Cr cr)
+void undomove(Bitboard *board, Move move, Move lastmove, Cr cr, Score score)
 {
   Square sqfrom   = GETSQFROM(move);
   Square sqto     = GETSQTO(move);
@@ -270,6 +297,8 @@ void undomove(Bitboard *board, Move move, Move lastmove, Cr cr)
   board[QBBLAST] = lastmove;
   /* restore castle rights. via piece moved flags */
   board[QBBPMVD] = cr;
+  /* restore board score */
+  board[QBBSCORE] = (u64)score;
 
   /* unset square capture, square to */
   bbTemp = CLRMASKBB(sqcpt)&CLRMASKBB(sqto);
@@ -631,7 +660,7 @@ static void move2san(Bitboard *board, Move move, char *san)
 
         kic = kingincheck(board, stm);
 
-        undomove(board,tempmove, 0, 0);
+        undomove(board,tempmove, 0, 0, 0);
 
         /* king in check so ignore this piece */
         if (kic)
@@ -750,6 +779,7 @@ void printboard(Bitboard *board)
 
   createfen (fenstring, BOARD, STM, GAMEPLY);
   printf("#fen: %s\n",fenstring);
+  printf("#score: %d\n",(Score)BOARD[QBBSCORE]);
 
   if (LogFile != NULL)
   {
@@ -778,6 +808,7 @@ void printboard(Bitboard *board)
     }
     fprintf(LogFile, "%s, ", timestring);
     fprintf(LogFile, "###ABCDEFGH###\n");
+    fprintf(LogFile, "#score: %d\n",(Score)BOARD[QBBSCORE]);
 
     fflush (LogFile);
   }
@@ -893,14 +924,15 @@ static bool setboard(Bitboard *board, char *fenstring)
   char *castle;   /* castle rights */
   char *cep;      /* en passant target square */
   char fencharstring[24] = {" PNKBRQ pnkbrq/12345678"}; /* mapping */
-  u64 i;
-  u64 j;
-  u64 hmc = 0;        /* half move clock */
-  u64 fendepth = 1;   /* game depth */
+  Score score = 0;
   File file;
   Rank rank;
   Piece piece;
   Square sq;
+  u64 i;
+  u64 j;
+  u64 hmc = 0;        /* half move clock */
+  u64 fendepth = 1;   /* game depth */
   Move lastmove = MOVENONE;
   Bitboard bbCr = BBEMPTY;
 
@@ -950,6 +982,7 @@ static bool setboard(Bitboard *board, char *fenstring)
   board[QBBP3]    = 0x0ULL;
   board[QBBPMVD]  = BBFULL;
   board[QBBHASH]  = 0x0ULL;
+  board[QBBSCORE] = 0x0ULL;
   board[QBBLAST]  = 0x0ULL;
 
   /* parse piece types and position from fen string */
@@ -1070,6 +1103,11 @@ static bool setboard(Bitboard *board, char *fenstring)
   if (cep != NULL) 
     free(cep);
 
+  /* static eval for inceremental eval scores during do/undo */
+  score = evalstatic(board);
+  /* store lastmove+ in board */
+  board[QBBSCORE] = (u64)score;
+
   /* board valid check */
   if (!isvalid(board))
   {
@@ -1082,6 +1120,8 @@ static bool setboard(Bitboard *board, char *fenstring)
 /* run internal selftest */
 static void selftest(void) 
 {
+  Score scorea = 0;
+  Score scoreb = 0;
   u64 done;
   u64 passed = 0;
   const u64 todo = 23;
@@ -1160,18 +1200,25 @@ static void selftest(void)
     }
     else
       printboard(BOARD);
-    
+
+    /* store score */
+    scorea = (Score)BOARD[QBBSCORE];
+    /* time measurement */
     start = get_time();
-
+    /* perfomance test, just leaf nodecount to given depth */
     perft(BOARD, STM, SD);
-
+    /* store score */
+    scoreb = (Score)BOARD[QBBSCORE];
+    /* time measurement */
     end = get_time();   
     elapsed = end-start;
     elapsed /= 1000;
 
+    if(NODECOUNT==nodecounts[done]&&scorea==scoreb)
+      passed++;
+
     if(NODECOUNT==nodecounts[done])
     {
-      passed++;
       printf("# Nodecount Correct, %llu nodes in %f seconds with %llu nps.\n", NODECOUNT, elapsed, (u64)(NODECOUNT/elapsed));
       if (LogFile != NULL)
       {
@@ -1183,17 +1230,28 @@ static void selftest(void)
     }
     else
     {
-      printf("# Nodecount Not Correct, %llu computed nodes != %llu nodes for depth %d.\n", NODECOUNT, nodecounts[done]), SD;
+      printf("# Nodecount NOT Correct, %llu computed nodes != %llu nodes for depth %d.\n", NODECOUNT, nodecounts[done]), SD;
       if (LogFile != NULL)
       {
         char timestring[256];
         get_time_string (timestring);
         fprintf(LogFile, "%s, ", timestring);
-        fprintf(LogFile,"# Nodecount Not Correct, %llu computed nodes != %llu nodes for depth %d.\n", NODECOUNT, nodecounts[done]), SD;
+        fprintf(LogFile,"# Nodecount NOT Correct, %llu computed nodes != %llu nodes for depth %d.\n", NODECOUNT, nodecounts[done]), SD;
+      }
+    }
+    if(scorea!=scoreb)
+    {
+      printf("# IncrementaL evaluation  scores NOT Correct, %d != %d .\n", scorea, scoreb);
+      if (LogFile != NULL)
+      {
+        char timestring[256];
+        get_time_string (timestring);
+        fprintf(LogFile, "%s, ", timestring);
+        fprintf(LogFile,"# Nodecount Correct, %llu nodes in %f seconds with %llu nps.\n", NODECOUNT, elapsed, (u64)(NODECOUNT/elapsed));
+        fprintf(LogFile,"# IncrementaL evaluation  scores NOT Correct, %d != %d .\n", scorea, scoreb);
       }
     }
   }
-
   printf("\n###############################\n");
   printf("### passed %llu from %llu tests ###\n", passed, todo);
   printf("###############################\n");

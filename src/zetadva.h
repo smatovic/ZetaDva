@@ -43,7 +43,7 @@ bool squareunderattack (Bitboard *board, bool stm, Square sq);
 bool kingincheck(Bitboard *board, bool stm);
 int cmp_move_desc(const void *ap, const void *bp);
 void domove (Bitboard *board, Move move);
-void undomove (Bitboard *board, Move move, Move lastmove, Cr cr);
+void undomove (Bitboard *board, Move move, Move lastmove, Cr cr, Score score);
 void domovequick (Bitboard *board, Move move);
 void undomovequick (Bitboard *board, Move move);
 void printboard(Bitboard *board);

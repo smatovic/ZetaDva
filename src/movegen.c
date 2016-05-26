@@ -233,7 +233,7 @@ int genmoves_general(Bitboard *board, Move *moves, int movecounter, bool stm, bo
       /* handle pawn promo: knight */
       pto = (GETPTYPE(pfrom)==PAWN&&GETRRANK(sqto,stm)==RANK_8)?MAKEPIECE(KNIGHT, GETCOLOR(pfrom)):pfrom;
       /* get score, non captures via static values, capture via MVV-LVA */
-      score = (pcpt==PNONE)? (evalmove (pto, sqto, stm)-evalmove(pfrom, sqfrom, stm)):(EvalPieceValues[GETPTYPE(pcpt)-1]*16-EvalPieceValues[GETPTYPE(pto)-1]);
+      score = (pcpt==PNONE)? (evalmove (pto, sqto)-evalmove(pfrom, sqfrom)):(EvalPieceValues[GETPTYPE(pcpt)-1]*16-EvalPieceValues[GETPTYPE(pto)-1]);
       /* pack move into 64 bits, considering castle rights and halfmovecounter and score */
       move = MAKEMOVE(sqfrom, sqto, sqcpt, pfrom, pto, pcpt, sqep, (u64)GETHMC(lastmove), (u64)score);
 
@@ -251,7 +251,7 @@ int genmoves_general(Bitboard *board, Move *moves, int movecounter, bool stm, bo
       /* handle pawn promo: bishop */
       pto = (!kic&&GETPTYPE(pfrom)==PAWN&&GETRRANK(sqto,stm)==RANK_8)?MAKEPIECE(BISHOP, GETCOLOR(pfrom)):PNONE;
       /* get score, non captures via static values, capture via MVV-LVA */
-      score = (pcpt==PNONE)? (evalmove (pto, sqto, stm)-evalmove(pfrom, sqfrom, stm)):(EvalPieceValues[GETPTYPE(pcpt)-1]*16-EvalPieceValues[GETPTYPE(pto)-1]);
+      score = (pcpt==PNONE)? (evalmove (pto, sqto)-evalmove(pfrom, sqfrom)):(EvalPieceValues[GETPTYPE(pcpt)-1]*16-EvalPieceValues[GETPTYPE(pto)-1]);
       /* pack move into 64 bits, considering castle rights and halfmovecounter and score */
       move = (pto==PNONE)?MOVENONE:MAKEMOVE(sqfrom, sqto, sqcpt, pfrom, pto, pcpt, 0, (u64)GETHMC(lastmove), (u64)score);
       moves[movecounter] = move;
@@ -260,7 +260,7 @@ int genmoves_general(Bitboard *board, Move *moves, int movecounter, bool stm, bo
       /* handle pawn promo: rook */
       pto = (!kic&&GETPTYPE(pfrom)==PAWN&&GETRRANK(sqto,stm)==RANK_8)?MAKEPIECE(ROOK, GETCOLOR(pfrom)):PNONE;
       /* get score, non captures via static values, capture via MVV-LVA */
-      score = (pcpt==PNONE)? (evalmove (pto, sqto, stm)-evalmove(pfrom, sqfrom, stm)):(EvalPieceValues[GETPTYPE(pcpt)-1]*16-EvalPieceValues[GETPTYPE(pto)-1]);
+      score = (pcpt==PNONE)? (evalmove (pto, sqto)-evalmove(pfrom, sqfrom)):(EvalPieceValues[GETPTYPE(pcpt)-1]*16-EvalPieceValues[GETPTYPE(pto)-1]);
       /* pack move into 64 bits, considering castle rights and halfmovecounter and score */
       move = (pto==PNONE)?MOVENONE:MAKEMOVE(sqfrom, sqto, sqcpt, pfrom, pto, pcpt, 0, (u64)GETHMC(lastmove), (u64)score);
       moves[movecounter] = move;
@@ -269,7 +269,7 @@ int genmoves_general(Bitboard *board, Move *moves, int movecounter, bool stm, bo
       /* handle pawn promo: queen */
       pto = (!kic&&GETPTYPE(pfrom)==PAWN&&GETRRANK(sqto,stm)==RANK_8)?MAKEPIECE(QUEEN, GETCOLOR(pfrom)):PNONE;
       /* get score, non captures via static values, capture via MVV-LVA */
-      score = (pcpt==PNONE)? (evalmove (pto, sqto, stm)-evalmove(pfrom, sqfrom, stm)):(EvalPieceValues[GETPTYPE(pcpt)-1]*16-EvalPieceValues[GETPTYPE(pto)-1]);
+      score = (pcpt==PNONE)? (evalmove (pto, sqto)-evalmove(pfrom, sqfrom)):(EvalPieceValues[GETPTYPE(pcpt)-1]*16-EvalPieceValues[GETPTYPE(pto)-1]);
       /* pack move into 64 bits, considering castle rights and halfmovecounter and score */
       move = (pto==PNONE)?MOVENONE:MAKEMOVE(sqfrom, sqto, sqcpt, pfrom, pto, pcpt, 0, (u64)GETHMC(lastmove), (u64)score);
       moves[movecounter] = move;
@@ -406,7 +406,7 @@ int genmoves_promo(Bitboard *board, Move *moves, int movecounter, bool stm)
       /* handle pawn promo: knight */
       pto = MAKEPIECE(KNIGHT, GETCOLOR(pfrom));
       /* get score, non captures via static values, capture via MVV-LVA */
-      score = (pcpt==PNONE)? (evalmove (pto, sqto, stm)-evalmove(pfrom, sqfrom, stm)):(EvalPieceValues[GETPTYPE(pcpt)-1]*16-EvalPieceValues[GETPTYPE(pto)-1]);
+      score = (pcpt==PNONE)? (evalmove (pto, sqto)-evalmove(pfrom, sqfrom)):(EvalPieceValues[GETPTYPE(pcpt)-1]*16-EvalPieceValues[GETPTYPE(pto)-1]);
       /* pack move into 64 bits, considering castle rights and halfmovecounter and score */
       move = MAKEMOVE(sqfrom, sqto, sqcpt, pfrom, pto, pcpt, 0, (u64)GETHMC(lastmove), (u64)score);
 
@@ -424,7 +424,7 @@ int genmoves_promo(Bitboard *board, Move *moves, int movecounter, bool stm)
       /* handle pawn promo: bishop */
       pto = (!kic)?MAKEPIECE(BISHOP, GETCOLOR(pfrom)):PNONE;
       /* get score, non captures via static values, capture via MVV-LVA */
-      score = (pcpt==PNONE)? (evalmove (pto, sqto, stm)-evalmove(pfrom, sqfrom, stm)):(EvalPieceValues[GETPTYPE(pcpt)-1]*16-EvalPieceValues[GETPTYPE(pto)-1]);
+      score = (pcpt==PNONE)? (evalmove (pto, sqto)-evalmove(pfrom, sqfrom)):(EvalPieceValues[GETPTYPE(pcpt)-1]*16-EvalPieceValues[GETPTYPE(pto)-1]);
       /* pack move into 64 bits, considering castle rights and halfmovecounter and score */
       move = (pto==PNONE)?MOVENONE:MAKEMOVE(sqfrom, sqto, sqcpt, pfrom, pto, pcpt, 0, (u64)GETHMC(lastmove), (u64)score);
       moves[movecounter] = move;
@@ -433,7 +433,7 @@ int genmoves_promo(Bitboard *board, Move *moves, int movecounter, bool stm)
       /* handle pawn promo: rook */
       pto = (!kic)?MAKEPIECE(ROOK, GETCOLOR(pfrom)):PNONE;
       /* get score, non captures via static values, capture via MVV-LVA */
-      score = (pcpt==PNONE)? (evalmove (pto, sqto, stm)-evalmove(pfrom, sqfrom, stm)):(EvalPieceValues[GETPTYPE(pcpt)-1]*16-EvalPieceValues[GETPTYPE(pto)-1]);
+      score = (pcpt==PNONE)? (evalmove (pto, sqto)-evalmove(pfrom, sqfrom)):(EvalPieceValues[GETPTYPE(pcpt)-1]*16-EvalPieceValues[GETPTYPE(pto)-1]);
       /* pack move into 64 bits, considering castle rights and halfmovecounter and score */
       move = (pto==PNONE)?MOVENONE:MAKEMOVE(sqfrom, sqto, sqcpt, pfrom, pto, pcpt, 0, (u64)GETHMC(lastmove), (u64)score);
       moves[movecounter] = move;
@@ -442,7 +442,7 @@ int genmoves_promo(Bitboard *board, Move *moves, int movecounter, bool stm)
       /* handle pawn promo: queen */
       pto = (!kic)?MAKEPIECE(QUEEN, GETCOLOR(pfrom)):PNONE;
       /* get score, non captures via static values, capture via MVV-LVA */
-      score = (pcpt==PNONE)? (evalmove (pto, sqto, stm)-evalmove(pfrom, sqfrom, stm)):(EvalPieceValues[GETPTYPE(pcpt)-1]*16-EvalPieceValues[GETPTYPE(pto)-1]);
+      score = (pcpt==PNONE)? (evalmove (pto, sqto)-evalmove(pfrom, sqfrom)):(EvalPieceValues[GETPTYPE(pcpt)-1]*16-EvalPieceValues[GETPTYPE(pto)-1]);
       /* pack move into 64 bits, considering castle rights and halfmovecounter and score */
       move = (pto==PNONE)?MOVENONE:MAKEMOVE(sqfrom, sqto, sqcpt, pfrom, pto, pcpt, 0, (u64)GETHMC(lastmove), (u64)score);
       moves[movecounter] = move;
@@ -705,7 +705,7 @@ int genmoves_noncaptures(Bitboard *board, Move *moves, int movecounter, bool stm
       sqep      = (GETPTYPE(pfrom)==PAWN&&GETRRANK(sqto,stm)-GETRRANK(sqfrom,stm)==2)?(stm)?sqto+8:sqto-8:0x0; 
 
       /* get score, non captures via static values, capture via MVV-LVA */
-      score = (evalmove (pto, sqto, stm)-evalmove(pfrom, sqfrom, stm));
+      score = (evalmove (pto, sqto)-evalmove(pfrom, sqfrom));
       /* pack move into 64 bits, considering castle rights and halfmovecounter and score */
       move = MAKEMOVE(sqfrom, sqto, sqcpt, pfrom, pto, pcpt, sqep, (u64)GETHMC(lastmove), (u64)score);
 
@@ -802,7 +802,7 @@ int genmoves_piecewiese(Bitboard *board, Move *moves, int movecounter, bool stm,
       /* handle pawn promo: knight */
       pto = (GETPTYPE(pfrom)==PAWN&&GETRRANK(sqto,stm)==RANK_8)?MAKEPIECE(KNIGHT, GETCOLOR(pfrom)):pfrom;
       /* get score, non captures via static values, capture via MVV-LVA */
-      score = (pcpt==PNONE)? (evalmove (pto, sqto, stm)-evalmove(pfrom, sqfrom, stm)):(EvalPieceValues[GETPTYPE(pcpt)-1]*16-EvalPieceValues[GETPTYPE(pto)-1]);
+      score = (pcpt==PNONE)? (evalmove (pto, sqto)-evalmove(pfrom, sqfrom)):(EvalPieceValues[GETPTYPE(pcpt)-1]*16-EvalPieceValues[GETPTYPE(pto)-1]);
       /* pack move into 64 bits, considering castle rights and halfmovecounter and score */
       move = MAKEMOVE(sqfrom, sqto, sqcpt, pfrom, pto, pcpt, sqep, (u64)GETHMC(lastmove), (u64)score);
 
@@ -820,7 +820,7 @@ int genmoves_piecewiese(Bitboard *board, Move *moves, int movecounter, bool stm,
       /* handle pawn promo: bishop */
       pto = (!kic&&GETPTYPE(pfrom)==PAWN&&GETRRANK(sqto,stm)==RANK_8)?MAKEPIECE(BISHOP, GETCOLOR(pfrom)):PNONE;
       /* get score, non captures via static values, capture via MVV-LVA */
-      score = (pcpt==PNONE)? (evalmove (pto, sqto, stm)-evalmove(pfrom, sqfrom, stm)):(EvalPieceValues[GETPTYPE(pcpt)-1]*16-EvalPieceValues[GETPTYPE(pto)-1]);
+      score = (pcpt==PNONE)? (evalmove (pto, sqto)-evalmove(pfrom, sqfrom)):(EvalPieceValues[GETPTYPE(pcpt)-1]*16-EvalPieceValues[GETPTYPE(pto)-1]);
       /* pack move into 64 bits, considering castle rights and halfmovecounter and score */
       move = (pto==PNONE)?MOVENONE:MAKEMOVE(sqfrom, sqto, sqcpt, pfrom, pto, pcpt, 0, (u64)GETHMC(lastmove), (u64)score);
       moves[movecounter] = move;
@@ -829,7 +829,7 @@ int genmoves_piecewiese(Bitboard *board, Move *moves, int movecounter, bool stm,
       /* handle pawn promo: rook */
       pto = (!kic&&GETPTYPE(pfrom)==PAWN&&GETRRANK(sqto,stm)==RANK_8)?MAKEPIECE(ROOK, GETCOLOR(pfrom)):PNONE;
       /* get score, non captures via static values, capture via MVV-LVA */
-      score = (pcpt==PNONE)? (evalmove (pto, sqto, stm)-evalmove(pfrom, sqfrom, stm)):(EvalPieceValues[GETPTYPE(pcpt)-1]*16-EvalPieceValues[GETPTYPE(pto)-1]);
+      score = (pcpt==PNONE)? (evalmove (pto, sqto)-evalmove(pfrom, sqfrom)):(EvalPieceValues[GETPTYPE(pcpt)-1]*16-EvalPieceValues[GETPTYPE(pto)-1]);
       /* pack move into 64 bits, considering castle rights and halfmovecounter and score */
       move = (pto==PNONE)?MOVENONE:MAKEMOVE(sqfrom, sqto, sqcpt, pfrom, pto, pcpt, 0, (u64)GETHMC(lastmove), (u64)score);
       moves[movecounter] = move;
@@ -838,7 +838,7 @@ int genmoves_piecewiese(Bitboard *board, Move *moves, int movecounter, bool stm,
       /* handle pawn promo: queen */
       pto = (!kic&&GETPTYPE(pfrom)==PAWN&&GETRRANK(sqto,stm)==RANK_8)?MAKEPIECE(QUEEN, GETCOLOR(pfrom)):PNONE;
       /* get score, non captures via static values, capture via MVV-LVA */
-      score = (pcpt==PNONE)? (evalmove (pto, sqto, stm)-evalmove(pfrom, sqfrom, stm)):(EvalPieceValues[GETPTYPE(pcpt)-1]*16-EvalPieceValues[GETPTYPE(pto)-1]);
+      score = (pcpt==PNONE)? (evalmove (pto, sqto)-evalmove(pfrom, sqfrom)):(EvalPieceValues[GETPTYPE(pcpt)-1]*16-EvalPieceValues[GETPTYPE(pto)-1]);
       /* pack move into 64 bits, considering castle rights and halfmovecounter and score */
       move = (pto==PNONE)?MOVENONE:MAKEMOVE(sqfrom, sqto, sqcpt, pfrom, pto, pcpt, 0, (u64)GETHMC(lastmove), (u64)score);
       moves[movecounter] = move;

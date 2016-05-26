@@ -62,9 +62,9 @@ typedef u64             Rank;
 #define QBBP3     3     /* piece type third bit */
 #define QBBPMVD   4     /* piece moved flags, for castle rights */
 #define QBBHASH   5     /* 64 bit board Zobrist hash */
-#define QBBLAST   6     /* lastmove + ep target + halfmove clock + move score */
+#define QBBSCORE  6     /* 16 bit, signed board score , stored as u64 */
+#define QBBLAST   7     /* lastmove + ep target + halfmove clock + move score */
 /* move encoding 
-
    0  -  5  square from
    6  - 11  square to
   12  - 17  square capture
@@ -76,7 +76,7 @@ typedef u64             Rank;
   44  - 45  2 bit free
   46        move is castle kingside
   47        move is castle queenside
-  48  - 63  move score
+  48  - 63  move score, signed 16 bit
 */
 /* engine defaults */
 #define MAXPLY      128     /* max internal search ply */
@@ -144,7 +144,7 @@ typedef u64             Rank;
 #define SETSQEP(mv,sq)     (((mv)&CMSQEP)|(((sq)&0x3F)<<30))
 #define GETHMC(mv)         (((mv)>>36)&0xFF)   /* 8 bit halfmove clock */
 #define SETHMC(mv,hmc)     (((mv)&CMHMC)|(((hmc)&0xFF)<<36))
-#define GETSCORE(mv)       (((mv)>>48)&0xFFFF) /* signed 16 bit score */
+#define GETSCORE(mv)       (((mv)>>48)&0xFFFF) /* signed 16 bit move score */
 #define SETSCORE(mv,score) (((mv)&CMSCORE)|(((score)&0xFFFF)<<48)) 
 /* pack move into 64 bits */
 #define MAKEMOVE(sqfrom, sqto, sqcpt, pfrom, pto, pcpt, sqep, hmc, score) \

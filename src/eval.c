@@ -28,18 +28,51 @@
   https://chessprogramming.wikispaces.com/Simplified+evaluation+function
 */
 
-Score evalmove(Piece piece, Square sq, bool stm)
+Score evalmove(Piece piece, Square sq)
 {
   Score score = 0;
 
   /* wood count */
   score+= EvalPieceValues[GETPTYPE(piece)-1];
   /* piece square tables */
-  sq = (stm)? sq : FLOP(sq);
+  sq = (GETCOLOR(piece))? sq : FLOP(sq);
   score+= EvalTable[(GETPTYPE(piece)-1)*64+sq];
   /* sqaure control */
   score+= EvalControl[sq];
 
+  return score;
+}
+/* evaluate board position with static values no checkmates or stalemates */
+Score evalstatic(Bitboard *board)
+{
+  u32 side;
+  Score score = 0;
+  Square sq;
+  PieceType piecet;
+  Bitboard bbWork;
+  Bitboard bbBoth[2];
+
+  bbBoth[WHITE] = board[QBBBLACK]^(board[QBBP1]|board[QBBP2]|board[QBBP3]);
+  bbBoth[BLACK] = board[QBBBLACK];
+
+  /* for each side */
+  for(side=WHITE;side<=BLACK;side++) 
+  {
+    bbWork = bbBoth[side];
+
+    while (bbWork) 
+    {
+      sq      = popfirst1(&bbWork);
+      piecet  = GETPTYPE(GETPIECE(board,sq));
+
+      /* wodd count */
+      score+= (side)? -EvalPieceValues[piecet-1]   : EvalPieceValues[piecet-1];
+      /* piece square tables */
+      score+= (side)? -EvalTable[(piecet-1)*64+sq] : EvalTable[(piecet-1)*64+FLOP(sq)];
+      /* square control table */
+      score+= (side)? -EvalControl[sq]             : EvalControl[FLOP(sq)];
+    }
+  }
   return score;
 }
 /* evaluate board position, no checkmates or stalemates */
@@ -108,3 +141,4 @@ Score eval(Bitboard *board)
   }
   return score;
 }
+
