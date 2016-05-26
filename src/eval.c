@@ -34,10 +34,11 @@ Score evalmove(Piece piece, Square sq, bool stm)
 
   /* wood count */
   score+= EvalPieceValues[GETPTYPE(piece)-1];
+  /* piece square tables */
+  sq = (stm)? sq : FLOP(sq);
+  score+= EvalTable[(GETPTYPE(piece)-1)*64+sq];
   /* sqaure control */
   score+= EvalControl[sq];
-  /* piece square tables */
-  score+= (stm)? EvalTable[(GETPTYPE(piece)-1)*64+sq] : EvalTable[(GETPTYPE(piece)-1)*64+FLOP(sq)];
 
   return score;
 }
@@ -65,13 +66,13 @@ Score eval(Bitboard *board)
       piecet  = GETPTYPE(GETPIECE(board,sq));
 
       /* piece bonus */
-      score+= side? -10 : 10;
+      score+= (side)? -10 : 10;
       /* wodd count */
-      score+= side? -EvalPieceValues[piecet-1]    : EvalPieceValues[piecet-1];
+      score+= (side)? -EvalPieceValues[piecet-1]    : EvalPieceValues[piecet-1];
       /* piece square tables */
-      score+= side? -EvalTable[(piecet-1)*64+sq]  : EvalTable[(piecet-1)*64+FLOP(sq)];
+      score+= (side)? -EvalTable[(piecet-1)*64+sq]  : EvalTable[(piecet-1)*64+FLOP(sq)];
       /* square control table */
-      score+= side? -EvalControl[sq]              : EvalControl[FLOP(sq)];
+      score+= (side)? -EvalControl[sq]              : EvalControl[FLOP(sq)];
 
       /* simple pawn structure */
       /* blocked */

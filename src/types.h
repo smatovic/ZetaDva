@@ -159,8 +159,8 @@ typedef u64             Rank;
 #define GETRANK(sq)         ((sq)>>3)
 #define GETFILE(sq)         ((sq)&7)
 #define GETRRANK(sq,color)  ((color)?(((sq)>>3)^7):((sq)>>3))
-#define FLIP(sq)            (((sq)^7))
-#define FLOP(sqe)           (((sq))^56)
+#define FLIP(sq)            ((sq)^7)
+#define FLOP(sqe)           ((sq)^56)
 /* piece helpers */
 #define GETPIECE(board,sq)  ( \
                                ((board[0]>>(sq))&0x1)\
