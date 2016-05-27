@@ -88,11 +88,11 @@ Score qsearch(Bitboard *board, bool stm, Score alpha, Score beta, u32 depth)
 
   NODECOUNT++;
 
+/*
   score = eval(board);
   score = (stm)? -score : score;
-/*
-  score = (stm)? -boardscore : boardscore;
 */
+  score = (stm)? -boardscore : boardscore;
 
   /* stand pat */
   if( !kic && score >= beta )
@@ -118,10 +118,8 @@ Score qsearch(Bitboard *board, bool stm, Score alpha, Score beta, u32 depth)
 
   if (movecounter == 0)
   {
-/*
     score = eval(board);
     score = (stm)? -score : score;
-*/
     return score;
   }
 
@@ -135,7 +133,7 @@ Score qsearch(Bitboard *board, bool stm, Score alpha, Score beta, u32 depth)
     if(score>=beta)
       return score;
 
-    if(score>=alpha)
+    if(score>alpha)
       alpha=score;
   }
   return alpha;
@@ -180,7 +178,7 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, u32 depth)
     if(score>=beta)
       return score;
 
-    if(score>=alpha)
+    if(score>alpha)
       alpha=score;
   }
   /* generate capturing moves next */  
@@ -198,7 +196,7 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, u32 depth)
     if(score>=beta)
       return score;
 
-    if(score>=alpha)
+    if(score>alpha)
       alpha=score;
   }
   /* generate castle moves next */  
@@ -216,7 +214,7 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, u32 depth)
     if(score>=beta)
       return score;
 
-    if(score>=alpha)
+    if(score>alpha)
       alpha=score;
   }
   /* generate quit moves last */  
@@ -234,7 +232,7 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, u32 depth)
     if(score>=beta)
       return score;
 
-    if(score>=alpha)
+    if(score>alpha)
       alpha=score;
   }
   /* checkmate */
@@ -271,6 +269,7 @@ Move rootsearch(Bitboard *board, bool stm, s32 depth)
   MOVECOUNT+= movecounter;
 */
 
+  /* print checkmate and stalemate result */
   if (movecounter == 0 && kic)
   {
     if (stm)
@@ -287,7 +286,7 @@ Move rootsearch(Bitboard *board, bool stm, s32 depth)
   if (movecounter == 0 && !kic) 
   {
     printf("result 1/2-1/2 { stalemate }");
-    return 0;
+    return MOVENONE;
   }
 
   /* iterate through moves */
@@ -305,3 +304,4 @@ Move rootsearch(Bitboard *board, bool stm, s32 depth)
   }
   return bestmove;
 }
+

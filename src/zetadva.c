@@ -241,7 +241,7 @@ void domove(Bitboard *board, Move move)
   /* sub piece from */
   score-= evalmove(pfrom, sqfrom);
   /* sub piece cpt */
-  score-= (pcpt==PNONE)?0:evalmove(pcpt, sqcpt);
+  score+= (pcpt==PNONE)?0:evalmove(pcpt, sqcpt);
   /* add piece to */
   score+= evalmove(pto, sqto);
   /* negated values for black please */
