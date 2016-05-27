@@ -87,15 +87,22 @@ File.open(argepd, 'r') do |f1|
       sleep(0.1)
       j = IO.readlines(argfile).count
     end
+    # time measurement
     end_time = Time.now
     elapsed_time = end_time.to_ms - start_time.to_ms
+    if ((elapsed_time/1000)>=1)
+      nps = (nodecount/(elapsed_time/1000)).to_i.to_s
+    else
+      nps = "inf"
+    end
+    # check for correct node count
     nc = IO.readlines(argfile).last.chomp.to_i
     tested+=1
     if nc == nodecount
       passed+=1
-      puts id + " depth " + depth.to_s + "; nodecount " + nc.to_s + " == " + nodecount.to_s + "; ca. seconds " + (elapsed_time/1000).to_s.slice(0,4)
+      puts id + " depth " + depth.to_s + "; nodecount " + nc.to_s + " == " + nodecount.to_s + "; ca. seconds " + (elapsed_time/1000).to_s.slice(0,4) + "; ca nps " + nps + ";" 
     else
-      puts id + " depth " + depth.to_s + "; nodecount " + nc.to_s + " != " + nodecount.to_s + "; ca. seconds " + (elapsed_time/1000).to_s.slice(0,4)
+      puts id + " depth " + depth.to_s + "; nodecount " + nc.to_s + " != " + nodecount.to_s + "; ca. seconds " + (elapsed_time/1000).to_s.slice(0,4) + "; ca nps " + nps + ";"
     end
   end
 p "passed " + passed.to_s + " from " + tested.to_s
