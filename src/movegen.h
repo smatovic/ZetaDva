@@ -28,6 +28,7 @@ const Bitboard AttackTablesNK[2*64];
 
 int genmoves(Bitboard *board, Move *moves, int movecounter, bool stm, bool qs);
 int genmoves_general(Bitboard *board, Move *moves, int movecounter, bool stm, bool qs);
+int genmoves_piecewiese(Bitboard *board, Move *moves, int movecounter, bool stm, bool qs);
 int genmoves_captures(Bitboard *board, Move *moves, int movecounter, bool stm);
 int genmoves_noncaptures(Bitboard *board, Move *moves, int movecounter, bool stm);
 int genmoves_castles(Bitboard *board, Move *moves, int movecounter, bool stm);

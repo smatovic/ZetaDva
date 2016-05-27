@@ -99,6 +99,7 @@ typedef u64             Rank;
 #define ROOK                5
 #define QUEEN               6
 /* move is castle flag */
+#define MOVEISCR            0x0000C00000000000ULL
 #define MOVEISCRK           0x0000400000000000ULL
 #define MOVEISCRQ           0x0000800000000000ULL
 /* bitboard masks, computation prefered over lookup */
