@@ -7,11 +7,11 @@ argfile=ARGV[1]
 argepd=ARGV[2]
 
 # time measurement 
-#class Time
-#  def to_ms
-#    (self.to_f * 1000.0).to_i
-#  end
-#end
+class Time
+  def to_ms
+    (self.to_f * 1000.0).to_f
+  end
+end
 #start_time = Time.now
 #end_time = Time.now
 #elapsed_time = end_time.to_ms - start_time.to_ms
@@ -79,6 +79,7 @@ File.open(argepd, 'r') do |f1|
     engineIO.puts("sd " + depth.to_s)
     sleep(0.1)
     i = IO.readlines(argfile).count
+    start_time = Time.now
     engineIO.puts("perft")
     j = 0;
     # wait until result comes up in file
@@ -86,14 +87,15 @@ File.open(argepd, 'r') do |f1|
       sleep(0.1)
       j = IO.readlines(argfile).count
     end
-    # get computed node count
+    end_time = Time.now
+    elapsed_time = end_time.to_ms - start_time.to_ms
     nc = IO.readlines(argfile).last.chomp.to_i
     tested+=1
     if nc == nodecount
       passed+=1
-      puts id + " depth " + depth.to_s + "; nodecount " + nc.to_s + " == " + nodecount.to_s + ";"
+      puts id + " depth " + depth.to_s + "; nodecount " + nc.to_s + " == " + nodecount.to_s + "; ca. seconds " + (elapsed_time/1000).to_s.slice(0,4)
     else
-      puts id + " depth " + depth.to_s + "; nodecount " + nc.to_s + " != " + nodecount.to_s + ";"
+      puts id + " depth " + depth.to_s + "; nodecount " + nc.to_s + " != " + nodecount.to_s + "; ca. seconds " + (elapsed_time/1000).to_s.slice(0,4)
     end
   end
 p "passed " + passed.to_s + " from " + tested.to_s
