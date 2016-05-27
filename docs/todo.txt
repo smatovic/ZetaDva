@@ -38,9 +38,12 @@ C) MovGenerator (Board)
 
 D) DoMove, UnDoMove
     - normal moves                                      DONE
-    - castle moves                                      DONE
+    - special moves                                     DONE
+    - quick version                                     DONE
 
 E) Evaluation
+    - move score, stati eval + MVV-LVA                  DONE
+    - static, incremental board score                   DONE
     - simple piece values                               DONE
     - piece square tables                               DONE
     - simple pawn structure                             DONE
