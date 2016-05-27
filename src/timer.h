@@ -28,6 +28,7 @@
 
 double get_time (void);
 void get_time_string (char *string);
+void fprinttime(FILE *file);
 
 #endif /* TIMER_H_INCLUDED */
 

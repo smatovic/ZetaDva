@@ -19,6 +19,7 @@
   GNU General Public License for more details.
 */
 
+#include <stdio.h>     /* for malloc free */
 #include <string.h>     /* for string compare */ 
 #include <time.h>       /* for time measurent */
 #include <sys/time.h>   /* for gettimeofday */
@@ -45,4 +46,10 @@ void get_time_string (char *string)
   memcpy (string, tempstring, sizeof(char)*255);
 }
 
+void fprinttime(FILE *file)
+{
+  char timestring[256];
+  get_time_string (timestring);
+  fprintf(file, "%s, ", timestring);
+}
 

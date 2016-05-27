@@ -1230,13 +1230,13 @@ static void selftest(void)
     }
     else
     {
-      printf("# Nodecount NOT Correct, %llu computed nodes != %llu nodes for depth %d.\n", NODECOUNT, nodecounts[done]), SD;
+      printf("# Nodecount NOT Correct, %llu computed nodes != %llu nodes for depth %d.\n", NODECOUNT, nodecounts[done], SD);
       if (LogFile != NULL)
       {
         char timestring[256];
         get_time_string (timestring);
         fprintf(LogFile, "%s, ", timestring);
-        fprintf(LogFile,"# Nodecount NOT Correct, %llu computed nodes != %llu nodes for depth %d.\n", NODECOUNT, nodecounts[done]), SD;
+        fprintf(LogFile,"# Nodecount NOT Correct, %llu computed nodes != %llu nodes for depth %d.\n", NODECOUNT, nodecounts[done], SD);
       }
     }
     if(scorea!=scoreb)
@@ -1323,11 +1323,6 @@ int main(int argc, char* argv[])
     {NULL, 0, NULL, 0}
   };
   s32 option_index = 0;
-
-/*
-printbitboard(AttackTablesPawns[1*64+48]);
-printbitboard(AttackTablesPawns[1*64+49]);
-*/
 
   /* no buffers */
   setbuf (stdout, NULL);
