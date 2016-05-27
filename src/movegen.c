@@ -1241,7 +1241,6 @@ int genmoves_pinned(Bitboard *board, Move *moves, int movecounter, bool stm, boo
   Move move;
   Move lastmove;
   Bitboard bbSuperKing;
-  Bitboard bbOppSliders = BBEMPTY;
   Bitboard bbOppAttacks = BBEMPTY;
   Bitboard bbCheckers   = BBEMPTY;
   Bitboard bbTempA;
@@ -1268,23 +1267,30 @@ int genmoves_pinned(Bitboard *board, Move *moves, int movecounter, bool stm, boo
   bbSuperKing     = rook_attacks((bbBlockers^SETMASKBB(sqking)), sqking);
   bbWork  =   (bbBoth[!stm]&(board[QBBP1]&~board[QBBP2]&board[QBBP3])) 
             | (bbBoth[!stm]&(~board[QBBP1]&board[QBBP2]&board[QBBP3]));
-  bbOppSliders    = BBEMPTY;
-  bbOppAttacks    = BBEMPTY;
-  bbTempC         = BBEMPTY;
   while (bbWork)
   {
     sqfrom        = popfirst1(&bbWork);
-    bbTempC       = rook_attacks((bbBlockers^SETMASKBB(sqking)), sqfrom);
-    bbOppSliders |= bbTempC;
-    bbOppAttacks |= bbTempC;
-    bbPinned     |= (bbTempC&bbSuperKing);
+    bbTempB       = BBEMPTY;
+    bbSuperKing   = ks_attacks_ls1((bbBlockers^SETMASKBB(sqking)), sqking);
+    bbSuperKing  |= ks_attacks_rs1((bbBlockers^SETMASKBB(sqking)), sqking);
+    bbTempA       = ks_attacks_ls1((bbBlockers^SETMASKBB(sqking)), sqfrom);
+    bbTempA      |= ks_attacks_rs1((bbBlockers^SETMASKBB(sqking)), sqfrom);
+    bbPinned     |= (bbTempA&bbSuperKing);
+    bbTempB      |= bbTempA;
+    bbSuperKing   = ks_attacks_ls8((bbBlockers^SETMASKBB(sqking)), sqking);
+    bbSuperKing  |= ks_attacks_rs8((bbBlockers^SETMASKBB(sqking)), sqking);
+    bbTempA       = ks_attacks_ls8((bbBlockers^SETMASKBB(sqking)), sqfrom);
+    bbTempA      |= ks_attacks_rs8((bbBlockers^SETMASKBB(sqking)), sqfrom);
+    bbPinned     |= (bbTempA&bbSuperKing);
+    bbTempB      |= bbTempA;
     /* get checkers */
-    if (bbTempC&SETMASKBB(sqking)) 
+    if (bbTempB&SETMASKBB(sqking)) 
     {
       checks++;                         /* for double check */
       bbCheckers |= SETMASKBB(sqfrom);
       sqcheck     = sqfrom;            /* remember check giving square */
     }
+    bbOppAttacks |= bbTempB;
   }
   /* bishop and queens */
   bbSuperKing     = bishop_attacks(bbBlockers, sqking);
@@ -1293,29 +1299,38 @@ int genmoves_pinned(Bitboard *board, Move *moves, int movecounter, bool stm, boo
   while (bbWork)
   {
     sqfrom        = popfirst1(&bbWork);
-    bbTempC       = bishop_attacks(bbBlockers, sqfrom);
-    bbOppSliders |= bbTempC;
-    bbOppAttacks |= bbTempC;
-    bbPinned     |= (bbTempC&bbSuperKing);
+    bbTempB       = BBEMPTY;
+    bbSuperKing   = ks_attacks_ls7((bbBlockers^SETMASKBB(sqking)), sqking);
+    bbSuperKing  |= ks_attacks_rs7((bbBlockers^SETMASKBB(sqking)), sqking);
+    bbTempA       = ks_attacks_ls7((bbBlockers^SETMASKBB(sqking)), sqfrom);
+    bbTempA      |= ks_attacks_rs7((bbBlockers^SETMASKBB(sqking)), sqfrom);
+    bbPinned     |= (bbTempA&bbSuperKing);
+    bbTempB      |= bbTempA;
+    bbSuperKing   = ks_attacks_ls9((bbBlockers^SETMASKBB(sqking)), sqking);
+    bbSuperKing  |= ks_attacks_rs9((bbBlockers^SETMASKBB(sqking)), sqking);
+    bbTempA       = ks_attacks_ls9((bbBlockers^SETMASKBB(sqking)), sqfrom);
+    bbTempA      |= ks_attacks_rs9((bbBlockers^SETMASKBB(sqking)), sqfrom);
+    bbPinned     |= (bbTempA&bbSuperKing);
+    bbTempB      |= bbTempA;
     /* get checkers */
-    if (bbTempC&SETMASKBB(sqking)) 
+    if (bbTempB&SETMASKBB(sqking)) 
     {
       checks++;                         /* for double check */
       bbCheckers |= SETMASKBB(sqfrom);
       sqcheck     = sqfrom;            /* remember check giving square */
     }
+    bbOppAttacks |= bbTempB;
   }
   /* generate opposite attacks */
-  bbTempC = BBEMPTY;
   /* knights */
   bbWork  =   (bbBoth[!stm]&(~board[QBBP1]&board[QBBP2]&~board[QBBP3]));
   while (bbWork)
   {
     sqfrom  = popfirst1(&bbWork);
-    bbTempC = AttackTablesNK[sqfrom];
-    bbOppAttacks |= bbTempC;
+    bbTempA = AttackTablesNK[sqfrom];
+    bbOppAttacks |= bbTempA;
     /* get checkers */
-    if (bbTempC&SETMASKBB(sqking)) 
+    if (bbTempA&SETMASKBB(sqking)) 
     {
       checks++;                         /* for double check */
       bbCheckers |= SETMASKBB(sqfrom);
@@ -1327,10 +1342,10 @@ int genmoves_pinned(Bitboard *board, Move *moves, int movecounter, bool stm, boo
   while (bbWork)
   {
     sqfrom  = popfirst1(&bbWork);
-    bbTempC = AttackTablesPawns[!stm*64+sqfrom];
-    bbOppAttacks |= bbTempC;
+    bbTempA = AttackTablesPawns[!stm*64+sqfrom];
+    bbOppAttacks |= bbTempA;
     /* get checkers */
-    if (bbTempC&SETMASKBB(sqking)) 
+    if (bbTempA&SETMASKBB(sqking)) 
     {
       checks++;                         /* for double check */
       bbCheckers |= SETMASKBB(sqfrom);
@@ -1342,8 +1357,8 @@ int genmoves_pinned(Bitboard *board, Move *moves, int movecounter, bool stm, boo
   while (bbWork)
   {
     sqfrom  = popfirst1(&bbWork);
-    bbTempC = AttackTablesNK[64+sqfrom];
-    bbOppAttacks |=bbTempC;
+    bbTempA = AttackTablesNK[64+sqfrom];
+    bbOppAttacks |=bbTempA;
   }
   /* get evasions */
   bbEvasions = (checks==1)?(BetweenBB[sqking*64+sqcheck]|bbCheckers):BBFULL;
