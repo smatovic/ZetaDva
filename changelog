@@ -1,13 +1,13 @@
 ZetaDva (0301) alpha; urgency=low
 
-  * code cleanup and fixes
-  * added error handling in xboard (CECP) protocol
-  * eval fixes
-  * time control fixes
+  * mainly code cleanup and fixes
+  * fixes in xboard (CECP) protocol handling
+  * fixes in evaluation
+  * fixes in time control
   * switch to ANSI C89 style
   * switch to GPL >=v2
-  * generalized Kogge-Stone move generator
-  * QuadBitboard board presentation
+  * switch to Kogge-Stone based move generator
+  * switch to QuadBitboard board presentation
 
  -- Srdja Matovic <s.matovic@app26.de>  Wed, 13 Jul 2013 13:07:16 +0200
 
