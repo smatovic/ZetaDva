@@ -596,7 +596,7 @@ int genmoves_noncaptures(Bitboard *board, Move *moves, int movecounter, bool stm
 /* generate rook moves via koggestone shifts */
 /* based on work by Steffan Westcott */
 /* http://chessprogramming.wikispaces.com/Kogge-Stone+Algorithm */
-Bitboard rook_attacks(Bitboard bbBlockers, Square sq)
+Bitboard ks_attacks_ls1(Bitboard bbBlockers, Square sq)
 {
   Bitboard bbWrap;
   Bitboard bbPro;
@@ -618,6 +618,14 @@ Bitboard rook_attacks(Bitboard bbBlockers, Square sq)
   bbGen   = bbWrap &  (bbGen << 1);
   bbMoves|= bbGen;
 
+  return bbMoves;
+}
+Bitboard ks_attacks_ls8(Bitboard bbBlockers, Square sq)
+{
+  Bitboard bbPro;
+  Bitboard bbGen;
+  Bitboard bbMoves = BBEMPTY;
+
   /* directions left shifting <<8 ROOK */
   bbPro   = ~bbBlockers;
   bbGen   = SETMASKBB(sq);
@@ -630,6 +638,15 @@ Bitboard rook_attacks(Bitboard bbBlockers, Square sq)
   /* shift one further */
   bbGen   =           (bbGen << 8);
   bbMoves|= bbGen;
+  
+  return bbMoves;
+}
+Bitboard ks_attacks_rs1(Bitboard bbBlockers, Square sq)
+{
+  Bitboard bbWrap;
+  Bitboard bbPro;
+  Bitboard bbGen;
+  Bitboard bbMoves = BBEMPTY;
 
   /* directions right shifting >>1 ROOK */
   bbPro   = ~bbBlockers;
@@ -646,6 +663,14 @@ Bitboard rook_attacks(Bitboard bbBlockers, Square sq)
   bbGen   = bbWrap &  (bbGen >> 1);
   bbMoves|= bbGen;
 
+  return bbMoves;
+}
+Bitboard ks_attacks_rs8(Bitboard bbBlockers, Square sq)
+{
+  Bitboard bbPro;
+  Bitboard bbGen;
+  Bitboard bbMoves = BBEMPTY;
+
   /* directions right shifting >>8 ROOK */
   bbPro   = ~bbBlockers;
   bbGen   = SETMASKBB(sq);
@@ -661,10 +686,17 @@ Bitboard rook_attacks(Bitboard bbBlockers, Square sq)
 
   return bbMoves;
 }
+Bitboard rook_attacks(Bitboard bbBlockers, Square sq)
+{
+  return ks_attacks_ls1(bbBlockers, sq) |
+         ks_attacks_ls8(bbBlockers, sq) |
+         ks_attacks_rs1(bbBlockers, sq) |
+         ks_attacks_rs8(bbBlockers, sq);
+}
 /* generate bishop moves via koggestone shifts */
 /* based on work by Steffan Westcott */
 /* http://chessprogramming.wikispaces.com/Kogge-Stone+Algorithm */
-Bitboard bishop_attacks(Bitboard bbBlockers, Square sq)
+Bitboard ks_attacks_ls9(Bitboard bbBlockers, Square sq)
 {
   Bitboard bbWrap;
   Bitboard bbPro;
@@ -687,6 +719,15 @@ Bitboard bishop_attacks(Bitboard bbBlockers, Square sq)
   bbGen   = bbWrap &  (bbGen << 9);
   bbMoves|= bbGen;
 
+  return bbMoves;
+}
+Bitboard ks_attacks_ls7(Bitboard bbBlockers, Square sq)
+{
+  Bitboard bbWrap;
+  Bitboard bbPro;
+  Bitboard bbGen;
+  Bitboard bbMoves = BBEMPTY;
+
   /* directions left shifting <<7 BISHOP */
   bbPro   = ~bbBlockers;
   bbGen   = SETMASKBB(sq);
@@ -702,6 +743,15 @@ Bitboard bishop_attacks(Bitboard bbBlockers, Square sq)
   bbGen   = bbWrap &  (bbGen << 7);
   bbMoves|= bbGen;
 
+  return bbMoves;
+}
+Bitboard ks_attacks_rs9(Bitboard bbBlockers, Square sq)
+{
+  Bitboard bbWrap;
+  Bitboard bbPro;
+  Bitboard bbGen;
+  Bitboard bbMoves = BBEMPTY;
+
   /* directions right shifting >>9 ROOK */
   bbPro   = ~bbBlockers;
   bbGen   = SETMASKBB(sq);
@@ -716,6 +766,15 @@ Bitboard bishop_attacks(Bitboard bbBlockers, Square sq)
   /* shift one further */
   bbGen   = bbWrap &  (bbGen >> 9);
   bbMoves|= bbGen;
+
+  return bbMoves;
+}
+Bitboard ks_attacks_rs7(Bitboard bbBlockers, Square sq)
+{
+  Bitboard bbWrap;
+  Bitboard bbPro;
+  Bitboard bbGen;
+  Bitboard bbMoves = BBEMPTY;
 
   /* directions right shifting <<7 ROOK */
   bbPro   = ~bbBlockers;
@@ -734,10 +793,18 @@ Bitboard bishop_attacks(Bitboard bbBlockers, Square sq)
 
   return bbMoves;
 }
+
+Bitboard bishop_attacks(Bitboard bbBlockers, Square sq)
+{
+  return ks_attacks_ls7(bbBlockers, sq) |
+         ks_attacks_ls9(bbBlockers, sq) |
+         ks_attacks_rs7(bbBlockers, sq) |
+         ks_attacks_rs9(bbBlockers, sq);
+}
 /* generate all pieces via generalized KoggeStone bitboard approach */
 /* based on work by Steffan Westcott */
 /* http://chessprogramming.wikispaces.com/Kogge-Stone+Algorithm */
-int genmoves_generalized(Bitboard *board, Move *moves, int movecounter, bool stm, bool qs) 
+int genmoves_general(Bitboard *board, Move *moves, int movecounter, bool stm, bool qs) 
 {
   Score score;
   Piece pfrom;
@@ -961,7 +1028,7 @@ int genmoves_generalized(Bitboard *board, Move *moves, int movecounter, bool stm
 /* generate all pieces, slider moves via KoggeStone bitboard approach */
 /* based on work by Steffan Westcott */
 /* http://chessprogramming.wikispaces.com/Kogge-Stone+Algorithm */
-int genmoves_piecewiese(Bitboard *board, Move *moves, int movecounter, bool stm, bool qs) 
+int genmoves_piecewise(Bitboard *board, Move *moves, int movecounter, bool stm, bool qs) 
 {
   bool kic = false;
   Score score;
@@ -1173,18 +1240,18 @@ int genmoves_pinned(Bitboard *board, Move *moves, int movecounter, bool stm, boo
   Square sqep; 
   Move move;
   Move lastmove;
-  Bitboard bbSuperKing  = BBEMPTY;
+  Bitboard bbSuperKing;
   Bitboard bbOppSliders = BBEMPTY;
   Bitboard bbOppAttacks = BBEMPTY;
   Bitboard bbCheckers   = BBEMPTY;
-  Bitboard bbTempA      = BBEMPTY;
-  Bitboard bbTempB      = BBEMPTY;
-  Bitboard bbTempC      = BBEMPTY;
-  Bitboard bbWork       = BBEMPTY;
+  Bitboard bbTempA;
+  Bitboard bbTempB;
+  Bitboard bbTempC;
+  Bitboard bbWork;
   Bitboard bbEvasions   = BBEMPTY;
   Bitboard bbPinned     = BBEMPTY;
-  Bitboard bbMoves      = BBEMPTY;
-  Bitboard bbBlockers   = BBEMPTY;
+  Bitboard bbMoves;
+  Bitboard bbBlockers;
   Bitboard bbBoth[2];
 
   lastmove      = board[QBBLAST];
@@ -1198,15 +1265,18 @@ int genmoves_pinned(Bitboard *board, Move *moves, int movecounter, bool stm, boo
 
   /* generate opposite sliders attacks */
   /* rooks and queens */
+  bbSuperKing     = rook_attacks((bbBlockers^SETMASKBB(sqking)), sqking);
   bbWork  =   (bbBoth[!stm]&(board[QBBP1]&~board[QBBP2]&board[QBBP3])) 
             | (bbBoth[!stm]&(~board[QBBP1]&board[QBBP2]&board[QBBP3]));
+  bbOppSliders    = BBEMPTY;
+  bbOppAttacks    = BBEMPTY;
+  bbTempC         = BBEMPTY;
   while (bbWork)
   {
     sqfrom        = popfirst1(&bbWork);
-    bbTempC       = rook_attacks(bbBlockers, sqfrom);
-    bbOppSliders  = bbTempC;
+    bbTempC       = rook_attacks((bbBlockers^SETMASKBB(sqking)), sqfrom);
+    bbOppSliders |= bbTempC;
     bbOppAttacks |= bbTempC;
-    bbSuperKing   = rook_attacks(bbBlockers, sqking);
     bbPinned     |= (bbTempC&bbSuperKing);
     /* get checkers */
     if (bbTempC&SETMASKBB(sqking)) 
@@ -1217,6 +1287,7 @@ int genmoves_pinned(Bitboard *board, Move *moves, int movecounter, bool stm, boo
     }
   }
   /* bishop and queens */
+  bbSuperKing     = bishop_attacks(bbBlockers, sqking);
   bbWork  =   (bbBoth[!stm]&(~board[QBBP1]&~board[QBBP2]&board[QBBP3])) 
             | (bbBoth[!stm]&(~board[QBBP1]&board[QBBP2]&board[QBBP3]));
   while (bbWork)
@@ -1225,7 +1296,6 @@ int genmoves_pinned(Bitboard *board, Move *moves, int movecounter, bool stm, boo
     bbTempC       = bishop_attacks(bbBlockers, sqfrom);
     bbOppSliders |= bbTempC;
     bbOppAttacks |= bbTempC;
-    bbSuperKing   = bishop_attacks(bbBlockers, sqking);
     bbPinned     |= (bbTempC&bbSuperKing);
     /* get checkers */
     if (bbTempC&SETMASKBB(sqking)) 
@@ -1242,7 +1312,7 @@ int genmoves_pinned(Bitboard *board, Move *moves, int movecounter, bool stm, boo
   while (bbWork)
   {
     sqfrom  = popfirst1(&bbWork);
-    bbTempC = AttackTablesNK[sqfrom] ;
+    bbTempC = AttackTablesNK[sqfrom];
     bbOppAttacks |= bbTempC;
     /* get checkers */
     if (bbTempC&SETMASKBB(sqking)) 
@@ -1276,10 +1346,10 @@ int genmoves_pinned(Bitboard *board, Move *moves, int movecounter, bool stm, boo
     bbOppAttacks |=bbTempC;
   }
   /* get evasions */
-  bbEvasions = (checks==1)?(BetweenBB[sqcheck*64+sqking]|bbCheckers):BBFULL;
+  bbEvasions = (checks==1)?(BetweenBB[sqking*64+sqcheck]|bbCheckers):BBFULL;
   /* get pinned pieces */
-
 /*
+
 printf("bbCheckers:\n");
 printbitboard(bbCheckers);
 printf("bbOppAttacks:\n");
@@ -1289,6 +1359,7 @@ printbitboard(bbEvasions);
 printf("bbPinned:\n");
 printbitboard(bbPinned);
 */
+
   /* generate stm attacks */
   bbWork    = bbBoth[stm];
   while (bbWork)
@@ -1299,9 +1370,6 @@ printbitboard(bbPinned);
     /* legality check, duble check, king only */
     if (checks>=2&&GETPTYPE(pfrom)!=KING)
       continue;
-
-    bbTempA = BBEMPTY;
-    bbMoves = BBEMPTY;
 
     /* queens and rooks via KoggeStone */
     bbTempA = (GETPTYPE(pfrom)==ROOK||GETPTYPE(pfrom)==QUEEN)? rook_attacks(bbBlockers, sqfrom) : BBEMPTY;
@@ -1330,19 +1398,25 @@ printbitboard(bbPinned);
     /* non captures */    
     bbMoves |= (qs)?BBEMPTY:(bbTempA&~bbBlockers);
 
-    /* legality check, moves for king */
+    /* moves for king */
     bbMoves &= (GETPTYPE(pfrom)==KING)?~bbOppAttacks:BBFULL;
-    /* legality check, evasions only */
+    /* evasions only */
     bbMoves &= (checks==1&&GETPTYPE(pfrom)!=KING)?bbEvasions:BBFULL;
     /* extract moves */
+
+/*
+printf("PieceT:%llu\n",pfrom>>1);
+printbitboard(bbMoves);
+*/
+
     while (bbMoves)
     {
       sqto      = popfirst1(&bbMoves);
       sqcpt     = sqto;
       pcpt      = GETPIECE(board, sqcpt);
 
-      /* legality check, consider pinned pieces */
-      if (GETPTYPE(pfrom)!=KING&&(bbPinned&SETMASKBB(sqfrom))&&!(BetweenBB[sqking*64+sqto]&SETMASKBB(sqfrom)))
+      /* consider pinned pieces */
+      if (GETPTYPE(pfrom)!=KING&&(bbPinned&SETMASKBB(sqfrom))&&!((BetweenBB[sqfrom*64+sqto]&SETMASKBB(sqking))|(BetweenBB[sqking*64+sqto]&SETMASKBB(sqfrom))|(BetweenBB[sqking*64+sqfrom]&SETMASKBB(sqto))))
         continue;
 
       /* set en passant target square */
@@ -1354,8 +1428,14 @@ printbitboard(bbPinned);
       /* pack move into 64 bits, considering castle rights and halfmovecounter and score */
       move = MAKEMOVE(sqfrom, sqto, sqcpt, pfrom, pto, pcpt, sqep, (u64)GETHMC(lastmove), (u64)score);
 
+/*
+printmove(move);
+printf("\n");
+*/
+
       moves[movecounter] = move;
       movecounter++;
+
       /* TODO: in non-perft do queen promo only? */
       /* handle pawn promo: bishop */
       pto = (!kic&&GETPTYPE(pfrom)==PAWN&&GETRRANK(sqto,stm)==RANK_8)?MAKEPIECE(BISHOP, GETCOLOR(pfrom)):PNONE;
@@ -1459,10 +1539,10 @@ printbitboard(bbPinned);
 /* wrapper for move genration */
 int genmoves(Bitboard *board, Move *moves, int movecounter, bool stm, bool qs)
 {
-  return genmoves_piecewiese(board, moves, movecounter, stm, qs);
-/*
-  return genmoves_piecewiese(board, moves, movecounter, stm, qs);
   return genmoves_pinned(board, moves, movecounter, stm, qs);
+/*
+  return genmoves_general(board, moves, movecounter, stm, qs);
+  return genmoves_piecewiese(board, moves, movecounter, stm, qs);
 */
 /*
   movecounter = genmoves_promo(board, moves, movecounter, stm);

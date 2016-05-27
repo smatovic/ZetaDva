@@ -49,7 +49,7 @@ Score perft(Bitboard *board, bool stm, s32 depth)
     return 0;
   }
 
-  movecounter = genmoves_piecewiese(board, moves, movecounter, stm, false);
+  movecounter = genmoves_piecewise(board, moves, movecounter, stm, false);
 
 /*
   MOVECOUNT+= movecounter;
@@ -101,7 +101,7 @@ Score qsearch(Bitboard *board, bool stm, Score alpha, Score beta, u32 depth)
       alpha = score;
 
   if (kic)
-    movecounter = genmoves_piecewiese(board, moves, movecounter, stm, false);
+    movecounter = genmoves_piecewise(board, moves, movecounter, stm, false);
   else
     movecounter = genmoves_captures(board, moves, movecounter, stm);
 
