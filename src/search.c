@@ -181,6 +181,24 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, u32 depth)
     if(score>alpha)
       alpha=score;
   }
+  /* generate pawn en passant moves next */  
+  movecounter = genmoves_enpassant(board, moves, 0, stm);
+  legalmovecounter+= movecounter;
+  /* sort moves */
+  qsort(moves, movecounter, sizeof(Move), cmp_move_desc);
+  /* iterate through moves */
+  for (i=0;i<movecounter;i++)
+  {
+    domove(board, moves[i]);
+    score = -negamax(board, !stm, -beta, -alpha, depth-1);
+    undomove(board, moves[i], lastmove, cr, boardscore);
+
+    if(score>=beta)
+      return score;
+
+    if(score>alpha)
+      alpha=score;
+  }
   /* generate capturing moves next */  
   movecounter = genmoves_captures(board, moves, 0, stm);
   legalmovecounter+= movecounter;

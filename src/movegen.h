@@ -32,6 +32,7 @@ int genmoves_captures(Bitboard *board, Move *moves, int movecounter, bool stm);
 int genmoves_noncaptures(Bitboard *board, Move *moves, int movecounter, bool stm);
 int genmoves_castles(Bitboard *board, Move *moves, int movecounter, bool stm);
 int genmoves_promo(Bitboard *board, Move *moves, int movecounter, bool stm);
+int genmoves_enpassant(Bitboard *board, Move *moves, int movecounter, bool stm);
 Bitboard rook_attacks(Bitboard bbBlockers, Square sq);
 Bitboard bishop_attacks(Bitboard bbBlockers, Square sq);
 #endif /* MOVEGEN_H_INCLUDED */
