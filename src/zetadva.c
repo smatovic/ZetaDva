@@ -779,19 +779,17 @@ void printboard(Bitboard *board)
 
   createfen (fenstring, BOARD, STM, GAMEPLY);
   printf("#fen: %s\n",fenstring);
-  printf("#score: %d\n",(Score)BOARD[QBBSCORE]);
+  printf("# score: %d\n",(Score)BOARD[QBBSCORE]);
 
   if (LogFile != NULL)
   {
-    char timestring[256];
-    get_time_string (timestring);
-    fprintf(LogFile, "%s, ", timestring);
+    fprinttime(LogFile);
     fprintf(LogFile, "#fen: %s\n",fenstring);
-    fprintf(LogFile, "%s, ", timestring);
+    fprinttime(LogFile);
     fprintf(LogFile, "###ABCDEFGH###\n");
     for (rank = RANK_8; rank >= RANK_1; rank--) 
     {
-      fprintf(LogFile, "%s, ", timestring);
+    fprinttime(LogFile);
       fprintf(LogFile, "#%i ",rank+1);
       for (file = FILE_A; file < FILE_NONE; file++)
       {
@@ -806,9 +804,10 @@ void printboard(Bitboard *board)
       }
       fprintf(LogFile, "\n");
     }
-    fprintf(LogFile, "%s, ", timestring);
+    fprinttime(LogFile);
     fprintf(LogFile, "###ABCDEFGH###\n");
-    fprintf(LogFile, "#score: %d\n",(Score)BOARD[QBBSCORE]);
+    fprinttime(LogFile);
+    fprintf(LogFile, "# score: %d\n",(Score)BOARD[QBBSCORE]);
 
     fflush (LogFile);
   }
@@ -1181,9 +1180,7 @@ static void selftest(void)
     printf("# doing perft depth: %d for position\n", SD);  
     if (LogFile != NULL)
     {
-      char timestring[256];
-      get_time_string (timestring);
-      fprintf(LogFile, "%s, ", timestring);
+      fprinttime(LogFile);
       fprintf(LogFile,"# doing perft depth: %d for position\n", SD);  
     }
     if (!setboard(BOARD,  fenpositions[done]))
@@ -1191,9 +1188,7 @@ static void selftest(void)
       printf("# Error (in setting fen position): setboard\n");        
       if (LogFile != NULL)
       {
-        char timestring[256];
-        get_time_string (timestring);
-        fprintf(LogFile, "%s, ", timestring);
+        fprinttime(LogFile);
         fprintf(LogFile,"# Error (in setting fen position): setboard\n");        
       }
       continue;
@@ -1222,9 +1217,7 @@ static void selftest(void)
       printf("# Nodecount Correct, %llu nodes in %f seconds with %llu nps.\n", NODECOUNT, elapsed, (u64)(NODECOUNT/elapsed));
       if (LogFile != NULL)
       {
-        char timestring[256];
-        get_time_string (timestring);
-        fprintf(LogFile, "%s, ", timestring);
+        fprinttime(LogFile);
         fprintf(LogFile,"# Nodecount Correct, %llu nodes in %f seconds with %llu nps.\n", NODECOUNT, elapsed, (u64)(NODECOUNT/elapsed));
       }
     }
@@ -1233,9 +1226,7 @@ static void selftest(void)
       printf("# Nodecount NOT Correct, %llu computed nodes != %llu nodes for depth %d.\n", NODECOUNT, nodecounts[done], SD);
       if (LogFile != NULL)
       {
-        char timestring[256];
-        get_time_string (timestring);
-        fprintf(LogFile, "%s, ", timestring);
+        fprinttime(LogFile);
         fprintf(LogFile,"# Nodecount NOT Correct, %llu computed nodes != %llu nodes for depth %d.\n", NODECOUNT, nodecounts[done], SD);
       }
     }
@@ -1244,9 +1235,7 @@ static void selftest(void)
       printf("# IncrementaL evaluation  scores NOT Correct, %d != %d .\n", scorea, scoreb);
       if (LogFile != NULL)
       {
-        char timestring[256];
-        get_time_string (timestring);
-        fprintf(LogFile, "%s, ", timestring);
+        fprinttime(LogFile);
         fprintf(LogFile,"# Nodecount Correct, %llu nodes in %f seconds with %llu nps.\n", NODECOUNT, elapsed, (u64)(NODECOUNT/elapsed));
         fprintf(LogFile,"# IncrementaL evaluation  scores NOT Correct, %d != %d .\n", scorea, scoreb);
       }
@@ -1290,7 +1279,7 @@ static void print_help(void)
   printf("perft          // perform a performance test, depth set by sd command\n");
   printf("selftest       // run an internal test\n");
   printf("help           // print usage hints\n");
-  printf("log            // toggle log flag\n");
+  printf("log            // turn log on\n");
   printf("\n");
   printf("Not supported Xboard commands:\n");
   printf("analyze        // enter analyze mode\n");
@@ -1320,6 +1309,7 @@ int main(int argc, char* argv[])
     {"help", 0, 0, 'h'},
     {"version", 0, 0, 'v'},
     {"selftest", 0, 0, 's'},
+    {"log", 0, 0, 'l'},
     {NULL, 0, NULL, 0}
   };
   s32 option_index = 0;
@@ -1358,6 +1348,8 @@ int main(int argc, char* argv[])
         selftest ();
         exit (EXIT_SUCCESS);
         break;
+      case 3:
+        break;
     }
   }
   /* init memory, files and tables */
@@ -1369,12 +1361,10 @@ int main(int argc, char* argv[])
   /* open log file */
   if (LogFile != NULL)
   {
-    char timestring[256];
     /* no buffers */
     setbuf(LogFile, NULL);
     /* print binary call to log */
-    get_time_string (timestring);
-    fprintf(LogFile, "%s, ", timestring);
+    fprinttime(LogFile);
     for (c=0;c<argc;c++)
     {
       fprintf(LogFile, "%s ",argv[c]);
@@ -1408,9 +1398,7 @@ int main(int argc, char* argv[])
     /* print io to log file */
     if (LogFile != NULL)
     {
-      char timestring[256];
-      get_time_string (timestring);
-      fprintf(LogFile, "%s, ", timestring);
+      fprinttime(LogFile);
       fprintf(LogFile, "%s\n",Line);
     }
     /* get command */
@@ -1701,11 +1689,8 @@ int main(int argc, char* argv[])
     /* toggle log flag */
     if (!xboard_mode && !strcmp(Command, "log"))
     {
-      /* close log file */
-      if (LogFile != NULL)
-        fclose (LogFile);
       /* open/create log file */
-      else if (LogFile == NULL) 
+      if (LogFile == NULL) 
       {
         LogFile = fopen("zetadva.log", "a");
         if (LogFile == NULL) 
