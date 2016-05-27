@@ -99,11 +99,11 @@ static bool release_inits(void)
 static bool inits(void)
 {
   /* memory allocation */
-  Line         = malloc(1024       * sizeof (char));
-  Command      = malloc(1024       * sizeof (char));
-  Fen          = malloc(1024       * sizeof (char));
-  Move_History = malloc(MAXGAMEPLY * sizeof (Move));
-  Hash_History = malloc(MAXGAMEPLY * sizeof (Hash));
+  Line         = calloc(1024       , sizeof (char));
+  Command      = calloc(1024       , sizeof (char));
+  Fen          = calloc(1024       , sizeof (char));
+  Move_History = calloc(MAXGAMEPLY , sizeof (Move));
+  Hash_History = calloc(MAXGAMEPLY , sizeof (Hash));
 
   if (Line==NULL) 
   {
