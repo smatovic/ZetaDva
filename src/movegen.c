@@ -1542,11 +1542,10 @@ printf("\n");
 
   return movecounter;
 }
-#endif
 /* wrapper for move genration */
 int genmoves(Bitboard *board, Move *moves, int movecounter, bool stm, bool qs)
 {
-  return genmoves_piecewise(board, moves, movecounter, stm, qs);
+  return genmoves_general(board, moves, movecounter, stm, qs);
 /*
   return genmoves_pinned(board, moves, movecounter, stm, qs);
   return genmoves_general(board, moves, movecounter, stm, qs);
