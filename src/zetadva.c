@@ -659,7 +659,8 @@ static void move2san(Bitboard *board, Move move, char *san)
 
 
       /* make move */
-      tempmove = MAKEMOVE(sq, sqto, sqto, piece, piece, piececpt, 0x0ULL, 0x0ULL, 0x0ULL);
+      tempmove = MAKEMOVE(sq, sqto, sqto, piece, piece, piececpt, 
+                          0x0ULL, 0x0ULL, 0x0ULL);
 
       domove(board,tempmove);
 
@@ -1221,30 +1222,37 @@ static void selftest(void)
 
     if(NODECOUNT==nodecounts[done])
     {
-      fprintf(stdout,"# Nodecount Correct, %llu nodes in %f seconds with %llu nps.\n", NODECOUNT, elapsed, (u64)(NODECOUNT/elapsed));
+      fprintf(stdout,"# Nodecount Correct, %llu nodes in %f seconds with \
+              %llu nps.\n", NODECOUNT, elapsed, (u64)(NODECOUNT/elapsed));
       if (LogFile != NULL)
       {
         fprinttime(LogFile);
-        fprintf(LogFile,"# Nodecount Correct, %llu nodes in %f seconds with %llu nps.\n", NODECOUNT, elapsed, (u64)(NODECOUNT/elapsed));
+        fprintf(LogFile,"# Nodecount Correct, %llu nodes in %f seconds with \
+                %llu nps.\n", NODECOUNT, elapsed, (u64)(NODECOUNT/elapsed));
       }
     }
     else
     {
-      fprintf(stdout,"# Nodecount NOT Correct, %llu computed nodes != %llu nodes for depth %d.\n", NODECOUNT, nodecounts[done], SD);
+      fprintf(stdout,"# Nodecount NOT Correct, %llu computed nodes != %llu \
+              nodes for depth %d.\n", NODECOUNT, nodecounts[done], SD);
       if (LogFile != NULL)
       {
         fprinttime(LogFile);
-        fprintf(LogFile,"# Nodecount NOT Correct, %llu computed nodes != %llu nodes for depth %d.\n", NODECOUNT, nodecounts[done], SD);
+        fprintf(LogFile,"# Nodecount NOT Correct, %llu computed nodes != %llu \
+                nodes for depth %d.\n", NODECOUNT, nodecounts[done], SD);
       }
     }
     if(scorea!=scoreb)
     {
-      fprintf(stdout,"# IncrementaL evaluation  scores NOT Correct, %d != %d .\n", scorea, scoreb);
+      fprintf(stdout,"# IncrementaL evaluation  scores NOT Correct, \
+               %d != %d .\n", scorea, scoreb);
       if (LogFile != NULL)
       {
         fprinttime(LogFile);
-        fprintf(LogFile,"# Nodecount Correct, %llu nodes in %f seconds with %llu nps.\n", NODECOUNT, elapsed, (u64)(NODECOUNT/elapsed));
-        fprintf(LogFile,"# IncrementaL evaluation  scores NOT Correct, %d != %d .\n", scorea, scoreb);
+        fprintf(LogFile,"# Nodecount Correct, %llu nodes in %f seconds \
+               with %llu nps.\n", NODECOUNT, elapsed, (u64)(NODECOUNT/elapsed));
+        fprintf(LogFile,"# IncrementaL evaluation  scores NOT Correct, \
+                %d != %d .\n", scorea, scoreb);
       }
     }
   }
@@ -1704,7 +1712,8 @@ int main(int argc, char* argv[])
       if (epd_mode)
         fprintf(stdout,"%llu\n", NODECOUNT);
       else
-        fprintf(stdout,"%llu nodes, seconds: %f, nps: %llu \n", NODECOUNT, elapsed, (u64)(NODECOUNT/elapsed));
+        fprintf(stdout,"%llu nodes, seconds: %f, nps: %llu \n", 
+                NODECOUNT, elapsed, (u64)(NODECOUNT/elapsed));
 
       fflush(stdout);
   
