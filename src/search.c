@@ -286,11 +286,20 @@ Move rootsearch(Bitboard *board, bool stm, s32 depth)
     printf("result 1/2-1/2 { stalemate }");
     return MOVENONE;
   }
+  /* first move, full window */
+  domove(board, moves[0]);
+  score = -negamax(board, !stm, -beta, -alpha, depth-1);
+  alpha=score;
+  bestmove = moves[0];
+  undomove(board, moves[0], lastmove, cr, boardscore);
   /* iterate through moves */
-  for (i=0;i<movecounter;i++)
+  for (i=1;i<movecounter;i++)
   {
     domove(board, moves[i]);
-    score = -negamax(board, !stm, -beta, -alpha, depth-1);
+    /* null window, pvs */
+    score = -negamax(board, !stm, -alpha-1, -alpha, depth-1);
+    if (score>alpha)
+      score = -negamax(board, !stm, -beta, -alpha, depth-1);
     undomove(board, moves[i], lastmove, cr, boardscore);
 
     if(score>alpha)
