@@ -563,164 +563,163 @@ static Move can2move(char *usermove, Bitboard *board, bool stm)
   e1c1 => when king, indicates castle queenside  
   e7e8q => indicates pawn promotion to queen
 */
-/* TODO: convert internal move to algebraic notation */
+/* TODO: dummy, convert internal move to algebraic notation */
 static void move2san(Bitboard *board, Move move, char *san) 
 {
-    bool stm;
-    bool kic = 0;
-    char rankc[] = "12345678";
-    char filec[] = "abcdefgh";
-    char piecetypes[] = "-PNKBRQ";
-    int i = 0;
-    int checkfile = 0;
-    int checkrank = 0;
-    Move tempmove = 0;
-    Square sq = 0;
-    Piece piece = 0;
-    Piece piececpt = 0;
-    Square sqfrom = GETSQFROM(move);
-    Square sqto   = GETSQTO(move);
-    Square sqcpt  = GETSQCPT(move);
-    PieceType pfrom = GETPTYPE(GETPFROM(move));
-    PieceType pto   = GETPTYPE(GETPTO(move));
-    PieceType pcpt  = GETPTYPE(GETPCPT(move));
-    Bitboard bbMe   = BBEMPTY;
-    Bitboard bbWork = BBEMPTY;
-    Bitboard bbMoves = BBEMPTY;
-    Bitboard bbBlockers = board[QBBP1]|board[QBBP2]|board[QBBP3];
+  bool stm;
+  bool kic = 0;
+  char rankc[] = "12345678";
+  char filec[] = "abcdefgh";
+  char piecetypes[] = "-PNKBRQ";
+  int i = 0;
+  int checkfile = 0;
+  int checkrank = 0;
+  Move tempmove = 0;
+  Square sq = 0;
+  Piece piece = 0;
+  Piece piececpt = 0;
+  Square sqfrom = GETSQFROM(move);
+  Square sqto   = GETSQTO(move);
+  Square sqcpt  = GETSQCPT(move);
+  PieceType pfrom = GETPTYPE(GETPFROM(move));
+  PieceType pto   = GETPTYPE(GETPTO(move));
+  PieceType pcpt  = GETPTYPE(GETPCPT(move));
+  Bitboard bbMe   = BBEMPTY;
+  Bitboard bbWork = BBEMPTY;
+  Bitboard bbMoves = BBEMPTY;
+  Bitboard bbBlockers = board[QBBP1]|board[QBBP2]|board[QBBP3];
 
-    stm   = GETCOLOR(GETPFROM(move));
-    bbMe  = (stm)?board[QBBBLACK]:board[QBBBLACK]^bbBlockers;
+  stm   = GETCOLOR(GETPFROM(move));
+  bbMe  = (stm)?board[QBBBLACK]:board[QBBBLACK]^bbBlockers;
 
-    /* castle kingside */
-    if (pfrom == KING && (move&MOVEISCRK)) 
-    {
-      san[0] = 'O';
-      san[1] = '-';
-      san[2] = 'O';
-      san[3] = '\0';
-      return;
-    }
-    /* castle queenside */
-    if (pfrom == KING && (move&MOVEISCRQ)) 
-    {
-      san[0] = 'O';
-      san[1] = '-';
-      san[2] = 'O';
-      san[3] = '-';
-      san[4] = 'O';
-      san[5] = '\0';
-      return;
-    }
-    /* pawns */
-    if (pfrom == PAWN) 
-    {
-      if (pcpt == PNONE) 
-      {
-        san[i++] = filec[GETFILE(sqto)];
-        san[i++] = rankc[GETRANK(sqto)];
-      }
-      else
-      {
-        san[i++] = filec[GETFILE(sqto)];
-      }
-    }
-    /* non pawns */
-    else
-    {
-      san[i++] = piecetypes[pfrom];
-
-      bbMoves = 0;
-      if (pfrom == ROOK || pfrom == QUEEN )
-          bbMoves = rook_attacks(bbBlockers, sqfrom);
-      if (pfrom == BISHOP  || pfrom == QUEEN )
-          bbMoves |= bishop_attacks(bbBlockers, sqfrom);
-
-      if (pfrom == KNIGHT)
-          bbMoves = AttackTablesNK[sqto];
-
-      bbWork = bbMoves&bbMe;
-
-      piececpt = GETPTYPE(GETPIECE(board,sqto));
-
-      /* TODO: rook n queens */
-      while (bbWork) 
-      {
-
-        sq = popfirst1(&bbWork);
-
-        if (sq == sqfrom)
-          continue;
-    
-        piece = GETPTYPE(GETPIECE(board,sqfrom));
-    
-        if ( (piece&0x7) != (pfrom&0x7))
-          continue;
- 
-
-        /* make move */
-        tempmove = MAKEMOVE(sq, sqto, sqto, piece, piece, piececpt, 0x0ULL, 0x0ULL, 0x0ULL);
-
-        domove(board,tempmove);
-
-        kic = kingincheck(board, stm);
-
-        undomove(board,tempmove, 0, 0, 0);
-
-        /* king in check so ignore this piece */
-        if (kic)
-          continue;
-
-        checkfile = 1;
-
-        /* check rank */
-        if ( (sqfrom&7) == (sq&7) )
-        {
-            checkrank = 1;
-        }           
-      }
-
-      if ( checkfile == 1 )
-      {
-        san[i++] = filec[GETFILE(sqfrom)];
-      }           
-      if ( checkrank == 1 )
-      {
-        san[i++] = rankc[GETRANK(sqfrom)];
-      }           
-    }    
-    /* captures */
-    if (pcpt != PNONE)
-    {
-      san[i++] = 'x';
-      san[i++] = filec[GETFILE(sqcpt)];
-      san[i++] = rankc[GETRANK(sqcpt)];
-    }
-    /* non pawn to */
-    else if (pfrom != PAWN) 
+  /* castle kingside */
+  if (pfrom == KING && (move&MOVEISCRK)) 
+  {
+    san[0] = 'O';
+    san[1] = '-';
+    san[2] = 'O';
+    san[3] = '\0';
+    return;
+  }
+  /* castle queenside */
+  if (pfrom == KING && (move&MOVEISCRQ)) 
+  {
+    san[0] = 'O';
+    san[1] = '-';
+    san[2] = 'O';
+    san[3] = '-';
+    san[4] = 'O';
+    san[5] = '\0';
+    return;
+  }
+  /* pawns */
+  if (pfrom == PAWN) 
+  {
+    if (pcpt == PNONE) 
     {
       san[i++] = filec[GETFILE(sqto)];
       san[i++] = rankc[GETRANK(sqto)];
     }
-    /* pawn promo to queen */
-    if (pfrom == PAWN && pto == QUEEN)
+    else
     {
-      san[i++] = 'Q';
+      san[i++] = filec[GETFILE(sqto)];
     }
-    else if (pfrom == PAWN && pto == KNIGHT)
+  }
+  /* non pawns */
+  else
+  {
+    san[i++] = piecetypes[pfrom];
+
+    bbMoves = 0;
+    if (pfrom == ROOK || pfrom == QUEEN )
+        bbMoves = rook_attacks(bbBlockers, sqfrom);
+    if (pfrom == BISHOP  || pfrom == QUEEN )
+        bbMoves |= bishop_attacks(bbBlockers, sqfrom);
+
+    if (pfrom == KNIGHT)
+        bbMoves = AttackTablesNK[sqto];
+
+    bbWork = bbMoves&bbMe;
+
+    piececpt = GETPTYPE(GETPIECE(board,sqto));
+
+    /* TODO: rook n queens */
+    while (bbWork) 
     {
-      san[i++] = 'N';
-    }
-    else if (pfrom == PAWN && pto == ROOK)
-    {
-      san[i++] = 'R';
-    }
-    else if (pfrom == PAWN && pto == BISHOP)
-    {
-      san[i++] = 'B';
+
+      sq = popfirst1(&bbWork);
+
+      if (sq == sqfrom)
+        continue;
+  
+      piece = GETPTYPE(GETPIECE(board,sqfrom));
+  
+      if ( (piece&0x7) != (pfrom&0x7))
+        continue;
+
+
+      /* make move */
+      tempmove = MAKEMOVE(sq, sqto, sqto, piece, piece, piececpt, 0x0ULL, 0x0ULL, 0x0ULL);
+
+      domove(board,tempmove);
+
+      kic = kingincheck(board, stm);
+
+      undomove(board,tempmove, 0, 0, 0);
+
+      /* king in check so ignore this piece */
+      if (kic)
+        continue;
+
+      checkfile = 1;
+
+      /* check rank */
+      if ( (sqfrom&7) == (sq&7) )
+      {
+          checkrank = 1;
+      }           
     }
 
-    san[i] = '\0';
+    if ( checkfile == 1 )
+    {
+      san[i++] = filec[GETFILE(sqfrom)];
+    }           
+    if ( checkrank == 1 )
+    {
+      san[i++] = rankc[GETRANK(sqfrom)];
+    }           
+  }    
+  /* captures */
+  if (pcpt != PNONE)
+  {
+    san[i++] = 'x';
+    san[i++] = filec[GETFILE(sqcpt)];
+    san[i++] = rankc[GETRANK(sqcpt)];
+  }
+  /* non pawn to */
+  else if (pfrom != PAWN) 
+  {
+    san[i++] = filec[GETFILE(sqto)];
+    san[i++] = rankc[GETRANK(sqto)];
+  }
+  /* pawn promo to queen */
+  if (pfrom == PAWN && pto == QUEEN)
+  {
+    san[i++] = 'Q';
+  }
+  else if (pfrom == PAWN && pto == KNIGHT)
+  {
+    san[i++] = 'N';
+  }
+  else if (pfrom == PAWN && pto == ROOK)
+  {
+    san[i++] = 'R';
+  }
+  else if (pfrom == PAWN && pto == BISHOP)
+  {
+    san[i++] = 'B';
+  }
+  san[i] = '\0';
 }
 static void move2can(Move move, char * movec) 
 {
@@ -754,7 +753,6 @@ static void move2can(Move move, char * movec)
 /* print quadbitbooard */
 void printboard(Bitboard *board)
 {
-
   int rank;
   int file;
   Square sq;
@@ -917,7 +915,6 @@ static void createfen(char *fenstring, Bitboard *board, bool stm, int gameply)
   stringptr+=sprintf(stringptr, " ");
 
   stringptr+=sprintf(stringptr, "%d", (gameply/2));
-
 }
 /* set internal chess board presentation to fen string */
 static bool setboard(Bitboard *board, char *fenstring)
@@ -1690,7 +1687,6 @@ int main(int argc, char* argv[])
     /* do an node count to depth defined via sd  */
     if (!xboard_mode && !strcmp(Command, "perft"))
     {
-
       NODECOUNT = 0;
       MOVECOUNT = 0;
 
@@ -1777,10 +1773,8 @@ int main(int argc, char* argv[])
       fprintf(LogFile,"Error (unsupported command): %s\n",Command);
     }
   }
-
   /* release memory, files and tables */
   release_inits();
-
   exit(EXIT_SUCCESS);
 }
 

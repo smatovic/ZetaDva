@@ -180,13 +180,13 @@ enum Files
 };
 #define BBNOTHFILE          0x7F7F7F7F7F7F7F7F
 #define BBNOTAFILE          0xFEFEFEFEFEFEFEFE
-#define BBRANK7             0x00FF000000000000
-#define BBRANK2             0x000000000000FF00
 /* rank enumeration */
 enum Ranks
 {
   RANK_1, RANK_2, RANK_3, RANK_4, RANK_5, RANK_6, RANK_7, RANK_8, RANK_NONE
 };
+#define BBRANK7             0x00FF000000000000
+#define BBRANK2             0x000000000000FF00
 /* square enumeration */
 enum Squares
 {
