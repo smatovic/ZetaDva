@@ -2,18 +2,14 @@ A) root-structure
     - basic Xboard protocol                                           WIP
     - setboard with FEN                                 DONE
     - coordinate algebraic notation                     DONE
-    - SAN                                                       TODO
-    - time control                                              TODO
+    - time control                                                    WIP
+    - SAN                                                       TOOD
     - internal selftest, perft with nodecount           DONE
     - external test suite, node count                   DONE
     - external test suite, bestomve from STS                    TODO
-    - three fold repetition rule                                TODO
-    - performance tuning                                        TODO
-        - incremental hash                                      TODO
-        - legal move generator via pinned peices                TODO
-    - opening book                                              TODO
-    - draw by repetition                                        TODO
+    - internal draw by repetition                               TODO
     - fifty moves rule                                          TODO
+    - opening book                                              TODO
     - pondering                                                 TODO
     - SMP, mutlicore                                            TODO
 
@@ -25,16 +21,17 @@ B) BoardPresentation
 
 C) MovGenerator (Board)
     - generalized Kogge-Stone move gen                  DONE
-    - precalculated AttackTables                        DONE
-      for white pawns, black pawns and knights          
+    - precomputed AttackTables                          DONE
+      for white pawns, black pawns, king and knights          
     - en passant                                        DONE
     - castling moves                                    DONE
     - pawn promotion                                    DONE
     - pieceincheck function                             DONE
     - debug with test positions                         DONE
-    - legal moves via pinned pieces                                   WIP
+    - legal moves via pinned pieces                     DEP
     - tighten attacktbales                              DONE
-    - cleanup & performance tuning                                    WIP
+    - first cleanup & performance tuning                DONE
+    - incremental hash                                          TODO
 
 D) DoMove, UnDoMove
     - normal moves                                      DONE
@@ -43,21 +40,22 @@ D) DoMove, UnDoMove
 
 E) Evaluation
     - move score, stati eval + MVV-LVA                  DONE
-    - static, incremental board score                   DONE
     - simple piece values                               DONE
     - piece square tables                               DONE
     - simple pawn structure                             DONE
+    - static, incremental board score                   DONE
 
 F) Search Algorithm
     - perft                                             DONE
-    - root-search                                               TODO
-    - Iterative Deepening Framwork                              TODO
-    - AlphaBeta w. move ordering via MVV-LVA                    TODO
-    - Quiscence-Search                                          TODO
+    - root-search                                       DONE
+    - AlphaBeta w. move ordering via MVV-LVA            DONE
+    - Move Ordering SEE                                 DEP
+    - Quiscence-Search                                  DONE
+    - search extensions                                 DONE
+    - Transposition/Hash-Tables                                       WIP
+    - Iterative Deepening Framwork                                    WIP
     - PV-Search, Nullwindows                                    TODO
     - Null Move Pruning                                         TODO
     - Late Move Reductions                                      TODO
-    - Transposition/Hash-Tables                                 TODO
-    - Move Ordering SEE                                 DEP
     - Aspiration Windows                                DEP
 
