@@ -38,6 +38,7 @@ extern u32 GAMEPLY;
 extern u32 PLY;
 extern Move *Move_History;
 extern Hash *Hash_History;
+extern const Bitboard LRANK[2];
 
 bool squareunderattack(Bitboard *board, bool stm, Square sq);
 bool kingincheck(Bitboard *board, bool stm);

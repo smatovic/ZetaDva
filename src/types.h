@@ -180,6 +180,8 @@ enum Files
 };
 #define BBNOTHFILE          0x7F7F7F7F7F7F7F7F
 #define BBNOTAFILE          0xFEFEFEFEFEFEFEFE
+#define BBRANK7             0x00FF000000000000
+#define BBRANK2             0x000000000000FF00
 /* rank enumeration */
 enum Ranks
 {

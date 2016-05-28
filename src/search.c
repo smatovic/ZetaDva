@@ -42,28 +42,23 @@ Score perft(Bitboard *board, bool stm, s32 depth)
   Move moves[MAXMOVES];
 
   kic = kingincheck(board, stm);
-
+  /* leaf node, count */
   if (depth == 0)
   {
     NODECOUNT++;
     return 0;
   }
-
   movecounter = genmoves(board, moves, movecounter, stm, false);
-
-/*
-  MOVECOUNT+= movecounter;
-*/
-
+  /* checkmate */
   if (movecounter == 0 && kic)
   {
     return 0;
   }
+  /* stalemate */
   if (movecounter == 0 && !kic) 
   {
     return 0;
   }
-
   /* iterate through moves */
   for (i=0;i<movecounter;i++)
   {
@@ -84,14 +79,14 @@ Score qsearch(Bitboard *board, bool stm, Score alpha, Score beta, u32 depth)
   Move lastmove = board[QBBLAST];
   Move moves[MAXMOVES];
 
-  kic = kingincheck(board, stm);
-
   NODECOUNT++;
 
+  kic = kingincheck(board, stm);
 /*
   score = eval(board);
   score = (stm)? -score : score;
 */
+  /* get static, incremental board score */
   score = (stm)? -boardscore : boardscore;
 
   /* stand pat */
@@ -100,29 +95,26 @@ Score qsearch(Bitboard *board, bool stm, Score alpha, Score beta, u32 depth)
   if( !kic && alpha < score )
       alpha = score;
 
+  /* when king in check, all evasion moves */
   if (kic)
     movecounter = genmoves(board, moves, movecounter, stm, false);
   else
+  {
+    movecounter = genmoves_enpassant(board, moves, movecounter, stm);
     movecounter = genmoves_captures(board, moves, movecounter, stm);
-
+  }
   /* sort moves */
   qsort(moves, movecounter, sizeof(Move), cmp_move_desc);
-
-/*
-  MOVECOUNT+= movecounter;
-*/
-
   /* checkmate */
   if (movecounter == 0 && kic)
     return -INF+PLY;
-
+  /* quiet leaf node, return  evaluation board score */
   if (movecounter == 0)
   {
     score = eval(board);
-    score = (stm)? -score : score;
+    score = (stm)? -score : score;  /* consider negated scores for black */
     return score;
   }
-
   /* iterate through moves */
   for (i=0;i<movecounter;i++)
   {
@@ -149,43 +141,24 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, u32 depth)
   Cr cr = board[QBBPMVD];
   Move lastmove = board[QBBLAST];
   Move moves[MAXMOVES];
+  Bitboard bbTemp;
 
   kic = kingincheck(board, stm);
+  bbTemp = (stm)? board[QBBBLACK]:board[QBBBLACK]^(board[QBBP1]|board[QBBP2]|board[QBBP3]);
+  bbTemp&= board[QBBP1]&~board[QBBP2]&~board[QBBP3]&LRANK[stm];
 
-  /* search extension */
-  if(kic)
+  /* search extension, checks and pawn promo */
+  if(depth==0&&(kic||bbTemp))
     depth++;
 
   if (depth == 0)
-  {
     return qsearch(board, stm, alpha, beta, depth+1);
-  }
 
   NODECOUNT++;
 
   /* generate pawn promo moves first */  
   movecounter = genmoves_promo(board, moves, 0, stm);
   legalmovecounter+= movecounter;
-  /* sort moves */
-  qsort(moves, movecounter, sizeof(Move), cmp_move_desc);
-  /* iterate through moves */
-  for (i=0;i<movecounter;i++)
-  {
-    domove(board, moves[i]);
-    score = -negamax(board, !stm, -beta, -alpha, depth-1);
-    undomove(board, moves[i], lastmove, cr, boardscore);
-
-    if(score>=beta)
-      return score;
-
-    if(score>alpha)
-      alpha=score;
-  }
-  /* generate pawn en passant moves next */  
-  movecounter = genmoves_enpassant(board, moves, 0, stm);
-  legalmovecounter+= movecounter;
-  /* sort moves */
-  qsort(moves, movecounter, sizeof(Move), cmp_move_desc);
   /* iterate through moves */
   for (i=0;i<movecounter;i++)
   {
@@ -217,11 +190,25 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, u32 depth)
     if(score>alpha)
       alpha=score;
   }
+  /* generate pawn en passant moves next */  
+  movecounter = genmoves_enpassant(board, moves, 0, stm);
+  legalmovecounter+= movecounter;
+  /* iterate through moves */
+  for (i=0;i<movecounter;i++)
+  {
+    domove(board, moves[i]);
+    score = -negamax(board, !stm, -beta, -alpha, depth-1);
+    undomove(board, moves[i], lastmove, cr, boardscore);
+
+    if(score>=beta)
+      return score;
+
+    if(score>alpha)
+      alpha=score;
+  }
   /* generate castle moves next */  
   movecounter = genmoves_castles(board, moves, 0, stm);
   legalmovecounter+= movecounter;
-  /* sort moves */
-  qsort(moves, movecounter, sizeof(Move), cmp_move_desc);
   /* iterate through moves, caputres */
   for (i=0;i<movecounter;i++)
   {
@@ -235,7 +222,7 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, u32 depth)
     if(score>alpha)
       alpha=score;
   }
-  /* generate quit moves last */  
+  /* generate quiet moves last */  
   movecounter = genmoves_noncaptures(board, moves, 0, stm);
   legalmovecounter+= movecounter;
   /* sort moves */
@@ -277,18 +264,12 @@ Move rootsearch(Bitboard *board, bool stm, s32 depth)
   Move moves[MAXMOVES];
 
   kic = kingincheck(board, stm);
-
   movecounter = genmoves(board, moves, movecounter, stm, false);
-
   /* sort moves */
   qsort(moves, movecounter, sizeof(Move), cmp_move_desc);
 
-/*
-  MOVECOUNT+= movecounter;
-*/
-
   /* print checkmate and stalemate result */
-  if (movecounter == 0 && kic)
+  if (movecounter==0&&kic)
   {
     if (stm)
     {
@@ -298,15 +279,13 @@ Move rootsearch(Bitboard *board, bool stm, s32 depth)
     {
       printf("result 0-1 { checkmate }");
     }
-    
     return MOVENONE;
   }
-  if (movecounter == 0 && !kic) 
+  if (movecounter==0&&!kic) 
   {
     printf("result 1/2-1/2 { stalemate }");
     return MOVENONE;
   }
-
   /* iterate through moves */
   for (i=0;i<movecounter;i++)
   {

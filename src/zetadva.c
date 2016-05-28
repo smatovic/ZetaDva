@@ -62,6 +62,11 @@ Bitboard BOARD[8];
   6   64 bit board Zobrist hash
   7   lastmove + ep target + halfmove clock + move score
 */
+const Bitboard LRANK[2] =
+{
+  BBRANK7,
+  BBRANK2
+};
 /* forward declarations */
 static void print_help(void);
 static void print_version(void);

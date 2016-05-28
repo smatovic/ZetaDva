@@ -27,13 +27,11 @@ const Bitboard AttackTablesByPawns[2*64];
 const Bitboard AttackTablesNK[2*64];
 
 int genmoves(Bitboard *board, Move *moves, int movecounter, bool stm, bool qs);
-int genmoves_general(Bitboard *board, Move *moves, int movecounter, bool stm, bool qs);
-int genmoves_piecewise(Bitboard *board, Move *moves, int movecounter, bool stm, bool qs);
+int genmoves_promo(Bitboard *board, Move *moves, int movecounter, bool stm);
+int genmoves_castles(Bitboard *board, Move *moves, int movecounter, bool stm);
+int genmoves_enpassant(Bitboard *board, Move *moves, int movecounter, bool stm);
 int genmoves_captures(Bitboard *board, Move *moves, int movecounter, bool stm);
 int genmoves_noncaptures(Bitboard *board, Move *moves, int movecounter, bool stm);
-int genmoves_castles(Bitboard *board, Move *moves, int movecounter, bool stm);
-int genmoves_promo(Bitboard *board, Move *moves, int movecounter, bool stm);
-int genmoves_enpassant(Bitboard *board, Move *moves, int movecounter, bool stm);
 Bitboard rook_attacks(Bitboard bbBlockers, Square sq);
 Bitboard bishop_attacks(Bitboard bbBlockers, Square sq);
 #endif /* MOVEGEN_H_INCLUDED */
