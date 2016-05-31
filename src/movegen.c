@@ -1122,6 +1122,332 @@ int genmoves_general(Bitboard *board, Move *moves, int movecounter, bool stm, bo
 
   return movecounter;
 }
+/* a legal move generation approach via pinned pieces*/
+int genmoves_pinned(Bitboard *board, Move *moves, int movecounter, bool stm, bool qs) 
+{
+  bool kic = false;
+  u8 checks = 0;
+  Score score;
+  Piece pfrom;
+  Piece pto;
+  Piece pcpt;
+  Square sqking;
+  Square sqcheck;
+  Square sqfrom;
+  Square sqto;
+  Square sqcpt;
+  Square sqep; 
+  Move move;
+  Move lastmove;
+  Bitboard bbSuperKing;
+  Bitboard bbOppAttacks = BBEMPTY;
+  Bitboard bbCheckers   = BBEMPTY;
+  Bitboard bbTempA;
+  Bitboard bbTempB;
+  Bitboard bbTempC;
+  Bitboard bbWork;
+  Bitboard bbEvasions   = BBEMPTY;
+  Bitboard bbPinned     = BBEMPTY;
+  Bitboard bbMoves;
+  Bitboard bbBlockers;
+  Bitboard bbBoth[2];
+
+  lastmove      = board[QBBLAST];
+
+  bbBlockers    = board[QBBP1]|board[QBBP2]|board[QBBP3];
+  bbBoth[WHITE] = board[QBBBLACK]^bbBlockers;
+  bbBoth[BLACK] = board[QBBBLACK];
+
+  /* get our king square */
+  sqking  = first1(bbBoth[stm]&(board[QBBP1]&board[QBBP2]&~board[QBBP3]));
+
+  /* generate opposite sliders attacks */
+  /* rooks and queens */
+  bbWork  =   (bbBoth[!stm]&(board[QBBP1]&~board[QBBP2]&board[QBBP3])) 
+            | (bbBoth[!stm]&(~board[QBBP1]&board[QBBP2]&board[QBBP3]));
+  while (bbWork)
+  {
+    sqfrom        = popfirst1(&bbWork);
+    bbTempB       = BBEMPTY;
+    bbSuperKing   = ks_attacks_ls1((bbBlockers^SETMASKBB(sqking)), sqking);
+    bbSuperKing  |= ks_attacks_rs1((bbBlockers^SETMASKBB(sqking)), sqking);
+    bbTempA       = ks_attacks_ls1((bbBlockers^SETMASKBB(sqking)), sqfrom);
+    bbTempA      |= ks_attacks_rs1((bbBlockers^SETMASKBB(sqking)), sqfrom);
+    bbPinned     |= (bbTempA&bbSuperKing);
+    bbTempB      |= bbTempA;
+    bbSuperKing   = ks_attacks_ls8((bbBlockers^SETMASKBB(sqking)), sqking);
+    bbSuperKing  |= ks_attacks_rs8((bbBlockers^SETMASKBB(sqking)), sqking);
+    bbTempA       = ks_attacks_ls8((bbBlockers^SETMASKBB(sqking)), sqfrom);
+    bbTempA      |= ks_attacks_rs8((bbBlockers^SETMASKBB(sqking)), sqfrom);
+    bbPinned     |= (bbTempA&bbSuperKing);
+    bbTempB      |= bbTempA;
+    /* get checkers */
+    if (bbTempB&SETMASKBB(sqking)) 
+    {
+      checks++;                         /* for double check */
+      bbCheckers |= SETMASKBB(sqfrom);
+      sqcheck     = sqfrom;            /* remember check giving square */
+    }
+    bbOppAttacks |= bbTempB;
+  }
+  /* bishop and queens */
+  bbWork  =   (bbBoth[!stm]&(~board[QBBP1]&~board[QBBP2]&board[QBBP3])) 
+            | (bbBoth[!stm]&(~board[QBBP1]&board[QBBP2]&board[QBBP3]));
+  while (bbWork)
+  {
+    sqfrom        = popfirst1(&bbWork);
+    bbTempB       = BBEMPTY;
+    bbSuperKing   = ks_attacks_ls7((bbBlockers^SETMASKBB(sqking)), sqking);
+    bbSuperKing  |= ks_attacks_rs7((bbBlockers^SETMASKBB(sqking)), sqking);
+    bbTempA       = ks_attacks_ls7((bbBlockers^SETMASKBB(sqking)), sqfrom);
+    bbTempA      |= ks_attacks_rs7((bbBlockers^SETMASKBB(sqking)), sqfrom);
+    bbPinned     |= (bbTempA&bbSuperKing);
+    bbTempB      |= bbTempA;
+    bbSuperKing   = ks_attacks_ls9((bbBlockers^SETMASKBB(sqking)), sqking);
+    bbSuperKing  |= ks_attacks_rs9((bbBlockers^SETMASKBB(sqking)), sqking);
+    bbTempA       = ks_attacks_ls9((bbBlockers^SETMASKBB(sqking)), sqfrom);
+    bbTempA      |= ks_attacks_rs9((bbBlockers^SETMASKBB(sqking)), sqfrom);
+    bbPinned     |= (bbTempA&bbSuperKing);
+    bbTempB      |= bbTempA;
+    /* get checkers */
+    if (bbTempB&SETMASKBB(sqking)) 
+    {
+      checks++;                         /* for double check */
+      bbCheckers |= SETMASKBB(sqfrom);
+      sqcheck     = sqfrom;            /* remember check giving square */
+    }
+    bbOppAttacks |= bbTempB;
+  }
+  /* generate opposite attacks */
+  /* knights */
+  bbWork  =   (bbBoth[!stm]&(~board[QBBP1]&board[QBBP2]&~board[QBBP3]));
+  while (bbWork)
+  {
+    sqfrom  = popfirst1(&bbWork);
+    bbTempA = AttackTablesNK[sqfrom];
+    bbOppAttacks |= bbTempA;
+    /* get checkers */
+    if (bbTempA&SETMASKBB(sqking)) 
+    {
+      checks++;                         /* for double check */
+      bbCheckers |= SETMASKBB(sqfrom);
+      sqcheck     = sqfrom;            /* remember check giving square */
+    }
+  }
+  /* pawns */
+  bbWork  =   bbBoth[!stm]&(board[QBBP1]&~board[QBBP2]&~board[QBBP3]);
+  while (bbWork)
+  {
+    sqfrom  = popfirst1(&bbWork);
+    bbTempA = AttackTablesPawns[!stm*64+sqfrom];
+    bbOppAttacks |= bbTempA;
+    /* get checkers */
+    if (bbTempA&SETMASKBB(sqking)) 
+    {
+      checks++;                         /* for double check */
+      bbCheckers |= SETMASKBB(sqfrom);
+      sqcheck     = sqfrom;            /* remember check giving square */
+    }
+  }
+  /* kings */
+  bbWork  = bbBoth[!stm]&(board[QBBP1]&board[QBBP2]&~board[QBBP3]);
+  while (bbWork)
+  {
+    sqfrom  = popfirst1(&bbWork);
+    bbTempA = AttackTablesNK[64+sqfrom];
+    bbOppAttacks |=bbTempA;
+  }
+  /* get evasions */
+  bbEvasions = (checks==1)?(BetweenBB[sqking*64+sqcheck]|bbCheckers):BBFULL;
+  /* get pinned pieces */
+/*
+
+printf("bbCheckers:\n");
+printbitboard(bbCheckers);
+printf("bbOppAttacks:\n");
+printbitboard(bbOppAttacks);
+printf("bbEvasions:\n");
+printbitboard(bbEvasions);
+printf("bbPinned:\n");
+printbitboard(bbPinned);
+*/
+
+  /* generate stm attacks */
+  bbWork    = bbBoth[stm];
+  while (bbWork)
+  {
+    sqfrom  = popfirst1(&bbWork);
+    pfrom   = GETPIECE(board, sqfrom);
+
+    /* legality check, duble check, king only */
+    if (checks>=2&&GETPTYPE(pfrom)!=KING)
+      continue;
+
+    /* queens and rooks via KoggeStone */
+    bbTempA = (GETPTYPE(pfrom)==ROOK||GETPTYPE(pfrom)==QUEEN)? rook_attacks(bbBlockers, sqfrom) : BBEMPTY;
+    /* queens and bishops via KoggeStone */
+    bbTempA|= (GETPTYPE(pfrom)==BISHOP||GETPTYPE(pfrom)==QUEEN)? bishop_attacks(bbBlockers, sqfrom) : bbTempA;
+
+    /* knights and king via attack tables */
+    bbTempA|= (GETPTYPE(pfrom)==KNIGHT||GETPTYPE(pfrom)==KING)? AttackTablesNK[(GETPTYPE(pfrom)-2)*64+sqfrom] : bbTempA;
+
+    /* pawn attacks via attack tables  */
+    bbTempA|= (GETPTYPE(pfrom)==PAWN)?(AttackTablesPawns[stm*64+sqfrom]&bbBoth[!stm]) : bbTempA;
+
+    /* white pawn push */
+    bbTempA|= (GETPTYPE(pfrom)==PAWN&&!stm)?(~bbBlockers&SETMASKBB(sqfrom+8)) : bbTempA;
+    /* black pawn push */
+    bbTempA|= (GETPTYPE(pfrom)==PAWN&&stm)?(~bbBlockers&SETMASKBB(sqfrom-8)) : bbTempA;
+    /* white pawn double push */
+    bbTempA|= (GETPTYPE(pfrom)==PAWN&&!stm&&GETRANK(sqfrom)==RANK_2&&(~bbBlockers&SETMASKBB(sqfrom+8)&&(~bbBlockers&SETMASKBB(sqfrom+16))))?
+              (~bbBlockers&SETMASKBB(sqfrom+16)) : bbTempA;
+    /* black pawn double push */
+    bbTempA|= (GETPTYPE(pfrom)==PAWN&&stm&&GETRANK(sqfrom)==RANK_7&&(~bbBlockers&SETMASKBB(sqfrom-8)&&(~bbBlockers&SETMASKBB(sqfrom-16))))?
+              (~bbBlockers&SETMASKBB(sqfrom-16)) : bbTempA;
+
+    /* captures */    
+    bbMoves  = bbTempA&bbBoth[!stm];
+    /* non captures */    
+    bbMoves |= (qs)?BBEMPTY:(bbTempA&~bbBlockers);
+
+    /* moves for king */
+    bbMoves &= (GETPTYPE(pfrom)==KING)?~bbOppAttacks:BBFULL;
+    /* evasions only */
+    bbMoves &= (checks==1&&GETPTYPE(pfrom)!=KING)?bbEvasions:BBFULL;
+    /* extract moves */
+
+/*
+printf("PieceT:%llu\n",pfrom>>1);
+printbitboard(bbMoves);
+*/
+
+    while (bbMoves)
+    {
+      sqto      = popfirst1(&bbMoves);
+      sqcpt     = sqto;
+      pcpt      = GETPIECE(board, sqcpt);
+
+      /* consider pinned pieces */
+      if (GETPTYPE(pfrom)!=KING&&(bbPinned&SETMASKBB(sqfrom))&&!((BetweenBB[sqfrom*64+sqto]&SETMASKBB(sqking))|(BetweenBB[sqking*64+sqto]&SETMASKBB(sqfrom))|(BetweenBB[sqking*64+sqfrom]&SETMASKBB(sqto))))
+        continue;
+
+      /* set en passant target square */
+      sqep      = (GETPTYPE(pfrom)==PAWN&&GETRRANK(sqto,stm)-GETRRANK(sqfrom,stm)==2)?(stm)?sqto+8:sqto-8:0x0; 
+      /* handle pawn promo: knight */
+      pto = (GETPTYPE(pfrom)==PAWN&&GETRRANK(sqto,stm)==RANK_8)?MAKEPIECE(KNIGHT, GETCOLOR(pfrom)):pfrom;
+      /* get score, non captures via static values, capture via MVV-LVA */
+      score = (pcpt==PNONE)? (evalmove (pto, sqto)-evalmove(pfrom, sqfrom)):(EvalPieceValues[GETPTYPE(pcpt)-1]*16-EvalPieceValues[GETPTYPE(pto)-1]);
+      /* pack move into 64 bits, considering castle rights and halfmovecounter and score */
+      move = MAKEMOVE(sqfrom, sqto, sqcpt, pfrom, pto, pcpt, sqep, (u64)GETHMC(lastmove), (u64)score);
+
+/*
+printmove(move);
+printf("\n");
+*/
+
+      moves[movecounter] = move;
+      movecounter++;
+
+      /* TODO: in non-perft do queen promo only? */
+      /* handle pawn promo: bishop */
+      pto = (!kic&&GETPTYPE(pfrom)==PAWN&&GETRRANK(sqto,stm)==RANK_8)?MAKEPIECE(BISHOP, GETCOLOR(pfrom)):PNONE;
+      /* get score, non captures via static values, capture via MVV-LVA */
+      score = (pcpt==PNONE)? (evalmove (pto, sqto)-evalmove(pfrom, sqfrom)):(EvalPieceValues[GETPTYPE(pcpt)-1]*16-EvalPieceValues[GETPTYPE(pto)-1]);
+      /* pack move into 64 bits, considering castle rights and halfmovecounter and score */
+      move = (pto==PNONE)?MOVENONE:MAKEMOVE(sqfrom, sqto, sqcpt, pfrom, pto, pcpt, 0, (u64)GETHMC(lastmove), (u64)score);
+      moves[movecounter] = move;
+      movecounter+=(pto==PNONE)?0:1;
+      /* handle pawn promo: rook */
+      pto = (!kic&&GETPTYPE(pfrom)==PAWN&&GETRRANK(sqto,stm)==RANK_8)?MAKEPIECE(ROOK, GETCOLOR(pfrom)):PNONE;
+      /* get score, non captures via static values, capture via MVV-LVA */
+      score = (pcpt==PNONE)? (evalmove (pto, sqto)-evalmove(pfrom, sqfrom)):(EvalPieceValues[GETPTYPE(pcpt)-1]*16-EvalPieceValues[GETPTYPE(pto)-1]);
+      /* pack move into 64 bits, considering castle rights and halfmovecounter and score */
+      move = (pto==PNONE)?MOVENONE:MAKEMOVE(sqfrom, sqto, sqcpt, pfrom, pto, pcpt, 0, (u64)GETHMC(lastmove), (u64)score);
+      moves[movecounter] = move;
+      movecounter+=(pto==PNONE)?0:1;
+      /* handle pawn promo: queen */
+      pto = (!kic&&GETPTYPE(pfrom)==PAWN&&GETRRANK(sqto,stm)==RANK_8)?MAKEPIECE(QUEEN, GETCOLOR(pfrom)):PNONE;
+      /* get score, non captures via static values, capture via MVV-LVA */
+      score = (pcpt==PNONE)? (evalmove (pto, sqto)-evalmove(pfrom, sqfrom)):(EvalPieceValues[GETPTYPE(pcpt)-1]*16-EvalPieceValues[GETPTYPE(pto)-1]);
+      /* pack move into 64 bits, considering castle rights and halfmovecounter and score */
+      move = (pto==PNONE)?MOVENONE:MAKEMOVE(sqfrom, sqto, sqcpt, pfrom, pto, pcpt, 0, (u64)GETHMC(lastmove), (u64)score);
+      moves[movecounter] = move;
+      movecounter+=(pto==PNONE)?0:1;
+    }
+  }
+
+  /* gen en passant moves */
+  sqep    = GETSQEP(board[QBBLAST]); 
+  bbWork  = bbBoth[stm]&(board[QBBP1]&~board[QBBP2]&~board[QBBP3]);
+  bbWork &= (stm)? 0xFF000000 : 0xFF00000000;
+  bbTempA  = (sqep)? (stm)? bbWork&(SETMASKBB(sqep+7)|SETMASKBB(sqep+9)):
+                          bbWork&(SETMASKBB(sqep-7)|SETMASKBB(sqep-9))          
+           : BBEMPTY;
+  pfrom   = MAKEPIECE(PAWN,stm);
+  pto     = pfrom; 
+  pcpt    = MAKEPIECE(PAWN,(u64)!stm);
+  score   = EvalPieceValues[PAWN-1]*16-EvalPieceValues[PAWN-1];
+
+  /* check for first en passant pawn */
+  sqfrom  = (bbTempA)?popfirst1(&bbTempA):0x0;
+  sqto    = sqep;
+  sqcpt   = (stm)? sqep+8:sqep-8;
+  /* pack move into 64 bits, considering castle rights and halfmovecounter and score */
+  move    = (sqfrom)?MAKEMOVE(sqfrom, sqto, sqcpt, pfrom, pto, pcpt, 0, (u64)GETHMC(lastmove), (u64)score):MOVENONE;
+  /* legal moves only */
+  domovequick(board, move);
+  kic = kingincheck(board, stm);
+  undomovequick(board, move);
+  moves[movecounter] = move;
+  movecounter+=(sqfrom&&!kic)?1:0;
+
+  /* check for second en passant pawn */
+  sqfrom  = (bbTempA)?popfirst1(&bbTempA):0x0;
+  sqto    = sqep;
+  sqcpt   = (stm)? sqep+8:sqep-8;
+  /* pack move into 64 bits, considering castle rights and halfmovecounter and score */
+  move    = (sqfrom)?MAKEMOVE(sqfrom, sqto, sqcpt, pfrom, pto, pcpt, 0, (u64)GETHMC(lastmove), (u64)score):MOVENONE;
+  /* legal moves only */
+  domovequick(board, move);
+  kic = kingincheck(board, stm);
+  undomovequick(board, move);
+  moves[movecounter] = move;
+  movecounter+=(sqfrom&&!kic)?1:0;
+
+  /* gen castle moves */
+  /* get king square */
+  sqfrom  = first1(bbBoth[stm]&(board[QBBP1]&board[QBBP2]&~board[QBBP3]));
+  pfrom   = GETPIECE(board, sqfrom);
+  /* get castle rights queenside */
+  bbTempA  = (stm)?(((~board[QBBPMVD])&SMCRBLACKQ)==SMCRBLACKQ)?true:false:(((~board[QBBPMVD])&SMCRWHITEQ)==SMCRWHITEQ)?true:false;
+  /* check for emtpty squares */
+  bbTempB   = ((bbBlockers&SETMASKBB(sqfrom-1))|(bbBlockers&SETMASKBB(sqfrom-2))|(bbBlockers&SETMASKBB(sqfrom-3)));
+  /* check for kign and empty squares in check */
+  bbTempC  =  (squareunderattack(board,!stm,sqfrom)|squareunderattack(board,!stm,sqfrom-1)|squareunderattack(board,!stm,sqfrom-2));
+  /* set castle move score */
+  score   = INF-100;
+  move    = (bbTempA&&!bbTempB&&!bbTempC)?MAKEMOVE(sqfrom, (sqfrom-2), (sqfrom-2), pfrom, pfrom, PNONE, 0, (u64)GETHMC(lastmove), (u64)score):MOVENONE;
+  move   |= (bbTempA&&!bbTempB&&!bbTempC)?MOVEISCRQ:BBEMPTY;
+
+  moves[movecounter] = move;
+  movecounter+=(bbTempA&&!bbTempB&&!bbTempC)?1:0;
+
+  /* get castle rights kingside */
+  bbTempA  = (stm)?(((~board[QBBPMVD])&SMCRBLACKK)==SMCRBLACKK)?true:false:(((~board[QBBPMVD])&SMCRWHITEK)==SMCRWHITEK)?true:false;
+  /* check for emtpty squares */
+  bbTempB   = ((bbBlockers&SETMASKBB(sqfrom+1))|(bbBlockers&SETMASKBB(sqfrom+2)));
+  /* check for kign and empty squares in check */
+  bbTempC  =  (squareunderattack(board,!stm,sqfrom)|squareunderattack(board,!stm,sqfrom+1)|squareunderattack(board,!stm,sqfrom+2));
+  /* set castle move score */
+  score   = INF-100;
+  move    = (bbTempA&&!bbTempB&&!bbTempC)?MAKEMOVE(sqfrom, (sqfrom+2), (sqfrom+2), pfrom, pfrom, PNONE, 0, (u64)GETHMC(lastmove), (u64)score):MOVENONE;
+  move   |= (bbTempA&&!bbTempB&&!bbTempC)?MOVEISCRK:BBEMPTY;
+
+  moves[movecounter] = move;
+  movecounter+=(bbTempA&&!bbTempB&&!bbTempC)?1:0;
+
+  return movecounter;
+}
 /* wrapper for move genration */
 int genmoves(Bitboard *board, Move *moves, int movecounter, bool stm, bool qs)
 {
