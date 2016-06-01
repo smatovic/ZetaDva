@@ -24,7 +24,7 @@
 
 const Bitboard AttackTablesPawns[4*64];
 const Bitboard AttackTablesByPawns[2*64];
-const Bitboard AttackTablesNKBRQ[2*64];
+const Bitboard AttackTablesNKBRQ[5*64];
 
 int genmoves(Bitboard *board, Move *moves, int movecounter, bool stm, bool qs);
 int genmoves_promo(Bitboard *board, Move *moves, int movecounter, bool stm);
