@@ -137,6 +137,37 @@ static bool inits(void)
             MAXGAMEPLY);
     return false;
   }
+
+/* init pawn attack tables
+  Square sq =0;
+  Bitboard attacksw[64];
+  Bitboard attacksb[64];
+
+  for (sq=0;sq<64;sq++)
+  {
+    attacksw[sq] = BBEMPTY;
+    attacksb[sq] = BBEMPTY;
+  }
+  for (sq=0;sq<64;sq++)
+  {
+    if (GETFILE(sq)>FILE_A&&GETRANK(sq)<RANK_8)
+      attacksw[sq] |= SETMASKBB(sq)<<7;
+    if (GETFILE(sq)<FILE_H&&GETRANK(sq)<RANK_8)
+      attacksw[sq] |= SETMASKBB(sq)<<9;
+  }
+  for (sq=0;sq<64;sq++)
+  {
+    if (GETFILE(sq)<FILE_H&&GETRANK(sq)>RANK_1)
+      attacksb[sq] |= SETMASKBB(sq)>>7;
+    if (GETFILE(sq)>FILE_A&&GETRANK(sq)>RANK_1)
+      attacksb[sq] |= SETMASKBB(sq)>>9;
+  }
+
+  for (sq=0;sq<64;sq++)
+  {
+    printf("0x%llx,", attacksb[sq]);
+  }
+*/
   return true;
 }
 int cmp_move_desc(const void *ap, const void *bp)
@@ -421,7 +452,7 @@ bool squareunderattack(Bitboard *board, bool stm, Square sq)
   }
   /* pawns */
   bbWork = bbBoth[stm]&(board[QBBP1]&~board[QBBP2]&~board[QBBP3]);
-  bbMoves = AttackTablesByPawns[stm*64+sq];
+  bbMoves = AttackTablesByPawns[!stm*64+sq];
   if (bbMoves&bbWork)
   {
     return true;
