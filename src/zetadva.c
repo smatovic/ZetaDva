@@ -445,21 +445,21 @@ bool squareunderattack(Bitboard *board, bool stm, Square sq)
   }
   /* knights */
   bbWork = bbBoth[stm]&(~board[QBBP1]&board[QBBP2]&~board[QBBP3]);
-  bbMoves = AttackTablesNKBRQ[sq] ;
+  bbMoves = AttackTables[128+sq] ;
   if (bbMoves&bbWork) 
   {
     return true;
   }
   /* pawns */
   bbWork = bbBoth[stm]&(board[QBBP1]&~board[QBBP2]&~board[QBBP3]);
-  bbMoves = AttackTablesByPawns[!stm*64+sq];
+  bbMoves = AttackTables[!stm*64+sq];
   if (bbMoves&bbWork)
   {
     return true;
   }
   /* king */
   bbWork = bbBoth[stm]&(board[QBBP1]&board[QBBP2]&~board[QBBP3]);
-  bbMoves = AttackTablesNKBRQ[64+sq];
+  bbMoves = AttackTables[192+sq];
   if (bbMoves&bbWork)
   {
     return true;
@@ -668,7 +668,7 @@ static void move2san(Bitboard *board, Move move, char *san)
         bbMoves |= bishop_attacks(bbBlockers, sqfrom);
 
     if (pfrom == KNIGHT)
-        bbMoves = AttackTablesNKBRQ[sqto];
+        bbMoves = AttackTables[128+sqto];
 
     bbWork = bbMoves&bbMe;
 

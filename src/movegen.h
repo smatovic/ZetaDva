@@ -22,9 +22,8 @@
 #ifndef MOVEGEN_H_INCLUDED
 #define MOVEGEN_H_INCLUDED
 
-const Bitboard AttackTablesPawns[4*64];
-const Bitboard AttackTablesByPawns[2*64];
-const Bitboard AttackTablesNKBRQ[5*64];
+const Bitboard AttackTablesPawnPushes[4*64];
+const Bitboard AttackTables[7*64];
 
 int genmoves(Bitboard *board, Move *moves, int movecounter, bool stm, bool qs);
 int genmoves_promo(Bitboard *board, Move *moves, int movecounter, bool stm);
