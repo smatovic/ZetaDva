@@ -414,7 +414,7 @@ bool squareunderattack(Bitboard *board, bool stm, Square sq)
   }
   /* knights */
   bbWork = bbBoth[stm]&(~board[QBBP1]&board[QBBP2]&~board[QBBP3]);
-  bbMoves = AttackTablesNK[sq] ;
+  bbMoves = AttackTablesNKBRQ[sq] ;
   if (bbMoves&bbWork) 
   {
     return true;
@@ -428,7 +428,7 @@ bool squareunderattack(Bitboard *board, bool stm, Square sq)
   }
   /* king */
   bbWork = bbBoth[stm]&(board[QBBP1]&board[QBBP2]&~board[QBBP3]);
-  bbMoves = AttackTablesNK[64+sq];
+  bbMoves = AttackTablesNKBRQ[64+sq];
   if (bbMoves&bbWork)
   {
     return true;
@@ -637,7 +637,7 @@ static void move2san(Bitboard *board, Move move, char *san)
         bbMoves |= bishop_attacks(bbBlockers, sqfrom);
 
     if (pfrom == KNIGHT)
-        bbMoves = AttackTablesNK[sqto];
+        bbMoves = AttackTablesNKBRQ[sqto];
 
     bbWork = bbMoves&bbMe;
 
@@ -1223,23 +1223,23 @@ static void selftest(void)
     if(NODECOUNT==nodecounts[done])
     {
       fprintf(stdout,"# Nodecount Correct, %llu nodes in %f seconds with \
-              %llu nps.\n", NODECOUNT, elapsed, (u64)(NODECOUNT/elapsed));
+%llu nps.\n", NODECOUNT, elapsed, (u64)(NODECOUNT/elapsed));
       if (LogFile != NULL)
       {
         fprinttime(LogFile);
         fprintf(LogFile,"# Nodecount Correct, %llu nodes in %f seconds with \
-                %llu nps.\n", NODECOUNT, elapsed, (u64)(NODECOUNT/elapsed));
+%llu nps.\n", NODECOUNT, elapsed, (u64)(NODECOUNT/elapsed));
       }
     }
     else
     {
       fprintf(stdout,"# Nodecount NOT Correct, %llu computed nodes != %llu \
-              nodes for depth %d.\n", NODECOUNT, nodecounts[done], SD);
+nodes for depth %d.\n", NODECOUNT, nodecounts[done], SD);
       if (LogFile != NULL)
       {
         fprinttime(LogFile);
         fprintf(LogFile,"# Nodecount NOT Correct, %llu computed nodes != %llu \
-                nodes for depth %d.\n", NODECOUNT, nodecounts[done], SD);
+nodes for depth %d.\n", NODECOUNT, nodecounts[done], SD);
       }
     }
     if(scorea!=scoreb)
