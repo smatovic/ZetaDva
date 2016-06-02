@@ -368,7 +368,7 @@ int genmoves_captures(Bitboard *board, Move *moves, int movecounter, bool stm)
       shift   = shifts4[i];
       bbPro   = ~bbBlockers;
       bbGen   = SETMASKBB(sqfrom);
-      bbWrap  = (GETPTYPE(pfrom)==KNIGHT)?BBFULL:wraps[i];
+      bbWrap  = wraps[i];
     
       bbPro  &= bbWrap;
       /* do kogge stone */
@@ -387,7 +387,7 @@ int genmoves_captures(Bitboard *board, Move *moves, int movecounter, bool stm)
       shift   = shifts4[i];
       bbPro   = ~bbBlockers;
       bbGen   = SETMASKBB(sqfrom);
-      bbWrap  = (GETPTYPE(pfrom)==KNIGHT)?BBFULL:wraps[4+i];
+      bbWrap  = wraps[4+i];
 
       bbPro  &= bbWrap;
       /* do kogge stone */
@@ -509,7 +509,7 @@ int genmoves_noncaptures(Bitboard *board, Move *moves, int movecounter, bool stm
       shift   = shifts4[i];
       bbPro   = ~bbBlockers;
       bbGen   = SETMASKBB(sqfrom);
-      bbWrap  = (GETPTYPE(pfrom)==KNIGHT)?BBFULL:wraps[i];
+      bbWrap  = wraps[i];
     
       bbPro  &= bbWrap;
       /* do kogge stone */
@@ -528,7 +528,7 @@ int genmoves_noncaptures(Bitboard *board, Move *moves, int movecounter, bool stm
       shift   = shifts4[i];
       bbPro   = ~bbBlockers;
       bbGen   = SETMASKBB(sqfrom);
-      bbWrap  = (GETPTYPE(pfrom)==KNIGHT)?BBFULL:wraps[4+i];
+      bbWrap  = wraps[4+i];
 
       bbPro  &= bbWrap;
       /* do kogge stone */
@@ -645,7 +645,7 @@ int genmoves_general(Bitboard *board, Move *moves, int movecounter, bool stm, bo
       shift   = shifts4[i];
       bbPro   = ~bbBlockers;
       bbGen   = SETMASKBB(sqfrom);
-      bbWrap  = (GETPTYPE(pfrom)==KNIGHT)?BBFULL:wraps[i];
+      bbWrap  = wraps[i];
     
       bbPro  &= bbWrap;
       /* do kogge stone */
@@ -664,7 +664,7 @@ int genmoves_general(Bitboard *board, Move *moves, int movecounter, bool stm, bo
       shift   = shifts4[i];
       bbPro   = ~bbBlockers;
       bbGen   = SETMASKBB(sqfrom);
-      bbWrap  = (GETPTYPE(pfrom)==KNIGHT)?BBFULL:wraps[4+i];
+      bbWrap  = wraps[4+i];
 
       bbPro  &= bbWrap;
       /* do kogge stone */
