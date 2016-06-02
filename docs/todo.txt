@@ -31,6 +31,7 @@ C) MovGenerator (Board)
     - legal moves via pinned pieces                     DEP
     - tighten attacktbales                              DONE
     - first cleanup & performance tuning                DONE
+    - second cleanup & performance tuning               DONE
     - incremental hash                                          TODO
 
 D) DoMove, UnDoMove
@@ -51,11 +52,11 @@ F) Search Algorithm
     - AlphaBeta w. move ordering via MVV-LVA            DONE
     - Move Ordering SEE                                 DEP
     - Quiscence-Search                                  DONE
-    - search extensions                                 DONE
+    - search extension, king in check                   DONE
+    - PV-Search, Nullwindows                            DONE
     - Transposition/Hash-Tables                                       WIP
     - Iterative Deepening Framwork                                    WIP
-    - PV-Search, Nullwindows                                    TODO
+    - Aspiration Windows                                DEP
     - Null Move Pruning                                         TODO
     - Late Move Reductions                                      TODO
-    - Aspiration Windows                                DEP
 
