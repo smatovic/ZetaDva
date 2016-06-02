@@ -96,7 +96,7 @@ int genmoves_promo(Bitboard *board, Move *moves, int movecounter, bool stm)
   Bitboard bbBlockers = BBEMPTY;
   Bitboard bbBoth[2];
 
-  lastmove = board[QBBLAST];
+  lastmove      =  board[QBBLAST];
 
   bbBlockers    = board[QBBP1]|board[QBBP2]|board[QBBP3];
   bbBoth[WHITE] = board[QBBBLACK]^bbBlockers;
@@ -211,7 +211,10 @@ int genmoves_castles(Bitboard *board, Move *moves, int movecounter, bool stm)
   Bitboard bbTempC    = BBEMPTY;
   Bitboard bbBoth[2];
 
-  lastmove = board[QBBLAST];
+  if (!(board[QBBPMVD]&SMCRALL))
+    return movecounter;
+
+  lastmove      = board[QBBLAST];
 
   bbBlockers    = board[QBBP1]|board[QBBP2]|board[QBBP3];
   bbBoth[WHITE] = board[QBBBLACK]^bbBlockers;
