@@ -78,7 +78,7 @@ Score evalstatic(Bitboard *board)
 /* evaluate board position, no checkmates or stalemates */
 Score eval(Bitboard *board)
 {
-  u32 side;
+  u8 side;
   Score score = 0;
   Square sq;
   PieceType piecet;

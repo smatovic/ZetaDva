@@ -29,7 +29,7 @@
 #include "zetadva.h"    /* for global vars */
 
 /* forward declaration */
-Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, u32 depth);
+Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth);
 
 Score perft(Bitboard *board, bool stm, s32 depth)
 {
@@ -68,7 +68,7 @@ Score perft(Bitboard *board, bool stm, s32 depth)
   }
   return 0;
 }
-Score qsearch(Bitboard *board, bool stm, Score alpha, Score beta, u32 depth)
+Score qsearch(Bitboard *board, bool stm, Score alpha, Score beta, u8 depth)
 {
   bool kic = false;
   Score score;
@@ -106,10 +106,10 @@ Score qsearch(Bitboard *board, bool stm, Score alpha, Score beta, u32 depth)
   /* sort moves */
   qsort(moves, movecounter, sizeof(Move), cmp_move_desc);
   /* checkmate */
-  if (movecounter == 0 && kic)
+  if (movecounter==0&&kic)
     return -INF+PLY;
   /* quiet leaf node, return  evaluation board score */
-  if (movecounter == 0)
+  if (movecounter==0)
   {
     score = eval(board);
     score = (stm)? -score : score;  /* consider negated scores for black */
@@ -130,7 +130,7 @@ Score qsearch(Bitboard *board, bool stm, Score alpha, Score beta, u32 depth)
   }
   return alpha;
 }
-Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, u32 depth)
+Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth)
 {
   bool kic = false;
   Score score = 0;
