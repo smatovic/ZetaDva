@@ -1320,12 +1320,12 @@ static void print_help(void)
   fprintf(stdout,"level 40 4 0   // set time control to 40 moves in 4 minutes\n");
   fprintf(stdout,"go             // let engine play site to move\n");
   fprintf(stdout,"usermove d7d5  // let engine apply usermove in coordinate algebraic\n");
-  fprintf(stdout,"               // notation and start thinking\n");
+  fprintf(stdout,"               // notation and optionally start thinking\n");
   fprintf(stdout,"\n");
   fprintf(stdout,"Non-Xboard commands:\n");
   fprintf(stdout,"perft          // perform a performance test, depth set by sd command\n");
   fprintf(stdout,"selftest       // run an internal test\n");
-  fprintf(stdout,"help           // print usage hints\n");
+  fprintf(stdout,"help           // print usage info\n");
   fprintf(stdout,"log            // turn log on\n");
   fprintf(stdout,"\n");
   fprintf(stdout,"Not supported Xboard commands:\n");
@@ -1336,7 +1336,7 @@ static void print_help(void)
   fprintf(stdout,"hard/easy      // turn on/off pondering\n");
   fprintf(stdout,"hint           // give user a hint move\n");
   fprintf(stdout,"bk             // book Lines\n");
-  fprintf(stdout,"pause/resume   // pause the engine\n");
+  fprintf(stdout,"pause/resume   // pause/resume the engine\n");
   fprintf(stdout,"\n");
 }
 /* Zeta Dva, amateur level chess engine  */
