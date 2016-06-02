@@ -979,7 +979,6 @@ Bitboard ks_attacks_ls9(Bitboard bbBlockers, Square sq)
   /* directions left shifting <<9 BISHOP */
   bbPro   = ~bbBlockers;
   bbGen   = SETMASKBB(sq);
-
   bbWrap  = BBNOTAFILE;
   bbPro  &= bbWrap;
   /* do kogge stone */
