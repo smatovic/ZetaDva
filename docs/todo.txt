@@ -1,4 +1,4 @@
-A) root-structure
+A) Root-Structure
     - basic Xboard protocol                                           WIP
     - setboard with FEN                                 DONE
     - coordinate algebraic notation                     DONE
@@ -13,13 +13,13 @@ A) root-structure
     - pondering                                                 TODO
     - SMP, mutlicore                                            TODO
 
-B) BoardPresentation
-  4*8 Bytes QuatBitbaord board presentation             DONE
+B) Board-Presentation
+  4*8 Bytes Quat-Bitbaord board presentation            DONE
 + 1*8 Byte hash                                         DONE
 + 1*8 Byte Piece moved flags, for castle rights         DONE
-+ 1*8 Byte lastmove+ep+halfmoveclock+castle+score       DONE
++ 1*8 Byte lastmove+ep+halfmoveclock+castleinfo+score   DONE
 
-C) MovGenerator (Board)
+C) MovGenerator
     - generalized Kogge-Stone move gen                  DONE
     - precomputed AttackTables                          DONE
       for white pawns, black pawns, king and knights          
@@ -27,17 +27,17 @@ C) MovGenerator (Board)
     - castling moves                                    DONE
     - pawn promotion                                    DONE
     - pieceincheck function                             DONE
-    - debug with test positions                         DONE
     - legal moves via pinned pieces                     DEP
+    - debug with test positions                         DONE
     - tighten attacktbales                              DONE
     - first cleanup & performance tuning                DONE
     - second cleanup & performance tuning               DONE
-    - incremental hash                                          TODO
 
 D) DoMove, UnDoMove
     - normal moves                                      DONE
     - special moves                                     DONE
     - quick version                                     DONE
+    - incremental hash                                          TODO
 
 E) Evaluation
     - move score, stati eval + MVV-LVA                  DONE
