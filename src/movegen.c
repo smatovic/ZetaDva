@@ -352,7 +352,7 @@ int genmoves_captures(Bitboard *board, Move *moves, int movecounter, bool stm)
   /* for each piece of site to move */
   while (bbWork)
   {
-    sqfrom  = popfirst1 (&bbWork);
+    sqfrom  = popfirst1(&bbWork);
     pfrom   = GETPIECE(board, sqfrom);
 
     /* no pawn promo */
