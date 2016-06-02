@@ -47,8 +47,8 @@ bool STM            = WHITE;  /* site to move */
 s32 SD              = MAXPLY; /* max search depth*/
 u32 GAMEPLY         = 0;      /* total ply, considering depth via fen string */
 u32 PLY             = 0;      /* engine specifix ply counter */
-Move *Move_History;           /* last game moves indexed by ply */
-Hash *Hash_History;           /* last game hashes indexed by ply */
+Move *MoveHistory;           /* last game moves indexed by ply */
+Hash *HashHistory;           /* last game hashes indexed by ply */
 /* Quad Bitboard */
 /* based on http://chessprogramming.wikispaces.com/Quad-Bitboards */
 /* by Gerd Isenberg */
@@ -93,10 +93,10 @@ static bool release_inits(void)
     free(Command);
   if (Fen!=NULL) 
     free(Fen);
-  if (Move_History!=NULL) 
-    free(Move_History);
-  if (Hash_History!=NULL) 
-    free(Hash_History);
+  if (MoveHistory!=NULL) 
+    free(MoveHistory);
+  if (HashHistory!=NULL) 
+    free(HashHistory);
 
   return true;
 }
@@ -107,8 +107,8 @@ static bool inits(void)
   Line         = calloc(1024       , sizeof (char));
   Command      = calloc(1024       , sizeof (char));
   Fen          = calloc(1024       , sizeof (char));
-  Move_History = calloc(MAXGAMEPLY , sizeof (Move));
-  Hash_History = calloc(MAXGAMEPLY , sizeof (Hash));
+  MoveHistory = calloc(MAXGAMEPLY , sizeof (Move));
+  HashHistory = calloc(MAXGAMEPLY , sizeof (Hash));
 
   if (Line==NULL) 
   {
@@ -125,15 +125,15 @@ static bool inits(void)
     fprintf(stdout,"Error (memory allocation failed): char Fen[%d]", 1024);
     return false;
   }
-  if (Move_History==NULL) 
+  if (MoveHistory==NULL) 
   {
-    fprintf(stdout,"Error (memory allocation failed): u64 Move_History[%d]",
+    fprintf(stdout,"Error (memory allocation failed): u64 MoveHistory[%d]",
              MAXGAMEPLY);
     return false;
   }
-  if (Hash_History==NULL) 
+  if (HashHistory==NULL) 
   {
-    fprintf(stdout,"Error (memory allocation failed): u64 Hash_History[%d]",
+    fprintf(stdout,"Error (memory allocation failed): u64 HashHistory[%d]",
             MAXGAMEPLY);
     return false;
   }
@@ -947,7 +947,7 @@ static void createfen(char *fenstring, Bitboard *board, bool stm, int gameply)
   stringptr+=sprintf(stringptr, "%d",GETHMC(board[QBBLAST]));
   stringptr+=sprintf(stringptr, " ");
 
-  stringptr+=sprintf(stringptr, "%d", (gameply/2));
+  stringptr+=sprintf(stringptr, "%d", ((gameply+PLY)/2));
 }
 /* set internal chess board presentation to fen string */
 static bool setboard(Bitboard *board, char *fenstring)
@@ -1121,7 +1121,7 @@ static bool setboard(Bitboard *board, char *fenstring)
 
   /* TODO: compute  hash
   board[QBBHASH] = compute_hash(BOARD);
-  Hash_History[PLY] = compute_hash(BOARD);
+  HashHistory[PLY] = compute_hash(BOARD);
   */
 
   /* store lastmove+ in board */
@@ -1592,21 +1592,23 @@ int main(int argc, char* argv[])
         Move move;
         char movec[6];
         xboard_force = false;
-
         NODECOUNT = 0;
         MOVECOUNT = 0;
         start = get_time();
-
+        /* start thinking */
         move = rootsearch(BOARD,STM, SD);
-
         end = get_time();   
         elapsed = end-start;
         elapsed /= 1000;
-
+        MoveHistory[PLY] = move;
+        domove(BOARD, move);
         move2can(move,movec);
         fprintf(stdout,"usermove %s\n",movec);
         if (!xboard_mode&&!epd_mode)
+        {
+          printboard(BOARD);
           fprintf(stdout,"#%llu searched nodes in %f seconds, nps: %llu \n", NODECOUNT, elapsed, (u64)(NODECOUNT/elapsed));
+        }
         PLY++;
         STM = !STM;
       }
@@ -1630,6 +1632,8 @@ int main(int argc, char* argv[])
     }
     if (!strcmp(Command, "usermove"))
     {
+      Move move;
+      char movec[6];
       /* zeta supports only CECP >= v2 */
       if (xboard_mode && xboard_protover<2)
       {
@@ -1641,8 +1645,38 @@ int main(int argc, char* argv[])
           fprintf(LogFile,"Error (unsupported protocoll version, < v2): usermove\n");
         }
       }
+      /* apply given move */
+      sscanf (Line, "usermove %s", movec);
+      move = can2move(movec, BOARD,STM);
+      MoveHistory[PLY] = move;
+      domove(BOARD, move);
       PLY++;
       STM = !STM;
+      if (!xboard_mode&&!epd_mode)
+          printboard(BOARD);
+      /* start thinking */
+      if (!xboard_force)
+      {
+        NODECOUNT = 0;
+        MOVECOUNT = 0;
+        start = get_time();
+        /* start thinking */
+        move = rootsearch(BOARD,STM, SD);
+        end = get_time();   
+        elapsed = end-start;
+        elapsed /= 1000;
+        MoveHistory[PLY] = move;
+        domove(BOARD, move);
+        move2can(move,movec);
+        fprintf(stdout,"usermove %s\n",movec);
+        if (!xboard_mode&&!epd_mode)
+        {
+          printboard(BOARD);
+          fprintf(stdout,"#%llu searched nodes in %f seconds, nps: %llu \n", NODECOUNT, elapsed, (u64)(NODECOUNT/elapsed));
+        }
+        PLY++;
+        STM = !STM;
+      }
       continue;
     }
     /* exit program */
