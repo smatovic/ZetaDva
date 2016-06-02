@@ -195,7 +195,6 @@ int genmoves_promo(Bitboard *board, Move *moves, int movecounter, bool stm)
      */
     }
   }
-
   return movecounter;
 }
 /* castle moves only */
@@ -323,7 +322,9 @@ int genmoves_enpassant(Bitboard *board, Move *moves, int movecounter, bool stm)
 /* captures only */
 int genmoves_captures(Bitboard *board, Move *moves, int movecounter, bool stm) 
 {
+  bool kic = false;
   Score score;
+  s32 i;
   Piece pfrom;
   Piece pto;
   Piece pcpt;
@@ -341,8 +342,6 @@ int genmoves_captures(Bitboard *board, Move *moves, int movecounter, bool stm)
   Bitboard bbGen;
   Bitboard bbBoth[2];
   u64 shift;
-  int i;
-  bool kic = false;
 
   lastmove = board[QBBLAST];
 
@@ -465,7 +464,9 @@ int genmoves_captures(Bitboard *board, Move *moves, int movecounter, bool stm)
 /* quiet moves only */
 int genmoves_noncaptures(Bitboard *board, Move *moves, int movecounter, bool stm) 
 {
+  bool kic = false;
   Score score;
+  s32 i;
   Piece pfrom;
   Piece pto;
   Square sqfrom;
@@ -482,8 +483,6 @@ int genmoves_noncaptures(Bitboard *board, Move *moves, int movecounter, bool stm
   Bitboard bbGen;
   Bitboard bbBoth[2];
   u64 shift;
-  int i;
-  bool kic = false;
 
   lastmove = board[QBBLAST];
 
@@ -604,7 +603,9 @@ int genmoves_noncaptures(Bitboard *board, Move *moves, int movecounter, bool stm
 /* http://chessprogramming.wikispaces.com/Kogge-Stone+Algorithm */
 int genmoves_general(Bitboard *board, Move *moves, int movecounter, bool stm, bool qs) 
 {
+  bool kic = false;
   Score score;
+  s32 i;
   Piece pfrom;
   Piece pto;
   Piece pcpt;
@@ -623,8 +624,6 @@ int genmoves_general(Bitboard *board, Move *moves, int movecounter, bool stm, bo
   Bitboard bbGen;
   Bitboard bbBoth[2];
   u64 shift;
-  int i;
-  bool kic = false;
 
   lastmove = board[QBBLAST];
 

@@ -35,8 +35,8 @@ Score perft(Bitboard *board, bool stm, s32 depth)
 {
   bool kic = false;
   Score boardscore = (Score)board[QBBSCORE];
-  int i = 0;
-  int movecounter = 0;
+  s32 i = 0;
+  s32 movecounter = 0;
   Cr cr = board[QBBPMVD];
   Move lastmove = board[QBBLAST];
   Move moves[MAXMOVES];
@@ -73,8 +73,8 @@ Score qsearch(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth)
   bool kic = false;
   Score score;
   Score boardscore = (Score)board[QBBSCORE];
-  int i = 0;
-  int movecounter = 0;
+  s32 i = 0;
+  s32 movecounter = 0;
   Cr cr = board[QBBPMVD];
   Move lastmove = board[QBBLAST];
   Move moves[MAXMOVES];
@@ -135,9 +135,9 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth)
   bool kic = false;
   Score score = 0;
   Score boardscore = (Score)board[QBBSCORE];
-  int i = 0;
-  int movecounter = 0;
-  int legalmovecounter = 0;
+  s32 i = 0;
+  s32 movecounter = 0;
+  s32 legalmovecounter = 0;
   Cr cr = board[QBBPMVD];
   Move lastmove = board[QBBLAST];
   Move moves[MAXMOVES];
@@ -253,8 +253,8 @@ Move rootsearch(Bitboard *board, bool stm, s32 depth)
   Score boardscore = (Score)board[QBBSCORE];
   Score alpha = -INF;
   Score beta  =  INF;
-  int i = 0;
-  int movecounter = 0;
+  s32 i = 0;
+  s32 movecounter = 0;
   Cr cr = board[QBBPMVD];
   Move bestmove = MOVENONE;
   Move lastmove = board[QBBLAST];

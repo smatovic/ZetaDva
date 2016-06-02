@@ -500,8 +500,8 @@ bool isvalid(Bitboard *board)
 /* print bitboard */
 void printbitboard(Bitboard board)
 {
-  int rank;
-  int file;
+  s32 rank;
+  s32 file;
   Square sq;
 
   fprintf(stdout,"###ABCDEFGH###\n");
@@ -603,9 +603,9 @@ static void move2san(Bitboard *board, Move move, char *san)
   char rankc[] = "12345678";
   char filec[] = "abcdefgh";
   char piecetypes[] = "-PNKBRQ";
-  int i = 0;
-  int checkfile = 0;
-  int checkrank = 0;
+  s32 i = 0;
+  s32 checkfile = 0;
+  s32 checkrank = 0;
   Move tempmove = 0;
   Square sq = 0;
   Piece piece = 0;
@@ -786,8 +786,8 @@ static void move2can(Move move, char * movec)
 /* print quadbitbooard */
 void printboard(Bitboard *board)
 {
-  int rank;
-  int file;
+  s32 rank;
+  s32 file;
   Square sq;
   Piece piece;
   char wpchars[] = "-PNKBRQ";
@@ -850,10 +850,10 @@ void printboard(Bitboard *board)
   fflush (stdout);
 }
 /* create fen string from board state */
-static void createfen(char *fenstring, Bitboard *board, bool stm, int gameply)
+static void createfen(char *fenstring, Bitboard *board, bool stm, s32 gameply)
 {
-  int rank;
-  int file;
+  s32 rank;
+  s32 file;
   Square sq;
   Piece piece;
   char wpchars[] = " PNKBRQ";
@@ -861,7 +861,7 @@ static void createfen(char *fenstring, Bitboard *board, bool stm, int gameply)
   char rankc[8] = "12345678";
   char filec[8] = "abcdefgh";
   char *stringptr = fenstring;
-  int spaces = 0;
+  s32 spaces = 0;
 
   /* add pieces from board to string */
   for (rank = RANK_8; rank >= RANK_1; rank--)
