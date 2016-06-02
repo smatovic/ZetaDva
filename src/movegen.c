@@ -273,8 +273,10 @@ int genmoves_enpassant(Bitboard *board, Move *moves, int movecounter, bool stm)
   Bitboard bbBlockers;
   Bitboard bbBoth[2];
 
-  lastmove      = board[QBBLAST];
+  if(!GETSQEP(board[QBBLAST]))
+    return movecounter;
 
+  lastmove      = board[QBBLAST];
   bbBlockers    = board[QBBP1]|board[QBBP2]|board[QBBP3];
   bbBoth[WHITE] = bbBlockers^board[QBBBLACK];
   bbBoth[BLACK] = board[QBBBLACK];
