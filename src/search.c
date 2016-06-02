@@ -68,7 +68,7 @@ Score perft(Bitboard *board, bool stm, s32 depth)
   }
   return 0;
 }
-Score qsearch(Bitboard *board, bool stm, Score alpha, Score beta, u8 depth)
+Score qsearch(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth)
 {
   bool kic = false;
   Score score;
@@ -149,7 +149,7 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth)
     depth++;
 
   if (depth == 0)
-    return qsearch(board, stm, alpha, beta, depth+1);
+    return qsearch(board, stm, alpha, beta, depth-1);
 
   NODECOUNT++;
 
