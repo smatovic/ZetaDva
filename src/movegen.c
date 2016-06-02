@@ -244,7 +244,7 @@ int genmoves_castles(Bitboard *board, Move *moves, int movecounter, bool stm)
   /* check for king and empty squares in check */
   bbTempC =  (squareunderattack(board,!stm,sqfrom)|squareunderattack(board,!stm,sqfrom+1)|squareunderattack(board,!stm,sqfrom+2));
   /* set castle move score */
-  score   = INF-100;
+  score   = INF-90;
   /* make move */
   move    = (bbTempA&&!bbTempB&&!bbTempC)?MAKEMOVE(sqfrom, (sqfrom+2), (sqfrom+2), pfrom, pfrom, PNONE, 0, (u64)GETHMC(lastmove), (u64)score):MOVENONE;
   move   |= (bbTempA&&!bbTempB&&!bbTempC)?MOVEISCRK:BBEMPTY;
@@ -836,7 +836,7 @@ int genmoves_general(Bitboard *board, Move *moves, int movecounter, bool stm, bo
   /* check for king and empty squares in check */
   bbGen  =  (squareunderattack(board,!stm,sqfrom)|squareunderattack(board,!stm,sqfrom+1)|squareunderattack(board,!stm,sqfrom+2));
   /* set castle move score */
-  score   = INF-100;
+  score   = INF-90;
   /* make move */
   move    = (bbTemp&&!bbPro&&!bbGen)?MAKEMOVE(sqfrom, (sqfrom+2), (sqfrom+2), pfrom, pfrom, PNONE, 0, (u64)GETHMC(lastmove), (u64)score):MOVENONE;
   move   |= (bbTemp&&!bbPro&&!bbGen)?MOVEISCRK:BBEMPTY;
