@@ -141,14 +141,11 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth)
   Cr cr = board[QBBPMVD];
   Move lastmove = board[QBBLAST];
   Move moves[MAXMOVES];
-  Bitboard bbTemp;
 
   kic = kingincheck(board, stm);
-  bbTemp = (stm)? board[QBBBLACK]:board[QBBBLACK]^(board[QBBP1]|board[QBBP2]|board[QBBP3]);
-  bbTemp&= board[QBBP1]&~board[QBBP2]&~board[QBBP3]&LRANK[stm];
 
   /* search extension, checks and pawn promo */
-  if(depth==0&&(kic||bbTemp))
+  if(depth==0&&kic)
     depth++;
 
   if (depth == 0)

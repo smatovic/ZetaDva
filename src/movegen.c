@@ -102,17 +102,13 @@ int genmoves_promo(Bitboard *board, Move *moves, int movecounter, bool stm)
   bbBoth[WHITE] = board[QBBBLACK]^bbBlockers;
   bbBoth[BLACK] = board[QBBBLACK];
   /* get pawns */
-  bbWork        = bbBoth[stm]&(board[QBBP1]&~board[QBBP2]&~board[QBBP3]);
+  bbWork        = bbBoth[stm]&LRANK[stm]&(board[QBBP1]&~board[QBBP2]&~board[QBBP3]);
 
   /* for each pawn of site to move */
   while (bbWork)
   {
     sqfrom  = popfirst1(&bbWork);
     pfrom   = GETPIECE(board, sqfrom);
-
-    /* pawn promo only */
-    if(GETRRANK(sqfrom,stm)!=RANK_7)
-      continue;
 
     bbTemp  = BBEMPTY;
     bbMoves = BBEMPTY;
