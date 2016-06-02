@@ -178,6 +178,14 @@ enum Files
 {
   FILE_A, FILE_B, FILE_C, FILE_D, FILE_E, FILE_F, FILE_G, FILE_H, FILE_NONE
 };
+#define BBFILEA             0x0101010101010101
+#define BBFILEB             0x0202020202020202
+#define BBFILEC             0x0404040404040404
+#define BBFILED             0x0808080808080808
+#define BBFILEE             0x1010101010101010
+#define BBFILEF             0x2020202020202020
+#define BBFILEG             0x4040404040404040
+#define BBFILEH             0x8080808080808080
 #define BBNOTHFILE          0x7F7F7F7F7F7F7F7F
 #define BBNOTAFILE          0xFEFEFEFEFEFEFEFE
 /* rank enumeration */
