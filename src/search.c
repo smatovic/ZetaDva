@@ -48,7 +48,7 @@ Score perft(Bitboard *board, bool stm, s32 depth)
     NODECOUNT++;
     return 0;
   }
-  movecounter = genmoves(board, moves, movecounter, stm, false);
+  movecounter = genmoves_general(board, moves, movecounter, stm, false);
   /* checkmate */
   if (movecounter == 0 && kic)
   {

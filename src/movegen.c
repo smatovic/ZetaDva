@@ -26,12 +26,12 @@
 #include "types.h"      /* custom types, board defs, data structures, macros */
 #include "zetadva.h"    /* for global vars */
 
-/* slider move generation is done via KoggeStone bitboard approach */
+/* move generation is done via generalized KoggeStone bitboard approach */
 /* based on work by Steffan Westcott */
 /* http://chessprogramming.wikispaces.com/Kogge-Stone+Algorithm */
 
 /* move generator constants */
-/* pawn attack tables */
+/* pawn pushes, simple and duble */
 const Bitboard AttackTablesPawnPushes[2*64] = 
 {
   /* white pawn pushes */
@@ -77,9 +77,6 @@ const Bitboard wraps[8] =
   0x00fefefefefefefe, /* >>7 */
   0x00ffffffffffffff  /* >>8 */
 };
-/* forward declarations */
-Bitboard rook_attacks(Bitboard bbBlockers, Square sq);
-Bitboard bishop_attacks(Bitboard bbBlockers, Square sq);
 /* promotion pawns only */
 int genmoves_promo(Bitboard *board, Move *moves, int movecounter, bool stm) 
 {
@@ -104,19 +101,21 @@ int genmoves_promo(Bitboard *board, Move *moves, int movecounter, bool stm)
   bbBlockers    = board[QBBP1]|board[QBBP2]|board[QBBP3];
   bbBoth[WHITE] = board[QBBBLACK]^bbBlockers;
   bbBoth[BLACK] = board[QBBBLACK];
+  /* get pawns */
   bbWork        = bbBoth[stm]&(board[QBBP1]&~board[QBBP2]&~board[QBBP3]);
 
   /* for each pawn of site to move */
   while (bbWork)
   {
-    sqfrom   = popfirst1(&bbWork);
-    pfrom    = GETPIECE(board, sqfrom);
-    bbTemp  = BBEMPTY;
-    bbMoves  = BBEMPTY;
+    sqfrom  = popfirst1(&bbWork);
+    pfrom   = GETPIECE(board, sqfrom);
 
     /* pawn promo only */
     if(GETRRANK(sqfrom,stm)!=RANK_7)
       continue;
+
+    bbTemp  = BBEMPTY;
+    bbMoves = BBEMPTY;
 
     /* pawn attacks via attack tables  */
     bbTemp  = AttackTables[stm*64+sqfrom]&bbBoth[!stm];
@@ -125,17 +124,17 @@ int genmoves_promo(Bitboard *board, Move *moves, int movecounter, bool stm)
     /* black pawn push */
     bbTemp |= (stm&&((~bbBlockers)&SETMASKBB(sqfrom-8)))?  SETMASKBB(sqfrom-8) : bbTemp;
 
-    bbMoves  = bbTemp;
+    bbMoves = bbTemp;
 
     /* extract moves */
     while (bbMoves)
     {
-      sqto      = popfirst1(&bbMoves);
-      sqcpt     = sqto;
-      pcpt      = GETPIECE(board, sqcpt);
+      sqto  = popfirst1(&bbMoves);
+      sqcpt = sqto;
+      pcpt  = GETPIECE(board, sqcpt);
 
-      /* handle pawn promo: knight */
-      pto = MAKEPIECE(KNIGHT, GETCOLOR(pfrom));
+      /* queen promo only */
+      pto = MAKEPIECE(QUEEN, GETCOLOR(pfrom));
       /* get score, non captures via static values, capture via MVV-LVA */
       score = (pcpt==PNONE)? (evalmove (pto, sqto)-evalmove(pfrom, sqfrom)):(EvalPieceValues[GETPTYPE(pcpt)-1]*16-EvalPieceValues[GETPTYPE(pto)-1]);
       /* pack move into 64 bits, considering castle rights and halfmovecounter and score */
@@ -178,33 +177,26 @@ int genmoves_promo(Bitboard *board, Move *moves, int movecounter, bool stm)
       board[QBBP1]    |= ((pfrom>>1)&0x1)<<sqfrom;
       board[QBBP2]    |= ((pfrom>>2)&0x1)<<sqfrom;
       board[QBBP3]    |= ((pfrom>>3)&0x1)<<sqfrom;
-      /* TODO: in non-perft do queen promo only? */
-      /* handle pawn promo: bishop */
+
+      /* queen promo only
+      pto = (!kic)?MAKEPIECE(KNIGHT, GETCOLOR(pfrom)):PNONE;
+      score = (pcpt==PNONE)? (evalmove (pto, sqto)-evalmove(pfrom, sqfrom)):(EvalPieceValues[GETPTYPE(pcpt)-1]*16-EvalPieceValues[GETPTYPE(pto)-1]);
+      move = (pto==PNONE)?MOVENONE:MAKEMOVE(sqfrom, sqto, sqcpt, pfrom, pto, pcpt, 0, (u64)GETHMC(lastmove), (u64)score);
+      moves[movecounter] = move;
+      movecounter+=(pto==PNONE)?0:1;
+
       pto = (!kic)?MAKEPIECE(BISHOP, GETCOLOR(pfrom)):PNONE;
-      /* get score, non captures via static values, capture via MVV-LVA */
       score = (pcpt==PNONE)? (evalmove (pto, sqto)-evalmove(pfrom, sqfrom)):(EvalPieceValues[GETPTYPE(pcpt)-1]*16-EvalPieceValues[GETPTYPE(pto)-1]);
-      /* pack move into 64 bits, considering castle rights and halfmovecounter and score */
       move = (pto==PNONE)?MOVENONE:MAKEMOVE(sqfrom, sqto, sqcpt, pfrom, pto, pcpt, 0, (u64)GETHMC(lastmove), (u64)score);
       moves[movecounter] = move;
       movecounter+=(pto==PNONE)?0:1;
 
-      /* handle pawn promo: rook */
       pto = (!kic)?MAKEPIECE(ROOK, GETCOLOR(pfrom)):PNONE;
-      /* get score, non captures via static values, capture via MVV-LVA */
       score = (pcpt==PNONE)? (evalmove (pto, sqto)-evalmove(pfrom, sqfrom)):(EvalPieceValues[GETPTYPE(pcpt)-1]*16-EvalPieceValues[GETPTYPE(pto)-1]);
-      /* pack move into 64 bits, considering castle rights and halfmovecounter and score */
       move = (pto==PNONE)?MOVENONE:MAKEMOVE(sqfrom, sqto, sqcpt, pfrom, pto, pcpt, 0, (u64)GETHMC(lastmove), (u64)score);
       moves[movecounter] = move;
       movecounter+=(pto==PNONE)?0:1;
-
-      /* handle pawn promo: queen */
-      pto = (!kic)?MAKEPIECE(QUEEN, GETCOLOR(pfrom)):PNONE;
-      /* get score, non captures via static values, capture via MVV-LVA */
-      score = (pcpt==PNONE)? (evalmove (pto, sqto)-evalmove(pfrom, sqfrom)):(EvalPieceValues[GETPTYPE(pcpt)-1]*16-EvalPieceValues[GETPTYPE(pto)-1]);
-      /* pack move into 64 bits, considering castle rights and halfmovecounter and score */
-      move = (pto==PNONE)?MOVENONE:MAKEMOVE(sqfrom, sqto, sqcpt, pfrom, pto, pcpt, 0, (u64)GETHMC(lastmove), (u64)score);
-      moves[movecounter] = move;
-      movecounter+=(pto==PNONE)?0:1;
+     */
     }
   }
 
@@ -235,30 +227,32 @@ int genmoves_castles(Bitboard *board, Move *moves, int movecounter, bool stm)
   sqfrom  = first1(bbBoth[stm]&(board[QBBP1]&board[QBBP2]&~board[QBBP3]));
   pfrom   = GETPIECE(board, sqfrom);
   /* get castle rights queenside */
-  bbTempA  = (stm)?(((~board[QBBPMVD])&SMCRBLACKQ)==SMCRBLACKQ)?true:false:(((~board[QBBPMVD])&SMCRWHITEQ)==SMCRWHITEQ)?true:false;
-  /* check for emtpty squares */
-  bbTempB   = ((bbBlockers&SETMASKBB(sqfrom-1))|(bbBlockers&SETMASKBB(sqfrom-2))|(bbBlockers&SETMASKBB(sqfrom-3)));
-  /* check for kign and empty squares in check */
-  bbTempC  =  (squareunderattack(board,!stm,sqfrom)|squareunderattack(board,!stm,sqfrom-1)|squareunderattack(board,!stm,sqfrom-2));
+  bbTempA = (stm)?(((~board[QBBPMVD])&SMCRBLACKQ)==SMCRBLACKQ)?true:false:(((~board[QBBPMVD])&SMCRWHITEQ)==SMCRWHITEQ)?true:false;
+  /* check for empty squares */
+  bbTempB = ((bbBlockers&SETMASKBB(sqfrom-1))|(bbBlockers&SETMASKBB(sqfrom-2))|(bbBlockers&SETMASKBB(sqfrom-3)));
+  /* check for king and empty squares in check */
+  bbTempC =  (squareunderattack(board,!stm,sqfrom)|squareunderattack(board,!stm,sqfrom-1)|squareunderattack(board,!stm,sqfrom-2));
   /* set castle move score */
   score   = INF-100;
+  /* make move */
   move    = (bbTempA&&!bbTempB&&!bbTempC)?MAKEMOVE(sqfrom, (sqfrom-2), (sqfrom-2), pfrom, pfrom, PNONE, 0, (u64)GETHMC(lastmove), (u64)score):MOVENONE;
   move   |= (bbTempA&&!bbTempB&&!bbTempC)?MOVEISCRQ:BBEMPTY;
-
+  /* store move */
   moves[movecounter] = move;
   movecounter+=(bbTempA&&!bbTempB&&!bbTempC)?1:0;
 
   /* get castle rights kingside */
-  bbTempA  = (stm)?(((~board[QBBPMVD])&SMCRBLACKK)==SMCRBLACKK)?true:false:(((~board[QBBPMVD])&SMCRWHITEK)==SMCRWHITEK)?true:false;
-  /* check for emtpty squares */
-  bbTempB   = ((bbBlockers&SETMASKBB(sqfrom+1))|(bbBlockers&SETMASKBB(sqfrom+2)));
-  /* check for kign and empty squares in check */
-  bbTempC  =  (squareunderattack(board,!stm,sqfrom)|squareunderattack(board,!stm,sqfrom+1)|squareunderattack(board,!stm,sqfrom+2));
+  bbTempA = (stm)?(((~board[QBBPMVD])&SMCRBLACKK)==SMCRBLACKK)?true:false:(((~board[QBBPMVD])&SMCRWHITEK)==SMCRWHITEK)?true:false;
+  /* check for empty squares */
+  bbTempB = ((bbBlockers&SETMASKBB(sqfrom+1))|(bbBlockers&SETMASKBB(sqfrom+2)));
+  /* check for king and empty squares in check */
+  bbTempC =  (squareunderattack(board,!stm,sqfrom)|squareunderattack(board,!stm,sqfrom+1)|squareunderattack(board,!stm,sqfrom+2));
   /* set castle move score */
   score   = INF-100;
+  /* make move */
   move    = (bbTempA&&!bbTempB&&!bbTempC)?MAKEMOVE(sqfrom, (sqfrom+2), (sqfrom+2), pfrom, pfrom, PNONE, 0, (u64)GETHMC(lastmove), (u64)score):MOVENONE;
   move   |= (bbTempA&&!bbTempB&&!bbTempC)?MOVEISCRK:BBEMPTY;
-
+  /* store move */
   moves[movecounter] = move;
   movecounter+=(bbTempA&&!bbTempB&&!bbTempC)?1:0;
 
@@ -294,9 +288,7 @@ int genmoves_enpassant(Bitboard *board, Move *moves, int movecounter, bool stm)
   sqep    = GETSQEP(board[QBBLAST]); 
   bbWork  = bbBoth[stm]&(board[QBBP1]&~board[QBBP2]&~board[QBBP3]);
   bbWork &= (stm)? 0xFF000000 : 0xFF00000000;
-  bbTempA  = (sqep)? (stm)? bbWork&(SETMASKBB(sqep+7)|SETMASKBB(sqep+9)):
-                          bbWork&(SETMASKBB(sqep-7)|SETMASKBB(sqep-9))          
-           : BBEMPTY;
+  bbTempA = (sqep)? (stm)? bbWork&(SETMASKBB(sqep+7)|SETMASKBB(sqep+9)):bbWork&(SETMASKBB(sqep-7)|SETMASKBB(sqep-9)):BBEMPTY;
   pfrom   = MAKEPIECE(PAWN,stm);
   pto     = pfrom; 
   pcpt    = MAKEPIECE(PAWN,(u64)!stm);
@@ -364,7 +356,7 @@ int genmoves_captures(Bitboard *board, Move *moves, int movecounter, bool stm)
   /* for each piece of site to move */
   while (bbWork)
   {
-    sqfrom   = popfirst1 (&bbWork);
+    sqfrom  = popfirst1 (&bbWork);
     pfrom   = GETPIECE(board, sqfrom);
 
     /* no pawn promo */
@@ -478,10 +470,8 @@ int genmoves_noncaptures(Bitboard *board, Move *moves, int movecounter, bool stm
   Score score;
   Piece pfrom;
   Piece pto;
-  Piece pcpt;
   Square sqfrom;
   Square sqto;
-  Square sqcpt;
   Square sqep; 
   Move move;
   Move lastmove;
@@ -566,22 +556,20 @@ int genmoves_noncaptures(Bitboard *board, Move *moves, int movecounter, bool stm
     while (bbMoves)
     {
       sqto    = popfirst1(&bbMoves);
-      sqcpt   = sqto;
       pto     = pfrom;
-      pcpt    = PNONE;
 
       /* set en passant target square */
-      sqep      = (GETPTYPE(pfrom)==PAWN&&GETRRANK(sqto,stm)-GETRRANK(sqfrom,stm)==2)?(stm)?sqto+8:sqto-8:0x0; 
+      sqep    = (GETPTYPE(pfrom)==PAWN&&GETRRANK(sqto,stm)-GETRRANK(sqfrom,stm)==2)?(stm)?sqto+8:sqto-8:0x0; 
 
       /* get score, non captures via static values, capture via MVV-LVA */
       score = (evalmove (pto, sqto)-evalmove(pfrom, sqfrom));
       /* pack move into 64 bits, considering castle rights and halfmovecounter and score */
-      move = MAKEMOVE(sqfrom, sqto, sqcpt, pfrom, pto, pcpt, sqep, (u64)GETHMC(lastmove), (u64)score);
+      move = MAKEMOVE(sqfrom, sqto, sqto, pfrom, pto, PNONE, sqep, (u64)GETHMC(lastmove), (u64)score);
 
       /* legal moves only */
       /* domove */
       /* unset square from, square capture and square to */
-      bbTemp = CLRMASKBB(sqfrom)&CLRMASKBB(sqcpt)&CLRMASKBB(sqto);
+      bbTemp = CLRMASKBB(sqfrom)&CLRMASKBB(sqto);
       board[QBBBLACK] &= bbTemp;
       board[QBBP1]    &= bbTemp;
       board[QBBP2]    &= bbTemp;
@@ -599,17 +587,12 @@ int genmoves_noncaptures(Bitboard *board, Move *moves, int movecounter, bool stm
         movecounter++;
       }
       /* undomove */
-      /* unset square capture, square to */
-      bbTemp = CLRMASKBB(sqcpt)&CLRMASKBB(sqto);
+      /* unset ssquare to */
+      bbTemp = CLRMASKBB(sqto);
       board[QBBBLACK] &= bbTemp;
       board[QBBP1]    &= bbTemp;
       board[QBBP2]    &= bbTemp;
       board[QBBP3]    &= bbTemp;
-      /* restore piece capture */
-      board[QBBBLACK] |= (pcpt&0x1)<<sqcpt;
-      board[QBBP1]    |= ((pcpt>>1)&0x1)<<sqcpt;
-      board[QBBP2]    |= ((pcpt>>2)&0x1)<<sqcpt;
-      board[QBBP3]    |= ((pcpt>>3)&0x1)<<sqcpt;
       /* restore piece from */
       board[QBBBLACK] |= (pfrom&0x1)<<sqfrom;
       board[QBBP1]    |= ((pfrom>>1)&0x1)<<sqfrom;
@@ -617,209 +600,6 @@ int genmoves_noncaptures(Bitboard *board, Move *moves, int movecounter, bool stm
       board[QBBP3]    |= ((pfrom>>3)&0x1)<<sqfrom;    }
   }
   return movecounter;
-}/* generate rook moves via koggestone shifts */
-Bitboard ks_attacks_ls1(Bitboard bbBlockers, Square sq)
-{
-  Bitboard bbWrap;
-  Bitboard bbPro;
-  Bitboard bbGen;
-  Bitboard bbMoves = BBEMPTY;
-
-  /* directions left shifting <<1 ROOK */
-  bbPro   = ~bbBlockers;
-  bbGen   = SETMASKBB(sq);
-  bbWrap  = BBNOTAFILE;
-  bbPro  &= bbWrap;
-  /* do kogge stone */
-  bbGen  |= bbPro &   (bbGen << 1);
-  bbPro  &=           (bbPro << 1);
-  bbGen  |= bbPro &   (bbGen << 2*1);
-  bbPro  &=           (bbPro << 2*1);
-  bbGen  |= bbPro &   (bbGen << 4*1);
-  /* shift one further */
-  bbGen   = bbWrap &  (bbGen << 1);
-  bbMoves|= bbGen;
-
-  return bbMoves;
-}
-Bitboard ks_attacks_ls8(Bitboard bbBlockers, Square sq)
-{
-  Bitboard bbPro;
-  Bitboard bbGen;
-  Bitboard bbMoves = BBEMPTY;
-
-  /* directions left shifting <<8 ROOK */
-  bbPro   = ~bbBlockers;
-  bbGen   = SETMASKBB(sq);
-  /* do kogge stone */
-  bbGen  |= bbPro &   (bbGen << 8);
-  bbPro  &=           (bbPro << 8);
-  bbGen  |= bbPro &   (bbGen << 2*8);
-  bbPro  &=           (bbPro << 2*8);
-  bbGen  |= bbPro &   (bbGen << 4*8);
-  /* shift one further */
-  bbGen   =           (bbGen << 8);
-  bbMoves|= bbGen;
-  
-  return bbMoves;
-}
-Bitboard ks_attacks_rs1(Bitboard bbBlockers, Square sq)
-{
-  Bitboard bbWrap;
-  Bitboard bbPro;
-  Bitboard bbGen;
-  Bitboard bbMoves = BBEMPTY;
-
-  /* directions right shifting >>1 ROOK */
-  bbPro   = ~bbBlockers;
-  bbGen   = SETMASKBB(sq);
-  bbWrap  = BBNOTHFILE;
-  bbPro  &= bbWrap;
-  /* do kogge stone */
-  bbGen  |= bbPro &   (bbGen >> 1);
-  bbPro  &=           (bbPro >> 1);
-  bbGen  |= bbPro &   (bbGen >> 2*1);
-  bbPro  &=           (bbPro >> 2*1);
-  bbGen  |= bbPro &   (bbGen >> 4*1);
-  /* shift one further */
-  bbGen   = bbWrap &  (bbGen >> 1);
-  bbMoves|= bbGen;
-
-  return bbMoves;
-}
-Bitboard ks_attacks_rs8(Bitboard bbBlockers, Square sq)
-{
-  Bitboard bbPro;
-  Bitboard bbGen;
-  Bitboard bbMoves = BBEMPTY;
-
-  /* directions right shifting >>8 ROOK */
-  bbPro   = ~bbBlockers;
-  bbGen   = SETMASKBB(sq);
-  /* do kogge stone */
-  bbGen  |= bbPro &   (bbGen >> 8);
-  bbPro  &=           (bbPro >> 8);
-  bbGen  |= bbPro &   (bbGen >> 2*8);
-  bbPro  &=           (bbPro >> 2*8);
-  bbGen  |= bbPro &   (bbGen >> 4*8);
-  /* shift one further */
-  bbGen   =           (bbGen >> 8);
-  bbMoves|= bbGen;  
-
-  return bbMoves;
-}
-Bitboard rook_attacks(Bitboard bbBlockers, Square sq)
-{
-  return ks_attacks_ls1(bbBlockers, sq) |
-         ks_attacks_ls8(bbBlockers, sq) |
-         ks_attacks_rs1(bbBlockers, sq) |
-         ks_attacks_rs8(bbBlockers, sq);
-}
-/* generate bishop moves via koggestone shifts */
-Bitboard ks_attacks_ls9(Bitboard bbBlockers, Square sq)
-{
-  Bitboard bbWrap;
-  Bitboard bbPro;
-  Bitboard bbGen;
-  Bitboard bbMoves = BBEMPTY;
-
-  /* directions left shifting <<9 BISHOP */
-  bbPro   = ~bbBlockers;
-  bbGen   = SETMASKBB(sq);
-
-  bbWrap  = BBNOTAFILE;
-  bbPro  &= bbWrap;
-  /* do kogge stone */
-  bbGen  |= bbPro &   (bbGen << 9);
-  bbPro  &=           (bbPro << 9);
-  bbGen  |= bbPro &   (bbGen << 2*9);
-  bbPro  &=           (bbPro << 2*9);
-  bbGen  |= bbPro &   (bbGen << 4*9);
-  /* shift one further */
-  bbGen   = bbWrap &  (bbGen << 9);
-  bbMoves|= bbGen;
-
-  return bbMoves;
-}
-Bitboard ks_attacks_ls7(Bitboard bbBlockers, Square sq)
-{
-  Bitboard bbWrap;
-  Bitboard bbPro;
-  Bitboard bbGen;
-  Bitboard bbMoves = BBEMPTY;
-
-  /* directions left shifting <<7 BISHOP */
-  bbPro   = ~bbBlockers;
-  bbGen   = SETMASKBB(sq);
-  bbWrap  = BBNOTHFILE;
-  bbPro  &= bbWrap;
-  /* do kogge stone */
-  bbGen  |= bbPro &   (bbGen << 7);
-  bbPro  &=           (bbPro << 7);
-  bbGen  |= bbPro &   (bbGen << 2*7);
-  bbPro  &=           (bbPro << 2*7);
-  bbGen  |= bbPro &   (bbGen << 4*7);
-  /* shift one further */
-  bbGen   = bbWrap &  (bbGen << 7);
-  bbMoves|= bbGen;
-
-  return bbMoves;
-}
-Bitboard ks_attacks_rs9(Bitboard bbBlockers, Square sq)
-{
-  Bitboard bbWrap;
-  Bitboard bbPro;
-  Bitboard bbGen;
-  Bitboard bbMoves = BBEMPTY;
-
-  /* directions right shifting >>9 ROOK */
-  bbPro   = ~bbBlockers;
-  bbGen   = SETMASKBB(sq);
-  bbWrap  = BBNOTHFILE;
-  bbPro  &= bbWrap;
-  /* do kogge stone */
-  bbGen  |= bbPro &   (bbGen >> 9);
-  bbPro  &=           (bbPro >> 9);
-  bbGen  |= bbPro &   (bbGen >> 2*9);
-  bbPro  &=           (bbPro >> 2*9);
-  bbGen  |= bbPro &   (bbGen >> 4*9);
-  /* shift one further */
-  bbGen   = bbWrap &  (bbGen >> 9);
-  bbMoves|= bbGen;
-
-  return bbMoves;
-}
-Bitboard ks_attacks_rs7(Bitboard bbBlockers, Square sq)
-{
-  Bitboard bbWrap;
-  Bitboard bbPro;
-  Bitboard bbGen;
-  Bitboard bbMoves = BBEMPTY;
-
-  /* directions right shifting <<7 ROOK */
-  bbPro   = ~bbBlockers;
-  bbGen   = SETMASKBB(sq);
-  bbWrap  = BBNOTAFILE;
-  bbPro  &= bbWrap;
-  /* do kogge stone */
-  bbGen  |= bbPro &   (bbGen >> 7);
-  bbPro  &=           (bbPro >> 7);
-  bbGen  |= bbPro &   (bbGen >> 2*7);
-  bbPro  &=           (bbPro >> 2*7);
-  bbGen  |= bbPro &   (bbGen >> 4*7);
-  /* shift one further */
-  bbGen   = bbWrap &  (bbGen >> 7);
-  bbMoves|= bbGen;
-
-  return bbMoves;
-}
-
-Bitboard bishop_attacks(Bitboard bbBlockers, Square sq)
-{
-  return ks_attacks_ls7(bbBlockers, sq) |
-         ks_attacks_ls9(bbBlockers, sq) |
-         ks_attacks_rs7(bbBlockers, sq) |
-         ks_attacks_rs9(bbBlockers, sq);
 }
 /* generate all pieces via generalized KoggeStone bitboard approach */
 /* based on work by Steffan Westcott */
@@ -1040,29 +820,31 @@ int genmoves_general(Bitboard *board, Move *moves, int movecounter, bool stm, bo
   pfrom   = GETPIECE(board, sqfrom);
   /* get castle rights queenside */
   bbTemp  = (stm)?(((~board[QBBPMVD])&SMCRBLACKQ)==SMCRBLACKQ)?true:false:(((~board[QBBPMVD])&SMCRWHITEQ)==SMCRWHITEQ)?true:false;
-  /* check for emtpty squares */
+  /* check for empty squares */
   bbPro   = ((bbBlockers&SETMASKBB(sqfrom-1))|(bbBlockers&SETMASKBB(sqfrom-2))|(bbBlockers&SETMASKBB(sqfrom-3)));
-  /* check for kign and empty squares in check */
+  /* check for king and empty squares in check */
   bbGen  =  (squareunderattack(board,!stm,sqfrom)|squareunderattack(board,!stm,sqfrom-1)|squareunderattack(board,!stm,sqfrom-2));
   /* set castle move score */
   score   = INF-100;
+  /* make move */
   move    = (bbTemp&&!bbPro&&!bbGen)?MAKEMOVE(sqfrom, (sqfrom-2), (sqfrom-2), pfrom, pfrom, PNONE, 0, (u64)GETHMC(lastmove), (u64)score):MOVENONE;
   move   |= (bbTemp&&!bbPro&&!bbGen)?MOVEISCRQ:BBEMPTY;
-
+  /* store move */
   moves[movecounter] = move;
   movecounter+=(bbTemp&&!bbPro&&!bbGen)?1:0;
 
   /* get castle rights kingside */
   bbTemp  = (stm)?(((~board[QBBPMVD])&SMCRBLACKK)==SMCRBLACKK)?true:false:(((~board[QBBPMVD])&SMCRWHITEK)==SMCRWHITEK)?true:false;
-  /* check for emtpty squares */
+  /* check for empty squares */
   bbPro   = ((bbBlockers&SETMASKBB(sqfrom+1))|(bbBlockers&SETMASKBB(sqfrom+2)));
-  /* check for kign and empty squares in check */
+  /* check for king and empty squares in check */
   bbGen  =  (squareunderattack(board,!stm,sqfrom)|squareunderattack(board,!stm,sqfrom+1)|squareunderattack(board,!stm,sqfrom+2));
   /* set castle move score */
   score   = INF-100;
+  /* make move */
   move    = (bbTemp&&!bbPro&&!bbGen)?MAKEMOVE(sqfrom, (sqfrom+2), (sqfrom+2), pfrom, pfrom, PNONE, 0, (u64)GETHMC(lastmove), (u64)score):MOVENONE;
   move   |= (bbTemp&&!bbPro&&!bbGen)?MOVEISCRK:BBEMPTY;
-
+  /* store move */
   moves[movecounter] = move;
   movecounter+=(bbTemp&&!bbPro&&!bbGen)?1:0;
 
@@ -1090,5 +872,209 @@ int genmoves(Bitboard *board, Move *moves, int movecounter, bool stm, bool qs)
     movecounter = genmoves_noncaptures(board, moves, movecounter, stm);
 
   return movecounter;
+}
+/* generate rook moves via koggestone shifts */
+Bitboard ks_attacks_ls1(Bitboard bbBlockers, Square sq)
+{
+  Bitboard bbWrap;
+  Bitboard bbPro;
+  Bitboard bbGen;
+  Bitboard bbMoves = BBEMPTY;
+
+  /* directions left shifting <<1 ROOK */
+  bbPro   = ~bbBlockers;
+  bbGen   = SETMASKBB(sq);
+  bbWrap  = BBNOTAFILE;
+  bbPro  &= bbWrap;
+  /* do kogge stone */
+  bbGen  |= bbPro &   (bbGen << 1);
+  bbPro  &=           (bbPro << 1);
+  bbGen  |= bbPro &   (bbGen << 2*1);
+  bbPro  &=           (bbPro << 2*1);
+  bbGen  |= bbPro &   (bbGen << 4*1);
+  /* shift one further */
+  bbGen   = bbWrap &  (bbGen << 1);
+  bbMoves|= bbGen;
+
+  return bbMoves;
+}
+Bitboard ks_attacks_ls8(Bitboard bbBlockers, Square sq)
+{
+  Bitboard bbPro;
+  Bitboard bbGen;
+  Bitboard bbMoves = BBEMPTY;
+
+  /* directions left shifting <<8 ROOK */
+  bbPro   = ~bbBlockers;
+  bbGen   = SETMASKBB(sq);
+  /* do kogge stone */
+  bbGen  |= bbPro &   (bbGen << 8);
+  bbPro  &=           (bbPro << 8);
+  bbGen  |= bbPro &   (bbGen << 2*8);
+  bbPro  &=           (bbPro << 2*8);
+  bbGen  |= bbPro &   (bbGen << 4*8);
+  /* shift one further */
+  bbGen   =           (bbGen << 8);
+  bbMoves|= bbGen;
+  
+  return bbMoves;
+}
+Bitboard ks_attacks_rs1(Bitboard bbBlockers, Square sq)
+{
+  Bitboard bbWrap;
+  Bitboard bbPro;
+  Bitboard bbGen;
+  Bitboard bbMoves = BBEMPTY;
+
+  /* directions right shifting >>1 ROOK */
+  bbPro   = ~bbBlockers;
+  bbGen   = SETMASKBB(sq);
+  bbWrap  = BBNOTHFILE;
+  bbPro  &= bbWrap;
+  /* do kogge stone */
+  bbGen  |= bbPro &   (bbGen >> 1);
+  bbPro  &=           (bbPro >> 1);
+  bbGen  |= bbPro &   (bbGen >> 2*1);
+  bbPro  &=           (bbPro >> 2*1);
+  bbGen  |= bbPro &   (bbGen >> 4*1);
+  /* shift one further */
+  bbGen   = bbWrap &  (bbGen >> 1);
+  bbMoves|= bbGen;
+
+  return bbMoves;
+}
+Bitboard ks_attacks_rs8(Bitboard bbBlockers, Square sq)
+{
+  Bitboard bbPro;
+  Bitboard bbGen;
+  Bitboard bbMoves = BBEMPTY;
+
+  /* directions right shifting >>8 ROOK */
+  bbPro   = ~bbBlockers;
+  bbGen   = SETMASKBB(sq);
+  /* do kogge stone */
+  bbGen  |= bbPro &   (bbGen >> 8);
+  bbPro  &=           (bbPro >> 8);
+  bbGen  |= bbPro &   (bbGen >> 2*8);
+  bbPro  &=           (bbPro >> 2*8);
+  bbGen  |= bbPro &   (bbGen >> 4*8);
+  /* shift one further */
+  bbGen   =           (bbGen >> 8);
+  bbMoves|= bbGen;  
+
+  return bbMoves;
+}
+Bitboard rook_attacks(Bitboard bbBlockers, Square sq)
+{
+  return ks_attacks_ls1(bbBlockers, sq) |
+         ks_attacks_ls8(bbBlockers, sq) |
+         ks_attacks_rs1(bbBlockers, sq) |
+         ks_attacks_rs8(bbBlockers, sq);
+}
+/* generate bishop moves via koggestone shifts */
+Bitboard ks_attacks_ls9(Bitboard bbBlockers, Square sq)
+{
+  Bitboard bbWrap;
+  Bitboard bbPro;
+  Bitboard bbGen;
+  Bitboard bbMoves = BBEMPTY;
+
+  /* directions left shifting <<9 BISHOP */
+  bbPro   = ~bbBlockers;
+  bbGen   = SETMASKBB(sq);
+
+  bbWrap  = BBNOTAFILE;
+  bbPro  &= bbWrap;
+  /* do kogge stone */
+  bbGen  |= bbPro &   (bbGen << 9);
+  bbPro  &=           (bbPro << 9);
+  bbGen  |= bbPro &   (bbGen << 2*9);
+  bbPro  &=           (bbPro << 2*9);
+  bbGen  |= bbPro &   (bbGen << 4*9);
+  /* shift one further */
+  bbGen   = bbWrap &  (bbGen << 9);
+  bbMoves|= bbGen;
+
+  return bbMoves;
+}
+Bitboard ks_attacks_ls7(Bitboard bbBlockers, Square sq)
+{
+  Bitboard bbWrap;
+  Bitboard bbPro;
+  Bitboard bbGen;
+  Bitboard bbMoves = BBEMPTY;
+
+  /* directions left shifting <<7 BISHOP */
+  bbPro   = ~bbBlockers;
+  bbGen   = SETMASKBB(sq);
+  bbWrap  = BBNOTHFILE;
+  bbPro  &= bbWrap;
+  /* do kogge stone */
+  bbGen  |= bbPro &   (bbGen << 7);
+  bbPro  &=           (bbPro << 7);
+  bbGen  |= bbPro &   (bbGen << 2*7);
+  bbPro  &=           (bbPro << 2*7);
+  bbGen  |= bbPro &   (bbGen << 4*7);
+  /* shift one further */
+  bbGen   = bbWrap &  (bbGen << 7);
+  bbMoves|= bbGen;
+
+  return bbMoves;
+}
+Bitboard ks_attacks_rs9(Bitboard bbBlockers, Square sq)
+{
+  Bitboard bbWrap;
+  Bitboard bbPro;
+  Bitboard bbGen;
+  Bitboard bbMoves = BBEMPTY;
+
+  /* directions right shifting >>9 ROOK */
+  bbPro   = ~bbBlockers;
+  bbGen   = SETMASKBB(sq);
+  bbWrap  = BBNOTHFILE;
+  bbPro  &= bbWrap;
+  /* do kogge stone */
+  bbGen  |= bbPro &   (bbGen >> 9);
+  bbPro  &=           (bbPro >> 9);
+  bbGen  |= bbPro &   (bbGen >> 2*9);
+  bbPro  &=           (bbPro >> 2*9);
+  bbGen  |= bbPro &   (bbGen >> 4*9);
+  /* shift one further */
+  bbGen   = bbWrap &  (bbGen >> 9);
+  bbMoves|= bbGen;
+
+  return bbMoves;
+}
+Bitboard ks_attacks_rs7(Bitboard bbBlockers, Square sq)
+{
+  Bitboard bbWrap;
+  Bitboard bbPro;
+  Bitboard bbGen;
+  Bitboard bbMoves = BBEMPTY;
+
+  /* directions right shifting <<7 ROOK */
+  bbPro   = ~bbBlockers;
+  bbGen   = SETMASKBB(sq);
+  bbWrap  = BBNOTAFILE;
+  bbPro  &= bbWrap;
+  /* do kogge stone */
+  bbGen  |= bbPro &   (bbGen >> 7);
+  bbPro  &=           (bbPro >> 7);
+  bbGen  |= bbPro &   (bbGen >> 2*7);
+  bbPro  &=           (bbPro >> 2*7);
+  bbGen  |= bbPro &   (bbGen >> 4*7);
+  /* shift one further */
+  bbGen   = bbWrap &  (bbGen >> 7);
+  bbMoves|= bbGen;
+
+  return bbMoves;
+}
+
+Bitboard bishop_attacks(Bitboard bbBlockers, Square sq)
+{
+  return ks_attacks_ls7(bbBlockers, sq) |
+         ks_attacks_ls9(bbBlockers, sq) |
+         ks_attacks_rs7(bbBlockers, sq) |
+         ks_attacks_rs9(bbBlockers, sq);
 }
 

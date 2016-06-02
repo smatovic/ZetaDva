@@ -479,9 +479,10 @@ bool kingincheck(Bitboard *board, bool stm)
 
   /* get colored king */
   bbKing &= board[QBBP1]&board[QBBP2]&~board[QBBP3];
+  /* get king square */
   sqking  = first1(bbKing);
 
-  return squareunderattack (board, !stm, sqking);
+  return squareunderattack(board, !stm, sqking);
 }
 /* check for two opposite kings */
 bool isvalid(Bitboard *board)
