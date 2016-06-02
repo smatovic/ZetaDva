@@ -70,7 +70,7 @@ Score evalstatic(Bitboard *board)
       /* piece square tables */
       score+= (side)? -EvalTable[(piecet-1)*64+sq] : EvalTable[(piecet-1)*64+FLOP(sq)];
       /* square control table */
-      score+= (side)? -EvalControl[sq]             : EvalControl[FLOP(sq)];
+      score+= (side)? -EvalControl[sq]             : EvalControl[sq];
     }
   }
   return score;
@@ -106,7 +106,7 @@ Score eval(Bitboard *board)
       /* piece square tables */
       score+= (side)?-EvalTable[(piecet-1)*64+sq]:EvalTable[(piecet-1)*64+FLOP(sq)];
       /* square control table */
-      score+= (side)?-EvalControl[sq]:EvalControl[FLOP(sq)];
+      score+= (side)?-EvalControl[sq]:EvalControl[sq];
       /* simple pawn structure white */
       /* blocked */
       score-=(piecet==PAWN&&!side&&GETRANK(sq)<RANK_8&&(board[!side]&SETMASKBB(sq+8)))?15:0;
