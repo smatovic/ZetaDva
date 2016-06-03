@@ -84,7 +84,7 @@ File.open(argepd, 'r') do |f1|
     j = 0;
     # wait until result comes up in file
     while (j<=i)
-      sleep(0.1)
+      sleep(0.001)
       j = IO.readlines(argfile).count
     end
     # time measurement
