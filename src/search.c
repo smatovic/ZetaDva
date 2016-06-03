@@ -83,10 +83,8 @@ Score qsearch(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth)
   NODECOUNT++;
 
   kic = kingincheck(board, stm);
-/*
   score = eval(board);
   score = (stm)? -score : score;
-*/
   /* get static, incremental board score */
   score = (stm)? -boardscore : boardscore;
 
@@ -112,8 +110,10 @@ Score qsearch(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth)
   /* quiet leaf node, return  evaluation board score */
   if (movecounter==0)
   {
+/*
     score = eval(board);
-    score = (stm)? -score : score;  /* consider negated scores for black */
+    score = (stm)? -score : score;
+*/
     return score;
   }
   /* iterate through moves */
@@ -304,12 +304,12 @@ Move rootsearch(Bitboard *board, bool stm, s32 depth)
   if (!xboard_mode&&!epd_mode)
       fprintf(stdout, "ply score time nodes pv\n");
   /* iterative deepening framework */
-  alpha = -INF;
-  beta  =  INF;
   do {
-
     if (TIMEOUT)
       break;
+
+    alpha = -INF;
+    beta  =  INF;
 
     /* first move, full window */
     domove(board, moves[0]);
@@ -324,10 +324,11 @@ Move rootsearch(Bitboard *board, bool stm, s32 depth)
       if (TIMEOUT)
         break;
       domove(board, moves[i]);
-      /* null window */
+      /* null window 
       score = -negamax(board, !stm, -alpha-1, -alpha, idf-1);
       if (score>alpha)
-        score = -negamax(board, !stm, -beta, -alpha, idf-1);
+      */
+      score = -negamax(board, !stm, -beta, -alpha, idf-1);
       undomove(board, moves[i], lastmove, cr, boardscore);
 
       if(score>alpha)

@@ -295,7 +295,7 @@ void domove(Bitboard *board, Move move)
   /* add piece to */
   score+= evalmove(pto, sqto);
   /* negated values for black please */
-  score= (GETCOLOR(pfrom))? -score:score;
+  score= (GETCOLOR(pfrom))?-score:score;
   /* get incremental,static, board score */
   boardscore = (Score)board[QBBSCORE];
   boardscore+= score;
@@ -781,6 +781,7 @@ static void move2can(Move move, char * movec)
   movec[1] = rankc[GETRANK(from)];
   movec[2] = filec[GETFILE(to)];
   movec[3] = rankc[GETRANK(to)];
+  movec[4] = '\0';
 
   /* pawn promo */
   if ( (pfrom>>1) == PAWN && (pto>>1) != PAWN)
@@ -793,6 +794,7 @@ static void move2can(Move move, char * movec)
       movec[4] = 'b';
     if ( (pto>>1) == KNIGHT)
       movec[4] = 'n';
+    movec[5] = '\0';
   }
 }
 void printmovecan(Move move)
@@ -1617,7 +1619,8 @@ int main(int argc, char* argv[])
         elapsed /= 1000;
         MoveHistory[PLY] = move;
         domove(BOARD, move);
-        fprintf(stdout,"move ");
+        if (!epd_mode)
+          fprintf(stdout,"move ");
         printmovecan(move);
         fprintf(stdout,"\n");
         if (!xboard_mode&&!epd_mode)
@@ -1734,7 +1737,8 @@ int main(int argc, char* argv[])
 
         MoveHistory[PLY] = move;
         domove(BOARD, move);
-        fprintf(stdout,"move ");
+        if (!epd_mode)
+          fprintf(stdout,"move ");
         printmovecan(move);
         fprintf(stdout,"\n");
         if (!xboard_mode&&!epd_mode)
