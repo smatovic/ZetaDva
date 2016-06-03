@@ -24,7 +24,7 @@
 /* population count, Donald Knuth SWAR style */
 /* as described on CWP */
 /* http://chessprogramming.wikispaces.com/Population+Count#SWAR-Popcount */
-u64 popcount (u64 x) 
+u64 popcount(u64 x) 
 {
   x =  x                        - ((x >> 1)  & 0x5555555555555555);
   x = (x & 0x3333333333333333)  + ((x >> 2)  & 0x3333333333333333);
@@ -33,12 +33,12 @@ u64 popcount (u64 x)
   return x;
 }
 /*  pre condition: x != 0; */
-u64 first1 (u64 x)
+u64 first1(u64 x)
 {
   return popcount((x&-x)-1);
 }
 /*  pre condition: x != 0; */
-u64 popfirst1 (u64 *a)
+u64 popfirst1(u64 *a)
 {
   u64 b = *a;
   *a &= (*a-1);  /* clear lsb  */

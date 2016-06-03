@@ -24,8 +24,8 @@
 
 #include "types.h"      /* custom types, board defs, data structures, macros */
 
-int popcount (u64 x);
-int first1 (u64 x);     /* precondition x!=0 */
+int popcount(u64 x);
+int first1(u64 x);     /* precondition x!=0 */
 int popfirst1(u64 *a);  /* precondition x!=0 */
 
 #endif /* BITBOARD_H_INCLUDED */
