@@ -133,6 +133,7 @@ typedef u64             Rank;
 #define SMCRBLACKK          0x9000000000000000ULL
 /* move helpers */
 #define MAKEPIECE(p,c)     (((p)<<1)|c)
+#define JUSTMOVE(move)     (move&SMMOVE)
 #define GETCOLOR(p)        ((p)&0x1)
 #define GETPTYPE(p)        (((p)>>1)&0x7)      /* 3 bit piece type encoding */
 #define GETSQFROM(mv)      ((mv)&0x3F)         /* 6 bit square */
@@ -207,6 +208,19 @@ enum Squares
   SQ_A7, SQ_B7, SQ_C7, SQ_D7, SQ_E7, SQ_F7, SQ_G7, SQ_H7,
   SQ_A8, SQ_B8, SQ_C8, SQ_D8, SQ_E8, SQ_F8, SQ_G8, SQ_H8
 };
+/* transposition table entry */
+struct TTE {
+        Hash hash;
+        Move bestmove;
+        Score score;
+        signed char flag;
+        s32 depth;
+        s32 ply;
+};
+/* tt flags */
+#define EXACTSCORE      0
+#define FAILHIGH        1
+#define FAILLOW        -1
 
 #endif /* TYPES_H_INCLUDED */
 

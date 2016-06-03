@@ -324,11 +324,11 @@ Move rootsearch(Bitboard *board, bool stm, s32 depth)
       if (TIMEOUT)
         break;
       domove(board, moves[i]);
-      /* null window 
-      score = -negamax(board, !stm, -alpha-1, -alpha, idf-1);
-      if (score>alpha)
-      */
-      score = -negamax(board, !stm, -beta, -alpha, idf-1);
+      /* null window */
+      score = -negamax(board, !stm, -(alpha+1), -alpha, idf-1);
+      /* research */
+      if (score>alpha&&score<beta)
+        score = -negamax(board, !stm, -beta, -alpha, idf-1);
       undomove(board, moves[i], lastmove, cr, boardscore);
 
       if(score>alpha)

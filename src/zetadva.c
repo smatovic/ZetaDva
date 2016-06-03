@@ -59,8 +59,8 @@ double MaxTime  = 5*1000;  /* max time per move */
 /* game state */
 bool STM            = WHITE;  /* site to move */
 s32 SD              = MAXPLY; /* max search depth*/
-u32 GAMEPLY         = 0;      /* total ply, considering depth via fen string */
-u32 PLY             = 0;      /* engine specifix ply counter */
+s32 GAMEPLY         = 0;      /* total ply, considering depth via fen string */
+s32 PLY             = 0;      /* engine specifix ply counter */
 Move *MoveHistory;           /* last game moves indexed by ply */
 Hash *HashHistory;           /* last game hashes indexed by ply */
 /* Quad Bitboard */
@@ -86,13 +86,16 @@ static void print_help(void);
 static void print_version(void);
 static void selftest(void);
 static bool setboard(Bitboard *board, char *fenstring);
-static void createfen(char *fenstring, Bitboard *board, bool stm, int gameply);
+static void createfen(char *fenstring, Bitboard *board, bool stm, s32 gameply);
 static void move2can(Move move, char *movec);
 static void move2san(Bitboard *board, Move move, char *movec);
 static Move can2move(char *usermove, Bitboard *board, bool stm);
 static void print_move(Move move);
 void printboard(Bitboard *board);
 void printbitboard(Bitboard board);
+/* transposition hash table */
+struct TTE *TT = NULL;
+u64 ttbits = 0;
 
 /* release memory, files and tables */
 static bool release_inits(void)
@@ -111,18 +114,61 @@ static bool release_inits(void)
     free(MoveHistory);
   if (HashHistory!=NULL) 
     free(HashHistory);
+  if (TT != NULL) 
+    free(TT);
 
   return true;
 }
+static void initTT(u32 mb) 
+{
+  u64 val = mb*1024*1024/sizeof(struct TTE);
+
+  ttbits = 0;
+  while ( val >>= 1)   /* get msb */
+    ttbits++;
+  val = 1ULL<<ttbits;   /* get number of tt entries */
+  if (TT != NULL)
+    free(TT);
+  TT = (struct TTE*)calloc(val,sizeof(struct TTE));
+  if (TT==NULL)
+    fprintf(stdout,"Error (hash table memory allocation, %u mb, failed): memory", mb);
+}
+void save_to_tt(Hash hash, Move move, Score score, signed char flag, s32 depth, s32 ply)
+{
+  struct TTE *tete;
+
+  /* exit when timeout */
+  if (TIMEOUT==true)
+    return;
+
+  tete = &TT[((hash))&(ttbits-1)];
+  tete->hash      = hash;
+  tete->bestmove  = JUSTMOVE(move);
+  tete->score     = score;
+  tete->flag      = flag;
+  tete->depth     = depth;
+  tete->ply       = ply;
+}
+struct TTE *load_from_tt(Hash hash)
+{
+  struct TTE *tete;
+
+  tete = &TT[((hash))&(ttbits-1)];
+  if (hash==tete->hash)
+    return tete;
+
+  return NULL;
+}
+
 /* innitialize memory, files and tables */
 static bool inits(void)
 {
   /* memory allocation */
-  Line         = calloc(1024       , sizeof (char));
-  Command      = calloc(1024       , sizeof (char));
-  Fen          = calloc(1024       , sizeof (char));
-  MoveHistory = calloc(MAXGAMEPLY , sizeof (Move));
-  HashHistory = calloc(MAXGAMEPLY , sizeof (Hash));
+  Line         = (char *)calloc(1024       , sizeof (char));
+  Command      = (char *)calloc(1024       , sizeof (char));
+  Fen          = (char *)calloc(1024       , sizeof (char));
+  MoveHistory = (Move *)calloc(MAXGAMEPLY , sizeof (Move));
+  HashHistory = (Hash *)calloc(MAXGAMEPLY , sizeof (Hash));
 
   if (Line==NULL) 
   {
@@ -1420,6 +1466,9 @@ int main(int argc, char* argv[])
     release_inits ();
     exit (EXIT_FAILURE);
   }
+  /* init transposition hash table with 64 mb*/
+  initTT(64);
+
   /* open log file */
   if (LogFile != NULL)
   {
@@ -1703,6 +1752,9 @@ int main(int argc, char* argv[])
     /* memory for hash size  */
 		if (!strcmp(Command, "memory"))
     {
+      s32 xboardmb = 0;
+      sscanf(Line, "time %d", &xboardmb);
+      initTT(xboardmb);
       continue;
     }
     if (!strcmp(Command, "usermove"))
