@@ -107,7 +107,7 @@ File.open(argepd, 'r') do |f1|
       puts id + bm + "!=" + epdbm
     end
   end
-p "passed " + passed.to_s + " from " + tested.to_s + " in roughly." + (totalelapsed_time/1000).to_s.slice(0,4) + " seconds" 
+p "passed " + passed.to_s + " from " + tested.to_s + " in roughly " + (totalelapsed_time/1000).to_s.slice(0,4) + " seconds" 
 end
 
 File.delete(argfile)
