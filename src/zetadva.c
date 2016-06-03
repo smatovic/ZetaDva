@@ -595,7 +595,6 @@ void printmove(Move move)
 /* move in algebraic notation, eg. e2e4, to internal packed move  */
 static Move can2move(char *usermove, Bitboard *board, bool stm) 
 {
-
   File file;
   Rank rank;
   Square sqfrom;
@@ -620,33 +619,44 @@ static Move can2move(char *usermove, Bitboard *board, bool stm)
   sqcpt = sqto;
   pcpt = GETPIECE(board, sqcpt);
 
-  /* en passant move */
-  sqcpt = ( (pfrom>>1) == PAWN && (stm == WHITE) && GETRANK(sqfrom) == RANK_5  
-            && sqto-sqfrom != 8 && (pcpt>>1) == PNONE ) ? sqto-8 : sqcpt;
-  sqcpt = ( (pfrom>>1) == PAWN && (stm == BLACK) && GETRANK(sqfrom) == RANK_4  
-            && sqfrom-sqto != 8 && (pcpt>>1) == PNONE ) ? sqto+8 : sqcpt;
+  /* en passant move , set square capture */
+  sqcpt = ((pfrom>>1)==PAWN&&(stm==WHITE)&&GETRANK(sqfrom)==RANK_5  
+            &&sqto-sqfrom!=8&&pcpt==PNONE)?sqto-8:sqcpt;
+
+  sqcpt = ((pfrom>>1)==PAWN&&(stm==BLACK)&&GETRANK(sqfrom)==RANK_4  
+            &&sqfrom-sqto!=8 &&pcpt==PNONE)?sqto+8:sqcpt;
 
   pcpt = GETPIECE(board, sqcpt);
 
   /* pawn double square move, set en passant target square */
-  if ( (pfrom>>1) == PAWN && GETRRANK(sqto,stm) - GETRRANK(sqfrom,stm) == 2 )
+  if ((pfrom>>1)==PAWN&&GETRRANK(sqfrom,stm)==1&&GETRRANK(sqto,stm)==3)
     sqep = sqto;
 
   /* pawn promo piece */
   promopiece = usermove[4];
   if (promopiece == 'q' || promopiece == 'Q' )
-      pto = MAKEPIECE(QUEEN,(u64)stm);
+      pto = MAKEPIECE(QUEEN,stm);
   else if (promopiece == 'n' || promopiece == 'N' )
-      pto = MAKEPIECE(KNIGHT,(u64)stm);
+      pto = MAKEPIECE(KNIGHT,stm);
   else if (promopiece == 'b' || promopiece == 'B' )
-      pto = MAKEPIECE(BISHOP,(u64)stm);
+      pto = MAKEPIECE(BISHOP,stm);
   else if (promopiece == 'r' || promopiece == 'R' )
-      pto = MAKEPIECE(ROOK,(u64)stm);
+      pto = MAKEPIECE(ROOK,stm);
 
   /* pack move, considering hmc, cr and score */
   move = MAKEMOVE(sqfrom, sqto, sqcpt, pfrom, pto , pcpt, sqep,
-                    GETHMC(board[QBBLAST]), (u64)0);
+                  GETHMC(board[QBBLAST]), (u64)0);
 
+  /* set castle move flag */
+  if ((pfrom>>1)==KING&&!stm&&sqfrom==4&&sqto==2)
+    move |= MOVEISCRQ;
+  if ((pfrom>>1)==KING&&!stm&&sqfrom==4&&sqto==6)
+    move |= MOVEISCRK;
+  if ((pfrom>>1)==KING&&stm&&sqfrom==60&&sqto==58)
+    move |= MOVEISCRQ;
+  if ((pfrom>>1)==KING&&stm&&sqfrom==60&&sqto==62)
+    move |= MOVEISCRK;
+ 
   return move;
 }
 /* packed move to move in coordinate algebraic notation,
@@ -1590,11 +1600,10 @@ int main(int argc, char* argv[])
         fprintf(stdout,"feature name=0\n");
         fprintf(stdout,"feature pause=0\n");
         fprintf(stdout,"feature nps=0\n");
-        fprintf(stdout,"feature debug=0\n");
+        fprintf(stdout,"feature debug=1\n");
         fprintf(stdout,"feature memory=1\n");
         fprintf(stdout,"feature smp=0\n");
         fprintf(stdout,"feature san=0\n");
-        fprintf(stdout,"feature debug=0\n");
         fprintf(stdout,"feature exclude=0\n");
         fprintf(stdout,"feature done=1\n");
       }
@@ -1900,6 +1909,11 @@ int main(int argc, char* argv[])
     {
       continue;
     }
+		if (!strcmp(Command, "undo"))
+    {
+      continue;
+    }
+
     /* non xboard commands */
     /* do an node count to depth defined via sd  */
     if (!xboard_mode && !strcmp(Command, "perft"))
@@ -1967,7 +1981,7 @@ int main(int argc, char* argv[])
       }
       continue;
     }
-		if (!strcmp(Command, "undo")||
+		if (
         !strcmp(Command, "remove")||
         !strcmp(Command, "analyze")||
         !strcmp(Command, "pause")||
