@@ -240,8 +240,10 @@ int cmp_move_desc(const void *ap, const void *bp)
 /* apply move on board */
 void domove(Bitboard *board, Move move)
 {
+  /*
   Score boardscore;
   Score score     = 0;
+  */
   Square sqfrom   = GETSQFROM(move);
   Square sqto     = GETSQTO(move);
   Square sqcpt    = GETSQCPT(move);
@@ -297,11 +299,10 @@ void domove(Bitboard *board, Move move)
   board[QBBPMVD]  |= (pcastle)?SETMASKBB(sqfrom-4):BBEMPTY;
   /* reset halfmoveclok */
   hmc = (pcastle)?0:hmc;  /* castle move */
-  /* do score increment */
-  /* sub piece from */
+  /* do score increment 
   score-= (pcastle==PNONE)?0:evalmove(pcastle, sqfrom-4);
-  /* add piece to */
   score+= (pcastle==PNONE)?0:evalmove(pcastle, sqto+1);
+  */
 
   /* handle castle rook, kingside */
   pcastle = (move&MOVEISCRK)?MAKEPIECE(ROOK,GETCOLOR(pfrom)):PNONE;
@@ -320,11 +321,10 @@ void domove(Bitboard *board, Move move)
   board[QBBPMVD]  |= (pcastle)?SETMASKBB(sqfrom+3):BBEMPTY;
   /* reset halfmoveclok */
   hmc = (pcastle)?0:hmc;  /* castle move */
-  /* do score increment */
-  /* sub piece from */
+  /* do score increment 
   score-= (pcastle==PNONE)?0:evalmove(pcastle, sqfrom+3);
-  /* add piece to */
   score+= (pcastle==PNONE)?0:evalmove(pcastle, sqto-1);
+  */
 
   /* handle halfmove clock */
   hmc = (GETPTYPE(pfrom)==PAWN)?0:hmc;   /* pawn move */
@@ -333,20 +333,15 @@ void domove(Bitboard *board, Move move)
   /* store hmc in board */  
   board[QBBLAST] = SETHMC(board[QBBLAST], hmc);
 
-  /* do score increment */
-  /* sub piece from */
+  /* do score increment 
   score-= evalmove(pfrom, sqfrom);
-  /* sub piece cpt */
   score+= (pcpt==PNONE)?0:evalmove(pcpt, sqcpt);
-  /* add piece to */
   score+= evalmove(pto, sqto);
-  /* negated values for black please */
   score= (GETCOLOR(pfrom))?-score:score;
-  /* get incremental,static, board score */
   boardscore = (Score)board[QBBSCORE];
   boardscore+= score;
-  /* store score in board */
   board[QBBSCORE] = (u64)boardscore;
+  */
 }
 /* apply move on board, quick during move generation */
 void domovequick(Bitboard *board, Move move)
