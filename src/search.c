@@ -83,11 +83,12 @@ Score qsearch(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth)
   NODECOUNT++;
 
   kic = kingincheck(board, stm);
+
   score = eval(board);
   score = (stm)? -score : score;
   /* get static, incremental board score 
   score = (stm)? -boardscore : boardscore;
-  */  
+  */
 
   /* stand pat */
   if( !kic && score >= beta )
