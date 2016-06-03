@@ -25,8 +25,13 @@
 #include "bitboard.h"   /* for population count, pop_count */
 #include "eval.h"       /* for evalmove and eval */
 #include "movegen.h"    /* for move generator thingies */
+#include "timer.h"      /* for time measurement */
 #include "types.h"      /* custom types, board defs, data structures, macros */
 #include "zetadva.h"    /* for global vars */
+
+extern bool xboard_post;
+extern bool xboard_mode;
+extern bool epd_mode;
 
 /* forward declaration */
 Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth);
@@ -151,6 +156,15 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth)
   if (depth == 0)
     return qsearch(board, stm, alpha, beta, depth-1);
 
+  /* time out? */  
+  end = get_time();
+  elapsed = end-start;
+  if (elapsed>=MaxTime)
+  {
+    TIMEOUT=true;
+    return 0;
+  }    
+
   NODECOUNT++;
 
   /* generate pawn promo moves first */  
@@ -251,14 +265,21 @@ Move rootsearch(Bitboard *board, bool stm, s32 depth)
   bool kic = false;
   Score score;
   Score boardscore = (Score)board[QBBSCORE];
-  Score alpha = -INF;
-  Score beta  =  INF;
+  Score alpha;
+  Score beta;
   s32 i = 0;
+  s32 idf = 1;
   s32 movecounter = 0;
   Cr cr = board[QBBPMVD];
+  Move rootmove = MOVENONE;
   Move bestmove = MOVENONE;
   Move lastmove = board[QBBLAST];
   Move moves[MAXMOVES];
+
+  TIMEOUT   = false;
+  NODECOUNT = 0;
+  MOVECOUNT = 0;
+  start = get_time();
 
   kic = kingincheck(board, stm);
   movecounter = genmoves(board, moves, movecounter, stm, false);
@@ -283,28 +304,63 @@ Move rootsearch(Bitboard *board, bool stm, s32 depth)
     printf("result 1/2-1/2 { stalemate }");
     return MOVENONE;
   }
-  /* first move, full window */
-  domove(board, moves[0]);
-  score = -negamax(board, !stm, -beta, -alpha, depth-1);
-  alpha=score;
-  bestmove = moves[0];
-  undomove(board, moves[0], lastmove, cr, boardscore);
-  /* iterate through moves */
-  for (i=1;i<movecounter;i++)
-  {
-    domove(board, moves[i]);
-    /* null window, pvs */
-    score = -negamax(board, !stm, -alpha-1, -alpha, depth-1);
-    if (score>alpha)
-      score = -negamax(board, !stm, -beta, -alpha, depth-1);
-    undomove(board, moves[i], lastmove, cr, boardscore);
 
-    if(score>alpha)
+  /* gui output */
+  if (!xboard_mode&&!epd_mode)
+      fprintf(stdout, "ply score time nodes pv\n");
+  /* iterative deepening framework */
+  alpha = -INF;
+  beta  =  INF;
+  do {
+
+    if (TIMEOUT)
+      break;
+
+    /* first move, full window */
+    domove(board, moves[0]);
+    score = -negamax(board, !stm, -beta, -alpha, idf-1);
+    alpha=score;
+    rootmove = bestmove = moves[0];
+    undomove(board, moves[0], lastmove, cr, boardscore);
+    moves[0] = SETSCORE(moves[0],(Move)score);
+    /* iterate through moves */
+    for (i=1;i<movecounter;i++)
     {
-      alpha=score;
-      bestmove = moves[i];
+      if (TIMEOUT)
+        break;
+      domove(board, moves[i]);
+      /* null window, pvs */
+      score = -negamax(board, !stm, -alpha-1, -alpha, idf-1);
+      if (score>alpha)
+        score = -negamax(board, !stm, -beta, -alpha, idf-1);
+      undomove(board, moves[i], lastmove, cr, boardscore);
+
+      if(score>alpha)
+      {
+        alpha=score;
+        bestmove = moves[i];
+        moves[i] = SETSCORE(moves[i],(Move)score);
+      }
+      else
+        moves[i] = SETSCORE(moves[i],(Move)(score-i));
     }
-  }
-  return bestmove;
+    end = get_time();
+    elapsed = end-start;
+    /* sort moves */
+    qsort(moves, movecounter, sizeof(Move), cmp_move_desc);
+
+    if (!TIMEOUT)
+      rootmove = bestmove;
+
+    /* gui output */
+    if (!TIMEOUT&&(xboard_post||(!xboard_mode&&!epd_mode)))
+    {
+      fprintf(stdout, "%d %d %d %llu ", idf, alpha, (s32)(elapsed/100), NODECOUNT);
+      printmovecan(bestmove);
+      fprintf(stdout, "\n");
+    }
+  } while (++idf<=depth&&elapsed*2<MaxTime);
+
+  return rootmove;
 }
 

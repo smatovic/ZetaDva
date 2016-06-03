@@ -31,6 +31,7 @@ extern u64 MOVECOUNT;
 extern double start;
 extern double end;
 extern double elapsed;
+bool TIMEOUT;  /* global value for time control*/
 /* game state */
 extern bool STM;
 extern s32 SD;
@@ -39,6 +40,7 @@ extern u32 PLY;
 extern Move *Move_History;
 extern Hash *Hash_History;
 extern const Bitboard LRANK[2];
+extern double MaxTime;
 
 bool squareunderattack(Bitboard *board, bool stm, Square sq);
 bool kingincheck(Bitboard *board, bool stm);
@@ -52,6 +54,7 @@ void undomovequick (Bitboard *board, Move move);
 void printboard(Bitboard *board);
 void printbitboard(Bitboard board);
 void printmove(Move move);
+void printmovecan(Move move);
 
 #endif /* ZETA_H_INCLUDED */
 

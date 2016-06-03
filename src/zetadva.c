@@ -38,17 +38,24 @@ char *Fen;                    /* for storing the fen chess baord string */
 /* counters */
 u64 NODECOUNT       = 0;
 u64 MOVECOUNT       = 0;
+/* xboard flags */
+bool xboard_mode    = false;  /* chess GUI sets to true */
+bool epd_mode       = false;  /* process epd mode, no fancy print */
+bool xboard_force   = false;  /* if true aplly only moves, do not think */
+bool xboard_post    = false;  /* post search thinking output */
+bool xboard_san     = false;  /* use san move notation instead of can */
 /* timers */
 double start        = 0;
 double end          = 0;
 double elapsed      = 0;
+bool TIMEOUT        = false;  /* global value for time control*/
 /* time control in milli-seconds */
 s32 timemode    = 0;  /* 0 = single move, 1 = conventional clock, 2 = ics clock */
 s32 MovesLeft   = 1;  /* moves left unit nex time increase */
 s32 MaxMoves    = 1;  /* moves to play in time frame */
 double TimeInc  = 0;  /* time increase */
-double TimeLeft = 5*60000;  /* overall time on clock, 5s default */
-double MaxTime  = 5*60000;  /* max time per move */
+double TimeLeft = 5*1000;  /* overall time on clock, 5s default */
+double MaxTime  = 5*1000;  /* max time per move */
 /* game state */
 bool STM            = WHITE;  /* site to move */
 s32 SD              = MAXPLY; /* max search depth*/
@@ -789,6 +796,12 @@ static void move2can(Move move, char * movec)
     if ( (pto>>1) == KNIGHT)
       movec[4] = 'n';
   }
+}
+void printmovecan(Move move)
+{
+  char movec[6];
+  move2can(move, movec);
+  fprintf(stdout, "%s",movec);
 }
 /* print quadbitbooard */
 void printboard(Bitboard *board)
@@ -1597,7 +1610,6 @@ int main(int argc, char* argv[])
       else 
       {
         Move move;
-        char movec[6];
         xboard_force = false;
         NODECOUNT = 0;
         MOVECOUNT = 0;
@@ -1611,8 +1623,9 @@ int main(int argc, char* argv[])
         elapsed /= 1000;
         MoveHistory[PLY] = move;
         domove(BOARD, move);
-        move2can(move,movec);
-        fprintf(stdout,"usermove %s\n",movec);
+        fprintf(stdout,"usermove ");
+        printmovecan(move);
+        fprintf(stdout,"\n");
         if (!xboard_mode&&!epd_mode)
         {
           printboard(BOARD);
@@ -1673,7 +1686,6 @@ int main(int argc, char* argv[])
     {
       sscanf(Line, "st %d", &TimeLeft);
       timemode  = 0;
-      TimeLeft *= 1000; /* seconds to milli-seconds */
       TimeInc   = 0;
       MovesLeft = MaxMoves = 1; /* jsut one move*/
       MaxTime   = TimeLeft/MovesLeft; /* set max time per move */
@@ -1716,16 +1728,9 @@ int main(int argc, char* argv[])
       /* start thinking */
       if (!xboard_force)
       {
-        NODECOUNT = 0;
-        MOVECOUNT = 0;
-        start = get_time();
-
         /* start thinking */
         move = rootsearch(BOARD,STM, SD);
 
-        end = get_time();   
-        elapsed = end-start;
-        elapsed /= 1000;
         MoveHistory[PLY] = move;
         domove(BOARD, move);
         move2can(move,movec);
@@ -1733,7 +1738,7 @@ int main(int argc, char* argv[])
         if (!xboard_mode&&!epd_mode)
         {
           printboard(BOARD);
-          fprintf(stdout,"#%llu searched nodes in %f seconds, nps: %llu \n", NODECOUNT, elapsed, (u64)(NODECOUNT/elapsed));
+          fprintf(stdout,"#%llu searched nodes in %f seconds, nps: %llu \n", NODECOUNT, elapsed/1000, (u64)(NODECOUNT/(elapsed/1000)));
         }
         PLY++;
         STM = !STM;
