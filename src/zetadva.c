@@ -42,6 +42,13 @@ u64 MOVECOUNT       = 0;
 double start        = 0;
 double end          = 0;
 double elapsed      = 0;
+/* time control in milli-seconds */
+s32 timemode    = 0;  /* 0 = single move, 1 = conventional clock, 2 = ics clock */
+s32 MovesLeft   = 1;  /* moves left unit nex time increase */
+s32 MaxMoves    = 1;  /* moves to play in time frame */
+double TimeInc  = 0;  /* time increase */
+double TimeLeft = 5*60000;  /* overall time on clock, 5s default */
+double MaxTime  = 5*60000;  /* max time per move */
 /* game state */
 bool STM            = WHITE;  /* site to move */
 s32 SD              = MAXPLY; /* max search depth*/
@@ -1595,8 +1602,10 @@ int main(int argc, char* argv[])
         NODECOUNT = 0;
         MOVECOUNT = 0;
         start = get_time();
+
         /* start thinking */
         move = rootsearch(BOARD,STM, SD);
+
         end = get_time();   
         elapsed = end-start;
         elapsed /= 1000;
@@ -1611,6 +1620,21 @@ int main(int argc, char* argv[])
         }
         PLY++;
         STM = !STM;
+        /* time management */
+        /* sub elapsed time, when not in single move mode */
+        if (timemode>0)
+          TimeLeft-= elapsed;
+        /* decrement moves left when in conventional clock mode */
+        if (timemode==1)
+          MovesLeft--;
+        /* add time increase to clock */
+        if(MaxMoves==0||MovesLeft==0)
+          TimeLeft+= TimeInc;
+        /* reset moves left when in conventional clock mode */
+        if(MovesLeft==0)
+          MovesLeft = MaxMoves;
+        /* set max time per move */
+        MaxTime = TimeLeft/MovesLeft;
       }
       continue;
     }
@@ -1623,13 +1647,48 @@ int main(int argc, char* argv[])
     /* set time control */
 		if (!strcmp(Command, "level"))
     {
+      s32 sec = 0;
+      s32 min = 0;
+      if(sscanf(Line, "level %d %d %d",
+               &MaxMoves, &min, &TimeInc)!=3 &&
+         sscanf(Line, "level %d %d:%d %d",
+               &MaxMoves, &min, &sec, &TimeInc)!=4)
+           continue;
+      if (MaxMoves==0)
+        timemode = 2;
+      else
+        timemode = 1;
+      /* consider ics clocks */
+      MovesLeft = MaxMoves;
+      /* set moves left to 40 in sudden death or ics time control */
+      if(MaxMoves==0)
+        MovesLeft = 40;
+      TimeLeft  = 60000*min + 1000*sec;
+      TimeInc  *= 1000;
+      MaxTime   = TimeLeft/MovesLeft; /* set max time per move */
       continue;
     }
     /* set time control to n seconds per move */
 		if (!strcmp(Command, "st"))
     {
+      sscanf(Line, "st %d", &TimeLeft);
+      timemode  = 0;
+      TimeLeft *= 1000; /* seconds to milli-seconds */
+      TimeInc   = 0;
+      MovesLeft = MaxMoves = 1; /* jsut one move*/
+      MaxTime   = TimeLeft/MovesLeft; /* set max time per move */
       continue;
     }
+    /* time left on clock */
+		if (!strcmp(Command, "time"))
+    {
+      sscanf(Line, "time %d", &TimeLeft);
+      TimeLeft *= 10;  /* centi-seconds to milliseconds */
+      MaxTime   = TimeLeft/MovesLeft;
+    }
+    /* opp time left, ignore */
+		if (!strcmp(Command, "otime"))
+      continue;
     if (!strcmp(Command, "usermove"))
     {
       Move move;
@@ -1660,8 +1719,10 @@ int main(int argc, char* argv[])
         NODECOUNT = 0;
         MOVECOUNT = 0;
         start = get_time();
+
         /* start thinking */
         move = rootsearch(BOARD,STM, SD);
+
         end = get_time();   
         elapsed = end-start;
         elapsed /= 1000;
@@ -1676,6 +1737,21 @@ int main(int argc, char* argv[])
         }
         PLY++;
         STM = !STM;
+        /* time management */
+        /* sub elapsed time, when not in single move mode */
+        if (timemode>0)
+          TimeLeft-= elapsed;
+        /* decrement moves left when in conventional clock mode */
+        if (timemode==1)
+          MovesLeft--;
+        /* add time increase to clock */
+        if(MaxMoves==0||MovesLeft==0)
+          TimeLeft+= TimeInc;
+        /* reset moves left when in conventional clock mode */
+        if(MovesLeft==0)
+          MovesLeft = MaxMoves;
+        /* set max time per move */
+        MaxTime = TimeLeft/MovesLeft;
       }
       continue;
     }
