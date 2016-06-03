@@ -145,13 +145,6 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth)
 
   kic = kingincheck(board, stm);
 
-  /* search extension, checks and pawn promo */
-  if(depth==0&&kic)
-    depth++;
-
-  if (depth == 0)
-    return qsearch(board, stm, alpha, beta, depth-1);
-
   /* time out? */  
   end = get_time();
   elapsed = end-start;
@@ -159,7 +152,14 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth)
   {
     TIMEOUT=true;
     return 0;
-  }    
+  }
+
+  /* search extension, checks and pawn promo */
+  if(depth==0&&kic)
+    depth++;
+
+  if (depth == 0)
+    return qsearch(board, stm, alpha, beta, depth-1);
 
   NODECOUNT++;
 
@@ -350,7 +350,7 @@ Move rootsearch(Bitboard *board, bool stm, s32 depth)
     /* gui output */
     if (!TIMEOUT&&(xboard_post||!xboard_mode)&&!epd_mode)
     {
-      fprintf(stdout, "%d %d %d %llu ", idf, alpha, (s32)(elapsed/100), NODECOUNT);
+      fprintf(stdout, "%d %d %d %llu ", idf, alpha, (s32)(elapsed/10), NODECOUNT);
       printmovecan(bestmove);
       fprintf(stdout, "\n");
     }

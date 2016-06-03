@@ -781,8 +781,6 @@ static void move2can(Move move, char * movec)
   movec[1] = rankc[GETRANK(from)];
   movec[2] = filec[GETFILE(to)];
   movec[3] = rankc[GETRANK(to)];
-  movec[4] = ' ';
-  movec[5] = '\0';
 
   /* pawn promo */
   if ( (pfrom>>1) == PAWN && (pto>>1) != PAWN)
@@ -799,7 +797,7 @@ static void move2can(Move move, char * movec)
 }
 void printmovecan(Move move)
 {
-  char movec[6];
+  char movec[4];
   move2can(move, movec);
   fprintf(stdout, "%s",movec);
 }
@@ -1535,7 +1533,7 @@ int main(int argc, char* argv[])
         fprintf(stdout,"feature sigint=0\n");
         fprintf(stdout,"feature reuse=1\n");
         fprintf(stdout,"feature analyze=0\n");
-        fprintf(stdout,"feature variants=normal\n");
+        fprintf(stdout,"feature variants=\"normal\"\n");
         fprintf(stdout,"feature colors=0\n");
         fprintf(stdout,"feature ics=0\n");
         fprintf(stdout,"feature name=0\n");
@@ -1547,13 +1545,14 @@ int main(int argc, char* argv[])
         fprintf(stdout,"feature san=0\n");
         fprintf(stdout,"feature debug=0\n");
         fprintf(stdout,"feature exclude=0\n");
-        fprintf(stdout,"feature setscore=0\n");
-        fprintf(stdout,"feature highlight=0\n");
-        fprintf(stdout,"feature setscore=0\n");
         fprintf(stdout,"feature done=1\n");
       }
       continue;
     }
+    if (!strcmp(Command, "accepted")) 
+      continue;
+    if (!strcmp(Command, "rejected")) 
+      continue;
     /* initialize new game */
 		if (!strcmp(Command, "new"))
     {
@@ -1618,8 +1617,7 @@ int main(int argc, char* argv[])
         elapsed /= 1000;
         MoveHistory[PLY] = move;
         domove(BOARD, move);
-        if (!epd_mode)
-          fprintf(stdout,"usermove ");
+        fprintf(stdout,"move ");
         printmovecan(move);
         fprintf(stdout,"\n");
         if (!xboard_mode&&!epd_mode)
@@ -1694,10 +1692,16 @@ int main(int argc, char* argv[])
       sscanf(Line, "time %lf", &TimeLeft);
       TimeLeft *= 10;  /* centi-seconds to milliseconds */
       MaxTime   = TimeLeft/MovesLeft;
+      continue;
     }
     /* opp time left, ignore */
-		if (!strcmp(Command, "otime"))
+		if (!strcmp(Command, "otim"))
       continue;
+    /* memory for hash size  */
+		if (!strcmp(Command, "memory"))
+    {
+      continue;
+    }
     if (!strcmp(Command, "usermove"))
     {
       Move move;
@@ -1730,8 +1734,9 @@ int main(int argc, char* argv[])
 
         MoveHistory[PLY] = move;
         domove(BOARD, move);
-        move2can(move,movec);
-        fprintf(stdout,"usermove %s\n",movec);
+        fprintf(stdout,"move ");
+        printmovecan(move);
+        fprintf(stdout,"\n");
         if (!xboard_mode&&!epd_mode)
         {
           printboard(BOARD);
@@ -1783,6 +1788,10 @@ int main(int argc, char* argv[])
       continue;
     }
     /* xboard commands to ignore */
+		if (!strcmp(Command, "random"))
+    {
+      continue;
+    }
 		if (!strcmp(Command, "white"))
     {
       continue;
