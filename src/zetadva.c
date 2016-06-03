@@ -1274,12 +1274,12 @@ static void selftest(void)
 
     if(NODECOUNT==nodecounts[done])
     {
-      fprintf(stdout,"# Nodecount Correct, %llu nodes in %f seconds with \
+      fprintf(stdout,"# Nodecount Correct, %llu nodes in %lf seconds with \
 %llu nps.\n", NODECOUNT, elapsed, (u64)(NODECOUNT/elapsed));
       if (LogFile != NULL)
       {
         fprinttime(LogFile);
-        fprintf(LogFile,"# Nodecount Correct, %llu nodes in %f seconds with \
+        fprintf(LogFile,"# Nodecount Correct, %llu nodes in %lf seconds with \
 %llu nps.\n", NODECOUNT, elapsed, (u64)(NODECOUNT/elapsed));
       }
     }
@@ -1301,7 +1301,7 @@ nodes for depth %d.\n", NODECOUNT, nodecounts[done], SD);
       if (LogFile != NULL)
       {
         fprinttime(LogFile);
-        fprintf(LogFile,"# Nodecount Correct, %llu nodes in %f seconds \
+        fprintf(LogFile,"# Nodecount Correct, %llu nodes in %lf seconds \
                with %llu nps.\n", NODECOUNT, elapsed, (u64)(NODECOUNT/elapsed));
         fprintf(LogFile,"# IncrementaL evaluation  scores NOT Correct, \
                 %d != %d .\n", scorea, scoreb);
@@ -1363,11 +1363,6 @@ static void print_help(void)
 int main(int argc, char* argv[])
 {
   /* xboard states */
-  bool xboard_mode    = false;  /* chess GUI sets to true */
-  bool epd_mode       = false;  /* process epd mode, no fancy print */
-  bool xboard_force   = false;  /* if true aplly only moves, do not think */
-  bool xboard_post    = false;  /* post search thinking output */
-  bool xboard_san     = false;  /* use san move notation instead of can */
   s32 xboard_protover = 0;      /* Zeta works with protocoll version >= v2 */
   /* for get opt */
   s32 c;
@@ -1623,13 +1618,14 @@ int main(int argc, char* argv[])
         elapsed /= 1000;
         MoveHistory[PLY] = move;
         domove(BOARD, move);
-        fprintf(stdout,"usermove ");
+        if (!epd_mode)
+          fprintf(stdout,"usermove ");
         printmovecan(move);
         fprintf(stdout,"\n");
         if (!xboard_mode&&!epd_mode)
         {
           printboard(BOARD);
-          fprintf(stdout,"#%llu searched nodes in %f seconds, nps: %llu \n", NODECOUNT, elapsed, (u64)(NODECOUNT/elapsed));
+          fprintf(stdout,"#%llu searched nodes in %lf seconds, nps: %llu \n", NODECOUNT, elapsed, (u64)(NODECOUNT/elapsed));
         }
         PLY++;
         STM = !STM;
@@ -1662,9 +1658,9 @@ int main(int argc, char* argv[])
     {
       s32 sec = 0;
       s32 min = 0;
-      if(sscanf(Line, "level %d %d %d",
+      if(sscanf(Line, "level %d %d %lf",
                &MaxMoves, &min, &TimeInc)!=3 &&
-         sscanf(Line, "level %d %d:%d %d",
+         sscanf(Line, "level %d %d:%d %lf",
                &MaxMoves, &min, &sec, &TimeInc)!=4)
            continue;
       if (MaxMoves==0)
@@ -1684,17 +1680,18 @@ int main(int argc, char* argv[])
     /* set time control to n seconds per move */
 		if (!strcmp(Command, "st"))
     {
-      sscanf(Line, "st %d", &TimeLeft);
+      sscanf(Line, "st %lf", &TimeLeft);
+      TimeLeft *= 1000; 
       timemode  = 0;
       TimeInc   = 0;
       MovesLeft = MaxMoves = 1; /* jsut one move*/
-      MaxTime   = TimeLeft/MovesLeft; /* set max time per move */
+      MaxTime   = TimeLeft/MaxMoves; /* set max time per move */
       continue;
     }
     /* time left on clock */
 		if (!strcmp(Command, "time"))
     {
-      sscanf(Line, "time %d", &TimeLeft);
+      sscanf(Line, "time %lf", &TimeLeft);
       TimeLeft *= 10;  /* centi-seconds to milliseconds */
       MaxTime   = TimeLeft/MovesLeft;
     }
@@ -1738,7 +1735,7 @@ int main(int argc, char* argv[])
         if (!xboard_mode&&!epd_mode)
         {
           printboard(BOARD);
-          fprintf(stdout,"#%llu searched nodes in %f seconds, nps: %llu \n", NODECOUNT, elapsed/1000, (u64)(NODECOUNT/(elapsed/1000)));
+          fprintf(stdout,"#%llu searched nodes in %lf seconds, nps: %llu \n", NODECOUNT, elapsed/1000, (u64)(NODECOUNT/(elapsed/1000)));
         }
         PLY++;
         STM = !STM;
@@ -1859,7 +1856,7 @@ int main(int argc, char* argv[])
       if (epd_mode)
         fprintf(stdout,"%llu\n", NODECOUNT);
       else
-        fprintf(stdout,"%llu nodes, seconds: %f, nps: %llu \n", 
+        fprintf(stdout,"%llu nodes, seconds: %lf, nps: %llu \n", 
                 NODECOUNT, elapsed, (u64)(NODECOUNT/elapsed));
 
       fflush(stdout);

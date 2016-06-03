@@ -42,6 +42,10 @@ extern Hash *Hash_History;
 extern const Bitboard LRANK[2];
 extern double MaxTime;
 
+extern bool xboard_post;
+extern bool xboard_mode;
+extern bool epd_mode;
+
 bool squareunderattack(Bitboard *board, bool stm, Square sq);
 bool kingincheck(Bitboard *board, bool stm);
 int cmp_move_desc(const void *ap, const void *bp);

@@ -29,10 +29,6 @@
 #include "types.h"      /* custom types, board defs, data structures, macros */
 #include "zetadva.h"    /* for global vars */
 
-extern bool xboard_post;
-extern bool xboard_mode;
-extern bool epd_mode;
-
 /* forward declaration */
 Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth);
 
@@ -279,7 +275,7 @@ Move rootsearch(Bitboard *board, bool stm, s32 depth)
   TIMEOUT   = false;
   NODECOUNT = 0;
   MOVECOUNT = 0;
-  start = get_time();
+  start = get_time(); /* start timer */
 
   kic = kingincheck(board, stm);
   movecounter = genmoves(board, moves, movecounter, stm, false);
@@ -304,7 +300,6 @@ Move rootsearch(Bitboard *board, bool stm, s32 depth)
     printf("result 1/2-1/2 { stalemate }");
     return MOVENONE;
   }
-
   /* gui output */
   if (!xboard_mode&&!epd_mode)
       fprintf(stdout, "ply score time nodes pv\n");
@@ -344,7 +339,7 @@ Move rootsearch(Bitboard *board, bool stm, s32 depth)
       else
         moves[i] = SETSCORE(moves[i],(Move)(score-i));
     }
-    end = get_time();
+    end = get_time(); /* stop timer */
     elapsed = end-start;
     /* sort moves */
     qsort(moves, movecounter, sizeof(Move), cmp_move_desc);
@@ -353,7 +348,7 @@ Move rootsearch(Bitboard *board, bool stm, s32 depth)
       rootmove = bestmove;
 
     /* gui output */
-    if (!TIMEOUT&&(xboard_post||(!xboard_mode&&!epd_mode)))
+    if (!TIMEOUT&&(xboard_post||!xboard_mode)&&!epd_mode)
     {
       fprintf(stdout, "%d %d %d %llu ", idf, alpha, (s32)(elapsed/100), NODECOUNT);
       printmovecan(bestmove);
