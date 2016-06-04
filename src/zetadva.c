@@ -44,6 +44,7 @@ bool epd_mode       = false;  /* process epd mode, no fancy print */
 bool xboard_force   = false;  /* if true aplly only moves, do not think */
 bool xboard_post    = false;  /* post search thinking output */
 bool xboard_san     = false;  /* use san move notation instead of can */
+bool xboard_time    = false;  /* use xboards time command for time management */
 /* timers */
 double start        = 0;
 double end          = 0;
@@ -1558,16 +1559,13 @@ int main(int argc, char* argv[])
         fprintf(stdout,"feature setboard=1\n");
         fprintf(stdout,"feature playother=0\n");
         fprintf(stdout,"feature san=0\n");
-
         /* check feature san accepted  */
         if (!fgets (Line, 1023, stdin)) {}
         /* get command */
         sscanf (Line, "%s", Command);
         if (strstr(Command, "rejected"))
           xboard_san = true;
-
         fprintf(stdout,"feature usermove=1\n");
-
         /* check feature usermove accepted  */
         if (!fgets (Line, 1023, stdin)) {}
         /* get command */
@@ -1585,6 +1583,12 @@ int main(int argc, char* argv[])
           exit(EXIT_FAILURE);
         }
         fprintf(stdout,"feature time=1\n");
+        /* check feature time accepted  */
+        if (!fgets (Line, 1023, stdin)) {}
+        /* get command */
+        sscanf (Line, "%s", Command);
+        if (strstr(Command, "accepted"))
+          xboard_time = true;
         fprintf(stdout,"feature draw=0\n");
         fprintf(stdout,"feature sigint=0\n");
         fprintf(stdout,"feature reuse=1\n");
@@ -1683,21 +1687,6 @@ int main(int argc, char* argv[])
         }
         PLY++;
         STM = !STM;
-        /* time management */
-        /* sub elapsed time, when not in single move mode */
-        if (timemode>0)
-          TimeLeft-= elapsed;
-        /* decrement moves left when in conventional clock mode */
-        if (timemode==1)
-          MovesLeft--;
-        /* add time increase to clock */
-        if(MaxMoves==0||MovesLeft==0)
-          TimeLeft+= TimeInc;
-        /* reset moves left when in conventional clock mode */
-        if(MovesLeft==0)
-          MovesLeft = MaxMoves;
-        /* set max time per move */
-        MaxTime = TimeLeft/MovesLeft;
       }
       continue;
     }
@@ -1710,25 +1699,41 @@ int main(int argc, char* argv[])
     /* set time control */
 		if (!strcmp(Command, "level"))
     {
-      s32 sec = 0;
-      s32 min = 0;
+      s32 sec   = 0;
+      s32 min   = 0;
+      TimeLeft  = 0;
+      TimeInc   = 0;
+      MovesLeft = 0;
+      MaxMoves  = 0;
+
       if(sscanf(Line, "level %d %d %lf",
                &MaxMoves, &min, &TimeInc)!=3 &&
          sscanf(Line, "level %d %d:%d %lf",
                &MaxMoves, &min, &sec, &TimeInc)!=4)
            continue;
+
       if (MaxMoves==0)
-        timemode = 2;
+        timemode = 2; /* ics clocks */
       else
-        timemode = 1;
-      /* consider ics clocks */
-      MovesLeft = MaxMoves;
+        timemode = 1; /* conventional clocks */
       /* set moves left to 40 in sudden death or ics time control */
-      if(MaxMoves==0)
+      if (timemode==2)
         MovesLeft = 40;
-      TimeLeft  = 60000*min + 1000*sec;
+      MovesLeft = MaxMoves;
+      TimeLeft  = 60*min + sec;
+      TimeLeft *= 1000;
       TimeInc  *= 1000;
-      MaxTime   = TimeLeft/MovesLeft; /* set max time per move */
+      /* set max time per move */
+      if (timemode==2)
+      {
+        MovesLeft = MaxMoves;
+        MaxTime   = TimeInc+TimeLeft/MaxMoves;
+      }
+      if (timemode==1)
+      {
+        MovesLeft = (MaxMoves-(((PLY+1)/2)%MaxMoves))+1;
+        MaxTime   = TimeLeft/MovesLeft;
+      }
       continue;
     }
     /* set time control to n seconds per move */
@@ -1745,9 +1750,22 @@ int main(int argc, char* argv[])
     /* time left on clock */
 		if (!strcmp(Command, "time"))
     {
-      sscanf(Line, "time %lf", &TimeLeft);
-      TimeLeft *= 10;  /* centi-seconds to milliseconds */
-      MaxTime   = TimeLeft/MovesLeft;
+      if (xboard_time)
+      {
+        sscanf(Line, "time %lf", &TimeLeft);
+        TimeLeft *= 10;  /* centi-seconds to milliseconds */
+        /* set max time per move */
+        if (timemode==2)
+        {
+          MovesLeft = MaxMoves;
+          MaxTime   = TimeInc+TimeLeft/MaxMoves;
+        }
+        if (timemode==1)
+        {
+          MovesLeft = (MaxMoves-(((PLY+1)/2)%MaxMoves))+1;
+          MaxTime   = TimeLeft/MovesLeft;
+        }
+      }
       continue;
     }
     /* opp time left, ignore */
@@ -1804,21 +1822,6 @@ int main(int argc, char* argv[])
         }
         PLY++;
         STM = !STM;
-        /* time management */
-        /* sub elapsed time, when not in single move mode */
-        if (timemode>0)
-          TimeLeft-= elapsed;
-        /* decrement moves left when in conventional clock mode */
-        if (timemode==1)
-          MovesLeft--;
-        /* add time increase to clock */
-        if(MaxMoves==0||MovesLeft==0)
-          TimeLeft+= TimeInc;
-        /* reset moves left when in conventional clock mode */
-        if(MovesLeft==0)
-          MovesLeft = MaxMoves;
-        /* set max time per move */
-        MaxTime = TimeLeft/MovesLeft;
       }
       continue;
     }
