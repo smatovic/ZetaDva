@@ -84,11 +84,12 @@ Score qsearch(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth)
 
   kic = kingincheck(board, stm);
 
+/*
   score = eval(board);
   score = (stm)? -score : score;
-  /* get static, incremental board score 
+*/
+  /* get static, incremental board score */
   score = (stm)? -boardscore : boardscore;
-  */
 
   /* stand pat */
   if( !kic && score >= beta )
@@ -112,10 +113,8 @@ Score qsearch(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth)
   /* quiet leaf node, return  evaluation board score */
   if (movecounter==0)
   {
-/*
     score = eval(board);
     score = (stm)? -score : score;
-*/
     return score;
   }
   /* iterate through moves */
