@@ -30,7 +30,7 @@
 #include "zetadva.h"    /* for global vars */
 
 /* forward declaration */
-Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth);
+Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32 ply);
 
 Score perft(Bitboard *board, bool stm, s32 depth)
 {
@@ -69,7 +69,7 @@ Score perft(Bitboard *board, bool stm, s32 depth)
   }
   return 0;
 }
-Score qsearch(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth)
+Score qsearch(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32 ply)
 {
   bool kic = false;
   Score score;
@@ -109,7 +109,7 @@ Score qsearch(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth)
   qsort(moves, movecounter, sizeof(Move), cmp_move_desc);
   /* checkmate */
   if (movecounter==0&&kic)
-    return -INF+PLY;
+    return -INF+ply;
   /* quiet leaf node, return  evaluation board score */
   if (movecounter==0)
   {
@@ -121,7 +121,7 @@ Score qsearch(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth)
   for (i=0;i<movecounter;i++)
   {
     domove(board, moves[i]);
-    score = -qsearch(board, !stm, -beta, -alpha, depth-1);
+    score = -qsearch(board, !stm, -beta, -alpha, depth-1, ply+1);
     undomove(board, moves[i], lastmove, cr, boardscore);
 
     if(score>=beta)
@@ -132,7 +132,7 @@ Score qsearch(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth)
   }
   return alpha;
 }
-Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth)
+Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32 ply)
 {
   bool kic = false;
   Score score = 0;
@@ -160,7 +160,7 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth)
     depth++;
 
   if (depth == 0)
-    return qsearch(board, stm, alpha, beta, depth-1);
+    return qsearch(board, stm, alpha, beta, depth-1, ply+1);
 
   NODECOUNT++;
 
@@ -171,7 +171,7 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth)
   for (i=0;i<movecounter;i++)
   {
     domove(board, moves[i]);
-    score = -negamax(board, !stm, -beta, -alpha, depth-1);
+    score = -negamax(board, !stm, -beta, -alpha, depth-1, ply+1);
     undomove(board, moves[i], lastmove, cr, boardscore);
 
     if(score>=beta)
@@ -189,7 +189,7 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth)
   for (i=0;i<movecounter;i++)
   {
     domove(board, moves[i]);
-    score = -negamax(board, !stm, -beta, -alpha, depth-1);
+    score = -negamax(board, !stm, -beta, -alpha, depth-1, ply+1);
     undomove(board, moves[i], lastmove, cr, boardscore);
 
     if(score>=beta)
@@ -205,7 +205,7 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth)
   for (i=0;i<movecounter;i++)
   {
     domove(board, moves[i]);
-    score = -negamax(board, !stm, -beta, -alpha, depth-1);
+    score = -negamax(board, !stm, -beta, -alpha, depth-1, ply+1);
     undomove(board, moves[i], lastmove, cr, boardscore);
 
     if(score>=beta)
@@ -221,7 +221,7 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth)
   for (i=0;i<movecounter;i++)
   {
     domove(board, moves[i]);
-    score = -negamax(board, !stm, -beta, -alpha, depth-1);
+    score = -negamax(board, !stm, -beta, -alpha, depth-1, ply+1);
     undomove(board, moves[i], lastmove, cr, boardscore);
 
     if(score>=beta)
@@ -239,7 +239,7 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth)
   for (i=0;i<movecounter;i++)
   {
     domove(board, moves[i]);
-    score = -negamax(board, !stm, -beta, -alpha, depth-1);
+    score = -negamax(board, !stm, -beta, -alpha, depth-1, ply+1);
     undomove(board, moves[i], lastmove, cr, boardscore);
 
     if(score>=beta)
@@ -250,7 +250,7 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth)
   }
   /* checkmate */
   if (legalmovecounter == 0 && kic)
-    return -INF+PLY;
+    return -INF+ply;
   /* stalemate */
   if (legalmovecounter == 0 && !kic) 
     return STALEMATESCORE;
@@ -314,7 +314,7 @@ Move rootsearch(Bitboard *board, bool stm, s32 depth)
 
     /* first move, full window */
     domove(board, moves[0]);
-    score = -negamax(board, !stm, -beta, -alpha, idf-1);
+    score = -negamax(board, !stm, -beta, -alpha, idf-1, 1);
     alpha=score;
     rootmove = bestmove = moves[0];
     undomove(board, moves[0], lastmove, cr, boardscore);
@@ -326,9 +326,9 @@ Move rootsearch(Bitboard *board, bool stm, s32 depth)
         break;
       domove(board, moves[i]);
       /* null window */
-      score = -negamax(board, !stm, -(alpha+1), -alpha, idf-1);
+      score = -negamax(board, !stm, -(alpha+1), -alpha, idf-1, 1);
       if (score>alpha)
-        score = -negamax(board, !stm, -beta, -alpha, idf-1);
+        score = -negamax(board, !stm, -beta, -alpha, idf-1, 1);
       undomove(board, moves[i], lastmove, cr, boardscore);
 
       if(score>alpha)
