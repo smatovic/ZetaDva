@@ -46,6 +46,7 @@ bool xboard_force   = false;  /* if true aplly only moves, do not think */
 bool xboard_post    = false;  /* post search thinking output */
 bool xboard_san     = false;  /* use san move notation instead of can */
 bool xboard_time    = false;  /* use xboards time command for time management */
+bool xboard_debug   = false;  /* use xboards time command for time management */
 /* timers */
 double start        = 0;
 double end          = 0;
@@ -1771,6 +1772,12 @@ int main(int argc, char* argv[])
         fprintf(stdout,"feature pause=0\n");
         fprintf(stdout,"feature nps=0\n");
         fprintf(stdout,"feature debug=1\n");
+        /* check feature debug accepted  */
+        if (!fgets (Line, 1023, stdin)) {}
+        /* get command */
+        sscanf (Line, "%s", Command);
+        if (strstr(Command, "accepted"))
+          xboard_debug = true;
         fprintf(stdout,"feature memory=1\n");
         fprintf(stdout,"feature smp=0\n");
         fprintf(stdout,"feature san=0\n");
@@ -1851,7 +1858,7 @@ int main(int argc, char* argv[])
           fprintf(stdout,"move ");
         printmovecan(move);
         fprintf(stdout,"\n");
-        if (!xboard_mode&&!epd_mode)
+        if ((!xboard_mode&&!epd_mode)||xboard_debug)
         {
           printboard(BOARD);
           fprintf(stdout,"#%llu searched nodes in %lf seconds, nps: %llu \n", NODECOUNT, elapsed, (u64)(NODECOUNT/elapsed));
@@ -1972,7 +1979,7 @@ int main(int argc, char* argv[])
       domove(BOARD, move);
       PLY++;
       STM = !STM;
-      if (!xboard_mode&&!epd_mode)
+      if ((!xboard_mode&&!epd_mode)||xboard_debug)
           printboard(BOARD);
       /* start thinking */
       if (!xboard_force)
@@ -1986,7 +1993,7 @@ int main(int argc, char* argv[])
           fprintf(stdout,"move ");
         printmovecan(move);
         fprintf(stdout,"\n");
-        if (!xboard_mode&&!epd_mode)
+        if ((!xboard_mode&&!epd_mode)||xboard_debug)
         {
           printboard(BOARD);
           fprintf(stdout,"#%llu searched nodes in %lf seconds, nps: %llu \n", NODECOUNT, elapsed/1000, (u64)(NODECOUNT/(elapsed/1000)));
