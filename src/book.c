@@ -3,10 +3,35 @@
   http://hardy.uhasselt.be/Toga/book_format.html
 */
 
+#include <stdlib.h>     /* for qsort */
+#include <stdio.h>      /* for file include */
+
 #include "bitboard.h"   /* for population count, pop_count */
 #include "types.h"      /* custom types, board defs, data structures, macros */
 
-#  define u64(u) (u##ULL)
+#define u64(u) (u##ULL)
+
+#define MAXBOOKMOVES 100
+
+FILE * BookFile = NULL;
+size_t BookSize = 0;
+
+typedef u64 uint64;
+typedef u32 uint32;
+typedef u16 uint16;
+
+struct entry_t 
+{
+  uint64 key;	
+  uint16 move;
+  uint16 weight;
+  uint32 learn;
+};
+
+struct entry_t entry_none =
+{
+  0, 0, 0, 0
+};
 
 u64 Random64[781] = {
    u64(0x9D39247E33776D41), u64(0x2AF7398005AAA5C7), u64(0x44DB015024623547), u64(0x9C15F73E62A76AE2),
@@ -213,6 +238,81 @@ u64 *RandomCastle    =Random64+768;
 u64 *RandomEnPassant =Random64+772;
 u64 *RandomTurn      =Random64+780;
 
+static int cmp_book_move_desc(const void *ap, const void *bp)
+{
+  struct entry_t *a = (struct entry_t *)ap;
+  struct entry_t *b = (struct entry_t *)bp;
+
+  return b->weight - a->weight;
+}
+
+int int_from_file(FILE *f, int l, uint64 *r)
+{
+  int i,c;
+  for(i=0;i<l;i++)
+  {
+    c=fgetc(f);
+    if(c==EOF)
+    {
+      return 1;
+    }
+    (*r)=((*r)<<8)+c;
+  }
+  return 0;
+}
+
+int entry_from_file(FILE *f, struct entry_t *entry){
+  int ret;
+  uint64 r;
+  ret=int_from_file(f,8,&r);
+  if(ret) return 1;
+  entry->key=r;
+  ret=int_from_file(f,2,&r);
+  if(ret) return 1;
+  entry->move=r;
+  ret=int_from_file(f,2,&r);
+  if(ret) return 1;
+  entry->weight=r;
+  ret=int_from_file(f,4,&r);
+  if(ret) return 1;
+  entry->learn=r;
+  return 0;
+}
+int find_key(FILE *f, uint64 key, struct entry_t *entry)
+{
+  int first, last, middle;
+  struct entry_t first_entry=entry_none, last_entry,middle_entry;
+  first=-1;
+  if(fseek(f,-16,SEEK_END))
+  {
+    *entry=entry_none;
+    entry->key=key+1; /*hack*/
+    return -1;
+  }
+  last=ftell(f)/16;
+  entry_from_file(f,&last_entry);
+  while(1)
+  {
+    if(last-first==1)
+    {
+      *entry=last_entry;
+      return last;
+    }
+    middle=(first+last)/2;
+    fseek(f,16*middle,SEEK_SET);
+    entry_from_file(f,&middle_entry);
+    if(key<=middle_entry.key)
+    {
+      last=middle;
+      last_entry=middle_entry;
+    }else
+    {
+      first=middle;
+      first_entry=middle_entry;
+    }
+  }
+}
+/*  compute polyglot book zobrist hash */
 Hash computebookhash(Bitboard *board, bool stm)
 {
   Piece piece;
@@ -268,4 +368,152 @@ Hash computebookhash(Bitboard *board, bool stm)
   return hash;
 }
 
+void bookopen(void)
+{
+    BookFile=fopen("book.bin","rb");
+}
 
+void bookclose(void)
+{
+  if (BookFile!=NULL)
+    fclose(BookFile);
+}
+Move book2zeta(Bitboard *board, uint16 bookmove){
+
+  bool stm;
+  int f,fr,ff,t,tr,tf,p;
+  Square zetafrom;
+  Square zetato;
+  Square zetacpt;
+  Square zetasqep = 0;
+  Piece zetapfrom;
+  Piece zetapto;
+  Piece zetapcpt;
+  Piece zetapromop = PNONE;
+  Move move = MOVENONE;
+
+  f=(bookmove>>6)&077;
+  fr=(f>>3)&0x7;
+  ff=f&0x7;
+  t=bookmove&077;
+  tr=(t>>3)&0x7;
+  tf=t&0x7;
+  p=(bookmove>>12)&0x7;
+
+  if (!move)
+      return MOVENONE;
+
+  zetafrom = MAKESQ(ff,fr);
+  zetato   = MAKESQ(tf,tr);;
+  zetacpt  = zetato;
+
+  zetapfrom = GETPIECE(board,zetafrom);
+  zetapto   = zetapfrom;
+  stm       = GETCOLOR(zetapfrom);
+
+  zetapromop = (p==0)? (Piece)MAKEPIECE(PNONE,stm):zetapromop;
+  zetapromop = (p==1)? (Piece)MAKEPIECE(KNIGHT,stm): zetapromop;
+  zetapromop = (p==2)? (Piece)MAKEPIECE(BISHOP,stm): zetapromop;
+  zetapromop = (p==3)? (Piece)MAKEPIECE(ROOK,stm): zetapromop;
+  zetapromop = (p==4)? (Piece)MAKEPIECE(QUEEN,stm): zetapromop;
+
+  zetapto   = (GETPTYPE(zetapfrom)==PAWN&&p)?zetapromop:zetapto;
+  zetapcpt  = GETPIECE(board,zetacpt);
+
+
+  /* en passant move , set square capture */
+  zetapcpt = ((zetapfrom>>1)==PAWN&&(stm==WHITE)&&GETRANK(zetafrom)==RANK_5  
+            &&zetato-zetafrom!=8&&zetapcpt==PNONE)?zetato-8:zetapcpt;
+
+  zetapcpt = ((zetapfrom>>1)==PAWN&&(stm==BLACK)&&GETRANK(zetafrom)==RANK_4  
+            &&zetafrom-zetato!=8 &&zetapcpt==PNONE)?zetato+8:zetapcpt;
+  zetapcpt  = GETPIECE(board,zetacpt);
+
+  /* pawn double square move, set en passant target square */
+  if ((zetapfrom>>1)==PAWN&&GETRRANK(zetafrom,stm)==1&&GETRRANK(zetato,stm)==3)
+    zetasqep = zetato;
+
+
+  /* check castling */
+  if (GETPTYPE(zetapfrom)==KING&&(zetato-zetafrom==3||zetafrom-zetato==4)) 
+  {
+    /* white kingside */
+    if (zetafrom == 4 && zetato == 7)
+    {
+      zetato = 6;
+      zetacpt = 6;
+    }
+    /* white queenside */
+    if (zetafrom == 4 && zetato == 0)
+    {
+      zetato = 2;
+      zetacpt = 2;
+    }
+    /* black kingside */
+    if (zetafrom == 60 && zetato == 63)
+    {
+      zetato = 62;
+      zetacpt = 62;
+    }
+    /* white queenside */
+    if (zetafrom == 60 && zetato == 56)
+    {
+      zetato = 56;
+      zetacpt = 56;
+    }
+    zetapfrom = KING;
+    zetapto = KING;
+    zetacpt = PNONE;            
+    zetasqep = 0;
+  }
+  /* pack move into 64 bits, considering castle rights and halfmovecounter and score */
+  move = MAKEMOVE(zetafrom, zetato, zetacpt, zetapfrom, zetapto, zetapcpt, zetasqep, (u64)GETHMC(board[QBBLAST]), (u64)0);
+
+  return move;
+}
+Move bookmove(Bitboard *board, bool stm) {
+
+  int offset;
+  int count=0;
+  int ret;
+  uint64 key = 0;
+  Move move = 0;
+  struct entry_t entry;
+  struct entry_t entries[MAXBOOKMOVES];
+
+  key = computebookhash(board,stm);
+
+  if(!BookFile)
+      return MOVENONE;
+
+  offset=find_key(BookFile,key,&entry);
+
+  if(entry.key!=key)
+    return MOVENONE;
+
+  entries[0]=entry;
+  count=1;
+
+  while(1)
+  {
+    ret=entry_from_file(BookFile,&entry);
+    if(ret)
+      break;
+    if(entry.key!=key)
+      break;
+    if(count==MAXBOOKMOVES)
+      break;
+    entries[count++]=entry;
+  }
+
+  /* sort the moves */
+  qsort(entries, count, sizeof(struct entry_t), cmp_book_move_desc);
+
+  move = book2zeta(board, entries[0].move);
+
+  /* check weight */
+  if (entries[0].weight < 1)
+    return MOVENONE;
+
+  return move;
+}

@@ -14,7 +14,11 @@ extern u64 *RandomCastle;
 extern u64 *RandomEnPassant;
 extern u64 *RandomTurn;
 
+void bookopen(void);
+void bookclose(void);
+
 Hash computebookhash(Bitboard *board, bool stm);
+
 
 #endif /* BOOK_H_INCLUDED */
 

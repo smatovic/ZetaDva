@@ -103,20 +103,20 @@ u64 ttbits = 0;
 static bool release_inits(void)
 {
   /* close log file */
-  if (LogFile!= NULL)
+  if (LogFile)
     fclose (LogFile);
   /* release memory */
-  if (Line!=NULL) 
+  if (Line) 
     free(Line);
-  if (Command!=NULL) 
+  if (Command) 
     free(Command);
-  if (Fen!=NULL) 
+  if (Fen) 
     free(Fen);
-  if (MoveHistory!=NULL) 
+  if (MoveHistory) 
     free(MoveHistory);
-  if (HashHistory!=NULL) 
+  if (HashHistory) 
     free(HashHistory);
-  if (TT != NULL) 
+  if (TT) 
     free(TT);
 
   return true;
@@ -132,12 +132,13 @@ static Hash computehash(Bitboard *board, bool stm)
   /* pieces with position */
   for (side=WHITE;side<=BLACK;side++)
   {
-    bbWork = (stm)?board[QBBBLACK]:(board[QBBBLACK]^(board[QBBP1]|board[QBBP2]|board[QBBP3]));
+    bbWork = (side==BLACK)?board[QBBBLACK]:(board[QBBBLACK]^(board[QBBP1]|board[QBBP2]|board[QBBP3]));
     while(bbWork)
     {
       sq    = popfirst1(&bbWork);
-      piece = GETPTYPE(GETPIECE(board,sq));
-      hash ^= Random64[side*64+6+piece*64+sq];
+      piece = GETPIECE(board,sq);
+      piece = GETPTYPE(piece);
+      hash ^= Random64[side*6*64+piece*64+sq];
     }
   }
   /* castle rights */
@@ -162,18 +163,18 @@ static Hash computehash(Bitboard *board, bool stm)
   return hash;
 }
 
-static void initTT(u32 mb) 
+static void initTT(u64 mb) 
 {
-  u64 val = mb*1024*1024/sizeof(struct TTE);
+  u64 val = (mb*1024*1024)/(sizeof(struct TTE));
 
   ttbits = 0;
   while ( val >>= 1)   /* get msb */
     ttbits++;
   val = 1ULL<<ttbits;   /* get number of tt entries */
-  if (TT != NULL)
+  if (TT)
     free(TT);
   TT = (struct TTE*)calloc(val,sizeof(struct TTE));
-  if (TT==NULL)
+  if (!TT)
     fprintf(stdout,"Error (hash table memory allocation, %u mb, failed): memory", mb);
 }
 void save_to_tt(Hash hash, Move move, Score score, signed char flag, s32 depth, s32 ply)
@@ -213,28 +214,28 @@ static bool inits(void)
   MoveHistory = (Move *)calloc(MAXGAMEPLY , sizeof (Move));
   HashHistory = (Hash *)calloc(MAXGAMEPLY , sizeof (Hash));
 
-  if (Line==NULL) 
+  if (!Line) 
   {
     fprintf(stdout,"Error (memory allocation failed): char Line[%d]", 1024);
     return false;
   }
-  if (Command==NULL) 
+  if (!Command) 
   {
     fprintf(stdout,"Error (memory allocation failed): char Command[%d]", 1024);
     return false;
   }
-  if (Fen==NULL) 
+  if (!Fen) 
   {
     fprintf(stdout,"Error (memory allocation failed): char Fen[%d]", 1024);
     return false;
   }
-  if (MoveHistory==NULL) 
+  if (!MoveHistory) 
   {
     fprintf(stdout,"Error (memory allocation failed): u64 MoveHistory[%d]",
              MAXGAMEPLY);
     return false;
   }
-  if (HashHistory==NULL) 
+  if (!HashHistory) 
   {
     fprintf(stdout,"Error (memory allocation failed): u64 HashHistory[%d]",
             MAXGAMEPLY);
@@ -926,7 +927,7 @@ void printboard(Bitboard *board)
   fprintf(stdout,"#fen: %s\n",fenstring);
   fprintf(stdout,"# score: %d\n",(Score)BOARD[QBBSCORE]);
 
-  if (LogFile != NULL)
+  if (LogFile)
   {
     fprinttime(LogFile);
     fprintf(LogFile, "#fen: %s\n",fenstring);
@@ -1085,35 +1086,35 @@ static bool setboard(Bitboard *board, char *fenstring)
 
   /* memory, fen string ist max 1023 char in size */
   position  = malloc (1024 * sizeof (char));
-  if (position == NULL) 
+  if (!position) 
   {
     fprintf(stdout,"Error (memory allocation failed): char position[%d]", 1024);
   }
   cstm  = malloc (1024 * sizeof (char));
-  if (cstm == NULL) 
+  if (!cstm) 
   {
     fprintf(stdout,"Error (memory allocation failed): char cstm[%d]", 1024);
   }
   castle  = malloc (1024 * sizeof (char));
-  if (castle == NULL) 
+  if (!castle) 
   {
     fprintf(stdout,"Error (memory allocation failed): char castle[%d]", 1024);
   }
   cep  = malloc (1024 * sizeof (char));
-  if (cep == NULL) 
+  if (!cep) 
   {
     fprintf(stdout,"Error (memory allocation failed): char cep[%d]", 1024);
   }
-  if (position==NULL||cstm==NULL||castle==NULL||cep==NULL)
+  if (!position||!cstm||!castle||!cep)
   {
     /* release memory */
-    if (position != NULL) 
+    if (position) 
       free(position);
-    if (cstm != NULL) 
+    if (cstm) 
       free(cstm);
-    if (castle != NULL) 
+    if (castle) 
       free(castle);
-    if (cep != NULL) 
+    if (cep) 
       free(cep);
     return false;
   }
@@ -1240,13 +1241,13 @@ static bool setboard(Bitboard *board, char *fenstring)
   board[QBBLAST] = lastmove;
 
   /* release memory */
-  if (position != NULL) 
+  if (position) 
     free(position);
-  if (cstm != NULL) 
+  if (cstm) 
     free(cstm);
-  if (castle != NULL) 
+  if (castle) 
     free(castle);
-  if (cep != NULL) 
+  if (cep) 
     free(cep);
 
   /* static eval for inceremental eval scores during do/undo */
@@ -1258,7 +1259,7 @@ static bool setboard(Bitboard *board, char *fenstring)
   if (!isvalid(board))
   {
     fprintf(stdout,"Error (given fen position is illegal): setboard\n");        
-    if (LogFile != NULL)
+    if (LogFile)
     {
       fprinttime(LogFile);
       fprintf(LogFile,"Error (given fen position is illegal): setboard\n");        
@@ -1362,7 +1363,7 @@ static void selftest(void)
     SD = depths[done];
     
     fprintf(stdout,"# doing perft depth: %d for position\n", SD);  
-    if (LogFile != NULL)
+    if (LogFile)
     {
       fprinttime(LogFile);
       fprintf(LogFile,"# doing perft depth: %d for position\n", SD);  
@@ -1370,7 +1371,7 @@ static void selftest(void)
     if (!setboard(BOARD,  fenpositions[done]))
     {
       fprintf(stdout,"# Error (in setting fen position): setboard\n");        
-      if (LogFile != NULL)
+      if (LogFile)
       {
         fprinttime(LogFile);
         fprintf(LogFile,"# Error (in setting fen position): setboard\n");        
@@ -1400,7 +1401,7 @@ static void selftest(void)
     {
       fprintf(stdout,"# Nodecount Correct, %llu nodes in %lf seconds with \
 %llu nps.\n", NODECOUNT, elapsed, (u64)(NODECOUNT/elapsed));
-      if (LogFile != NULL)
+      if (LogFile)
       {
         fprinttime(LogFile);
         fprintf(LogFile,"# Nodecount Correct, %llu nodes in %lf seconds with \
@@ -1411,7 +1412,7 @@ static void selftest(void)
     {
       fprintf(stdout,"# Nodecount NOT Correct, %llu computed nodes != %llu \
 nodes for depth %d.\n", NODECOUNT, nodecounts[done], SD);
-      if (LogFile != NULL)
+      if (LogFile)
       {
         fprinttime(LogFile);
         fprintf(LogFile,"# Nodecount NOT Correct, %llu computed nodes != %llu \
@@ -1422,7 +1423,7 @@ nodes for depth %d.\n", NODECOUNT, nodecounts[done], SD);
     {
       fprintf(stdout,"# IncrementaL evaluation  scores NOT Correct, \
                %d != %d .\n", scorea, scoreb);
-      if (LogFile != NULL)
+      if (LogFile)
       {
         fprinttime(LogFile);
         fprintf(LogFile,"# Nodecount Correct, %llu nodes in %lf seconds \
@@ -1436,7 +1437,7 @@ nodes for depth %d.\n", NODECOUNT, nodecounts[done], SD);
   setboard(BOARD,"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
   fprintf(stdout,"#\n");  
   fprintf(stdout,"# doing book hash checks\n");  
-  if (LogFile != NULL)
+  if (LogFile)
   {
     fprinttime(LogFile);
     fprintf(LogFile,"#\n");  
@@ -1449,7 +1450,7 @@ nodes for depth %d.\n", NODECOUNT, nodecounts[done], SD);
     if(hash!=hashes[done])
     {
       fprintf(stdout,"# Book hash NOT Correct, 0x%016llx != 0x%016llx\n", hash, hashes[done]);
-      if (LogFile != NULL)
+      if (LogFile)
       {
         fprinttime(LogFile);
        fprintf(LogFile,"# Book hash NOT Correct, 0x%016llx != 0x%016llx\n", hash, hashes[done]);
@@ -1459,7 +1460,7 @@ nodes for depth %d.\n", NODECOUNT, nodecounts[done], SD);
     {
       passed++;
       fprintf(stdout,"# Book hash Correct, 0x%016llx == 0x%016llx\n", hash, hashes[done]);
-      if (LogFile != NULL)
+      if (LogFile)
       {
         fprinttime(LogFile);
        fprintf(LogFile,"# Book hash Correct, 0x%016llx == 0x%016llx\n", hash, hashes[done]);
@@ -1483,7 +1484,7 @@ nodes for depth %d.\n", NODECOUNT, nodecounts[done], SD);
   if(hash!=0x3c8123ea7b067637)
   {
     fprintf(stdout,"# Book hash NOT Correct, 0x%016llx != 0x3c8123ea7b067637\n", hash);
-    if (LogFile != NULL)
+    if (LogFile)
     {
       fprinttime(LogFile);
      fprintf(LogFile,"# Book hash NOT Correct, 0x%016llx != 0x3c8123ea7b067637\n", hash);
@@ -1493,7 +1494,7 @@ nodes for depth %d.\n", NODECOUNT, nodecounts[done], SD);
   {
     passed++;
     fprintf(stdout,"# Book hash Correct, 0x%016llx == 0x3c8123ea7b067637\n", hash);
-    if (LogFile != NULL)
+    if (LogFile)
     {
       fprinttime(LogFile);
      fprintf(LogFile,"# Book hash Correct, 0x%016llx == 0x3c8123ea7b067637\n", hash);
@@ -1509,7 +1510,7 @@ nodes for depth %d.\n", NODECOUNT, nodecounts[done], SD);
   if(hash!=0x5c3f9b829b279560)
   {
     fprintf(stdout,"# Book hash NOT Correct, 0x%016llx != 0x5c3f9b829b279560\n", hash);
-    if (LogFile != NULL)
+    if (LogFile)
     {
       fprinttime(LogFile);
      fprintf(LogFile,"# Book hash NOT Correct, 0x%016llx != 0x5c3f9b829b279560\n", hash);
@@ -1519,7 +1520,7 @@ nodes for depth %d.\n", NODECOUNT, nodecounts[done], SD);
   {
     passed++;
     fprintf(stdout,"# Book hash Correct, 0x%016llx == 0x5c3f9b829b279560\n", hash);
-    if (LogFile != NULL)
+    if (LogFile)
     {
       fprinttime(LogFile);
      fprintf(LogFile,"# Book hash Correct, 0x%016llx == 0x5c3f9b829b279560\n", hash);
@@ -1598,6 +1599,17 @@ int main(int argc, char* argv[])
   setbuf (stdout, NULL);
   setbuf (stdin, NULL);
 
+  /* init memory, files and tables */
+  if (!inits ())
+  {
+    release_inits ();
+    exit (EXIT_FAILURE);
+  }
+  /* init transposition hash table with 64 mb*/
+  initTT(64);
+  /* init starting position */
+  setboard(BOARD,"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
+
   /* turn log on */
   for (c=1;c<argc;c++)
   {
@@ -1605,7 +1617,7 @@ int main(int argc, char* argv[])
     {
       /* open/create log file */
       LogFile = fopen("zetadva.log", "a");
-      if (LogFile == NULL) 
+      if (!LogFile ) 
       {
         fprintf(stdout,"Error (opening logfile zetadva.log): --log");
       }
@@ -1632,17 +1644,8 @@ int main(int argc, char* argv[])
         break;
     }
   }
-  /* init memory, files and tables */
-  if (!inits ())
-  {
-    release_inits ();
-    exit (EXIT_FAILURE);
-  }
-  /* init transposition hash table with 64 mb*/
-  initTT(64);
-
   /* open log file */
-  if (LogFile != NULL)
+  if (LogFile)
   {
     /* no buffers */
     setbuf(LogFile, NULL);
@@ -1654,9 +1657,6 @@ int main(int argc, char* argv[])
     }
     fprintf(LogFile, "\n");
   }
-
-  /* init starting position */
-  setboard(BOARD,"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
 
   /* print engine info to console */
   fprintf(stdout,"Zeta Dva %s\n",VERSION);
@@ -1672,7 +1672,7 @@ int main(int argc, char* argv[])
       fprintf(stdout,"> ");
     /* just to be sure, flush the output...*/
     fflush (stdout);
-    if (LogFile!=NULL)
+    if (LogFile)
       fflush (LogFile);
     /* get Line */
     if (!fgets (Line, 1023, stdin)) {}
@@ -1680,7 +1680,7 @@ int main(int argc, char* argv[])
     if (Line[0] == '\n')
       continue;
     /* print io to log file */
-    if (LogFile != NULL)
+    if (LogFile)
     {
       fprinttime(LogFile);
       fprintf(LogFile, "%s\n",Line);
@@ -1712,7 +1712,7 @@ int main(int argc, char* argv[])
       {
         fprintf(stdout,"Error (unsupported protocoll version,  < v2): protover\n");
         fprintf(stdout,"tellusererror (unsupported protocoll version, < v2): protover\n");
-        if (LogFile != NULL)
+        if (LogFile)
         {
           fprinttime(LogFile);
           fprintf(LogFile,"Error (unsupported protocoll version,  < v2): protover\n");
@@ -1741,7 +1741,7 @@ int main(int argc, char* argv[])
         {
           fprintf(stdout,"Error (unsupported feature usermove): rejected\n");
           fprintf(stdout,"tellusererror (unsupported feature usermove): rejected\n");
-          if (LogFile != NULL)
+          if (LogFile)
           {
             fprinttime(LogFile);
             fprintf(LogFile,"Error (unsupported feature usermove): rejected\n");
@@ -1786,7 +1786,7 @@ int main(int argc, char* argv[])
           (BOARD, "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"))
       {
         fprintf(stdout,"Error (in setting start postition): new\n");        
-        if (LogFile != NULL)
+        if (LogFile)
         {
           fprinttime(LogFile);
           fprintf(LogFile,"Error (in setting start postition): new\n");        
@@ -1804,7 +1804,7 @@ int main(int argc, char* argv[])
       if(*Fen != '\n' && *Fen != '\0'  && !setboard (BOARD, Fen))
       {
         fprintf(stdout,"Error (in setting chess psotition via fen string): setboard\n");        
-        if (LogFile != NULL)
+        if (LogFile)
         {
           fprinttime(LogFile);
           fprintf(LogFile,"Error (in setting chess psotition via fen string): setboard\n");        
@@ -1821,7 +1821,7 @@ int main(int argc, char* argv[])
       {
         fprintf(stdout,"Error (unsupported protocoll version, < v2): go\n");
         fprintf(stdout,"tellusererror (unsupported protocoll version. < v2): go\n");
-        if (LogFile != NULL)
+        if (LogFile)
         {
           fprinttime(LogFile);
           fprintf(LogFile,"Error (unsupported protocoll version, < v2): go\n");
@@ -1941,8 +1941,8 @@ int main(int argc, char* argv[])
     /* memory for hash size  */
 		if (!strcmp(Command, "memory"))
     {
-      s32 xboardmb = 0;
-      sscanf(Line, "time %d", &xboardmb);
+      u32 xboardmb = 0;
+      sscanf(Line, "memory %u", &xboardmb);
       initTT(xboardmb);
       continue;
     }
@@ -1955,7 +1955,7 @@ int main(int argc, char* argv[])
       {
         fprintf(stdout,"Error (unsupported protocoll version, < v2): usermove\n");
         fprintf(stdout,"tellusererror (unsupported protocoll version, <v2): usermove\n");
-        if (LogFile != NULL)
+        if (LogFile)
         {
           fprinttime(LogFile);
           fprintf(LogFile,"Error (unsupported protocoll version, < v2): usermove\n");
@@ -2123,10 +2123,10 @@ int main(int argc, char* argv[])
     if (!xboard_mode && !strcmp(Command, "log"))
     {
       /* open/create log file */
-      if (LogFile == NULL) 
+      if (!LogFile ) 
       {
         LogFile = fopen("zetadva.log", "a");
-        if (LogFile == NULL) 
+        if (!LogFile ) 
         {
           fprintf(stdout,"Error (opening logfile zetadva.log): log");
         }
@@ -2139,7 +2139,7 @@ int main(int argc, char* argv[])
       fprintf(stdout,"Error (unsupported command): %s\n",Command);
       fprintf(stdout,"tellusererror (unsupported command): %s\n",Command);
       fprintf(stdout,"tellusererror engine supports only CECP (Xboard) version >=2\n");
-      if (LogFile != NULL)
+      if (LogFile)
       {
         fprinttime(LogFile);
         fprintf(LogFile,"Error (unsupported command): %s\n",Command);
@@ -2155,7 +2155,7 @@ int main(int argc, char* argv[])
     {
       fprintf(stdout,"Error (unsupported command): %s\n",Command);
       fprintf(stdout,"tellusererror (unsupported command): %s\n",Command);
-      if (LogFile != NULL)
+      if (LogFile)
       {
         fprinttime(LogFile);
         fprintf(LogFile,"Error (unsupported command): %s\n",Command);
@@ -2164,7 +2164,7 @@ int main(int argc, char* argv[])
     }
     /* unknown command...*/
     fprintf(stdout,"Error (unsupported command): %s\n",Command);
-    if (LogFile != NULL)
+    if (LogFile)
     {
       fprinttime(LogFile);
       fprintf(LogFile,"Error (unsupported command): %s\n",Command);

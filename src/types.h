@@ -25,6 +25,7 @@
 /* C89 style typedefs
 typedef unsigned char bool;
 typedef unsigned char u8;
+typedef unsigned short u16;
 typedef signed short s16;
 typedef signed int s32;
 typedef unsigned int u32;
@@ -37,6 +38,7 @@ typedef unsigned long long u64;
 #include <stdbool.h>
 /* C99 types */
 typedef uint8_t         u8;
+typedef uint16_t        u16;
 typedef int16_t         s16;
 typedef int32_t         s32;
 typedef uint32_t        u32;
