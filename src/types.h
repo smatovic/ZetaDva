@@ -74,10 +74,10 @@ typedef u64             Rank;
   22  - 25  piece to
   26  - 29  piece capture
   30  - 35  square en passant target
-  36  - 43  halfmove clock for fity move rule, last capture/castle/pawn move
-  44  - 45  2 bit free
-  46        move is castle kingside
-  47        move is castle queenside
+  36        move is castle kingside
+  37        move is castle queenside
+  38  - 39  2 bit free
+  40  - 47  halfmove clock for fity move rule, last capture/castle/pawn move
   48  - 63  move score, signed 16 bit
 */
 /* engine defaults */
@@ -103,9 +103,9 @@ typedef u64             Rank;
 /* handle u long long*/
 #define C64(val)            (val##ULL)
 /* move is castle flag */
-#define MOVEISCR            0x0000C00000000000ULL
-#define MOVEISCRK           0x0000400000000000ULL
-#define MOVEISCRQ           0x0000800000000000ULL
+#define MOVEISCR            0x0000003000000000ULL
+#define MOVEISCRK           0x0000001000000000ULL
+#define MOVEISCRQ           0x0000002000000000ULL
 /* bitboard masks, computation prefered over lookup */
 #define SETMASKBB(sq)       (1ULL<<(sq))
 #define CLRMASKBB(sq)       (~(1ULL<<(sq)))
@@ -117,15 +117,15 @@ typedef u64             Rank;
 #define CRNONE              0x0000000000000000ULL
 #define SCORENONE           0x0000000000000000ULL
 /* set masks */
-#define SMMOVE              0x000000003FFFFFFFULL
+#define SMMOVE              0x0000003FFFFFFFFFULL
 #define SMSQEP              0x0000000FC0000000ULL
-#define SMHMC               0x00000FF000000000ULL
+#define SMHMC               0x0000FF0000000000ULL
 #define SMCRALL             0x8900000000000091ULL
 #define SMSCORE             0xFFFF000000000000ULL
 /* clear masks */
-#define CMMOVE              0xFFFFFFFFC0000000ULL
+#define CMMOVE              0xFFFFFFC000000000ULL
 #define CMSQEP              0xFFFFFFF03FFFFFFFULL
-#define CMHMC               0xFFFFF00FFFFFFFFFULL
+#define CMHMC               0xFFFF00FFFFFFFFFFULL
 #define CMCRALL             0x76FFFFFFFFFFFF6EULL
 #define CMSCORE             0x0000FFFFFFFFFFFFULL
 /* castle right masks */
@@ -136,7 +136,7 @@ typedef u64             Rank;
 #define SMCRBLACKQ          0x1100000000000000ULL
 #define SMCRBLACKK          0x9000000000000000ULL
 /* move helpers */
-#define MAKEPIECE(p,c)     (((Piece)(p)<<1)|(u64)c)
+#define MAKEPIECE(p,c)     ((((u64)p)<<1)|(u64)c)
 #define JUSTMOVE(move)     (move&SMMOVE)
 #define GETCOLOR(p)        ((p)&0x1)
 #define GETPTYPE(p)        (((p)>>1)&0x7)      /* 3 bit piece type encoding */
@@ -148,8 +148,8 @@ typedef u64             Rank;
 #define GETPCPT(mv)        (((mv)>>26)&0xF)    /* 4 bit piece encodinge */
 #define GETSQEP(mv)        (((mv)>>30)&0x3F)   /* 6 bit square */
 #define SETSQEP(mv,sq)     (((mv)&CMSQEP)|(((sq)&0x3F)<<30))
-#define GETHMC(mv)         (((mv)>>36)&0xFF)   /* 8 bit halfmove clock */
-#define SETHMC(mv,hmc)     (((mv)&CMHMC)|(((hmc)&0xFF)<<36))
+#define GETHMC(mv)         (((mv)>>40)&0xFF)   /* 8 bit halfmove clock */
+#define SETHMC(mv,hmc)     (((mv)&CMHMC)|(((hmc)&0xFF)<<40))
 #define GETSCORE(mv)       (((mv)>>48)&0xFFFF) /* signed 16 bit move score */
 #define SETSCORE(mv,score) (((mv)&CMSCORE)|(((score)&0xFFFF)<<48)) 
 /* pack move into 64 bits */
@@ -157,7 +157,7 @@ typedef u64             Rank;
 ( \
      sqfrom      | (sqto<<6)  | (sqcpt<<12) \
   | (pfrom<<18)  | (pto<<22)  | (pcpt<<26) \
-  | (sqep<<30)   | (hmc<<36)  | (score<<48) \
+  | (sqep<<30)   | (hmc<<40)  | (score<<48) \
 )
 /* square helpers */
 #define MAKESQ(file,rank)   ((rank)<<3|(file))

@@ -379,8 +379,12 @@ void bookclose(void)
 }
 Move book2zeta(Bitboard *board, uint16 bookmove){
 
-  bool stm;
-  int f,fr,ff,t,tr,tf,p;
+  u64 stm;
+  File filefrom;
+  Rank rankfrom;
+  File fileto;
+  Rank rankto;
+  Piece p;
   Square zetafrom;
   Square zetato;
   Square zetacpt;
@@ -391,30 +395,29 @@ Move book2zeta(Bitboard *board, uint16 bookmove){
   Piece zetapromop = PNONE;
   Move move = MOVENONE;
 
-  f=(bookmove>>6)&077;
-  fr=(f>>3)&0x7;
-  ff=f&0x7;
-  t=bookmove&077;
-  tr=(t>>3)&0x7;
-  tf=t&0x7;
-  p=(bookmove>>12)&0x7;
-
   if (!bookmove)
       return MOVENONE;
 
-  zetafrom = MAKESQ(ff,fr);
-  zetato   = MAKESQ(tf,tr);;
+  fileto   = (bookmove)&0x7;
+  rankto   = (bookmove>>3)&0x7;
+  filefrom = (bookmove>>6)&0x7;
+  rankfrom = (bookmove>>9)&0x7;
+  p        = (bookmove>>12)&0x7;
+
+
+  zetafrom = MAKESQ(filefrom, rankfrom);
+  zetato   = MAKESQ(fileto, rankto);;
   zetacpt  = zetato;
 
-  zetapfrom = GETPIECE(board,zetafrom);
+  zetapfrom = GETPIECE(board, zetafrom);
   zetapto   = zetapfrom;
   stm       = GETCOLOR(zetapfrom);
 
-  zetapromop = (p==0)? (Piece)MAKEPIECE(PNONE,stm):zetapromop;
-  zetapromop = (p==1)? (Piece)MAKEPIECE(KNIGHT,stm): zetapromop;
-  zetapromop = (p==2)? (Piece)MAKEPIECE(BISHOP,stm): zetapromop;
-  zetapromop = (p==3)? (Piece)MAKEPIECE(ROOK,stm): zetapromop;
-  zetapromop = (p==4)? (Piece)MAKEPIECE(QUEEN,stm): zetapromop;
+  zetapromop = (p==0)? (Piece)MAKEPIECE(PNONE, stm):zetapromop;
+  zetapromop = (p==1)? (Piece)MAKEPIECE(KNIGHT, stm): zetapromop;
+  zetapromop = (p==2)? (Piece)MAKEPIECE(BISHOP, stm): zetapromop;
+  zetapromop = (p==3)? (Piece)MAKEPIECE(ROOK, stm): zetapromop;
+  zetapromop = (p==4)? (Piece)MAKEPIECE(QUEEN, stm): zetapromop;
 
   zetapto   = (GETPTYPE(zetapfrom)==PAWN&&p)?zetapromop:zetapto;
   zetapcpt  = GETPIECE(board,zetacpt);
@@ -425,7 +428,8 @@ Move book2zeta(Bitboard *board, uint16 bookmove){
             &&zetato-zetafrom!=8&&zetapcpt==PNONE)?zetato-8:zetapcpt;
 
   zetapcpt = ((zetapfrom>>1)==PAWN&&(stm==BLACK)&&GETRANK(zetafrom)==RANK_4  
-            &&zetafrom-zetato!=8 &&zetapcpt==PNONE)?zetato+8:zetapcpt;
+            &&zetafrom-zetato!=8&&zetapcpt==PNONE)?zetato+8:zetapcpt;
+
   zetapcpt  = GETPIECE(board,zetacpt);
 
   /* pawn double square move, set en passant target square */
@@ -433,7 +437,7 @@ Move book2zeta(Bitboard *board, uint16 bookmove){
     zetasqep = zetato;
 
   /* check castling white kingside */
-  if (GETPTYPE(zetapfrom)==KING&&!stm&&zetafrom==4&&zetato==7)
+  if (GETPTYPE(zetapfrom)==KING&&stm==WHITE&&zetafrom==4&&zetato==7)
   {
     /* white kingside */
     zetato = 6;
@@ -446,7 +450,7 @@ Move book2zeta(Bitboard *board, uint16 bookmove){
     return move;
   }
   /* check castling white queenside */
-  if (GETPTYPE(zetapfrom)==KING&&!stm&&zetafrom==4&&zetato==0)
+  if (GETPTYPE(zetapfrom)==KING&&stm==WHITE&&zetafrom==4&&zetato==0)
   {
     /* white kingside */
     zetato = 2;
@@ -486,7 +490,7 @@ Move book2zeta(Bitboard *board, uint16 bookmove){
   }
 
   /* pack move into 64 bits, considering castle rights and halfmovecounter and score */
-  move = MAKEMOVE(zetafrom, zetato, zetacpt, zetapfrom, zetapto, zetapcpt, (u64)0, (u64)GETHMC(board[QBBLAST]), (u64)0);
+  move = MAKEMOVE(zetafrom, zetato, zetacpt, zetapfrom, zetapto, zetapcpt, zetasqep, (u64)GETHMC(board[QBBLAST]), (u64)0);
 
   return move;
 }
@@ -497,7 +501,7 @@ Move bookmove(Bitboard *board, bool stm)
   int count=0;
   int ret;
   uint64 key = 0;
-  Move move = 0;
+  Move move;
   struct entry_t entry;
   struct entry_t entries[MAXBOOKMOVES];
 

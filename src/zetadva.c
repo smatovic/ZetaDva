@@ -190,7 +190,7 @@ void save_to_tt(Hash hash, Move move, Score score, signed char flag, s32 depth, 
 
   tete = &TT[((hash))&(ttbits-1)];
   tete->hash      = hash;
-  tete->bestmove  = JUSTMOVE(move);
+  tete->bestmove  = move;
   tete->score     = score;
   tete->flag      = flag;
   tete->depth     = depth;
