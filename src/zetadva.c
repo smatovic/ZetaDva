@@ -621,15 +621,15 @@ void printbitboard(Bitboard board)
 }
 void printmove(Move move)
 {
-  fprintf(stdout,"sqfrom:%llu\n",GETSQFROM(move));
-  fprintf(stdout,"sqto:%llu\n",GETSQTO(move));
-  fprintf(stdout,"sqcpt:%llu\n",GETSQCPT(move));
-  fprintf(stdout,"pfrom:%llu\n",GETPFROM(move));
-  fprintf(stdout,"pto:%llu\n",GETPTO(move));
-  fprintf(stdout,"pcpt:%llu\n",GETPCPT(move));
-  fprintf(stdout,"sqep:%llu\n",GETSQEP(move));
-  fprintf(stdout,"hmc:%u\n",(u32)GETHMC(move));
-  fprintf(stdout,"score:%i\n",(Score)GETSCORE(move));
+  fprintf(stdout,"#sqfrom:%llu\n",GETSQFROM(move));
+  fprintf(stdout,"#sqto:%llu\n",GETSQTO(move));
+  fprintf(stdout,"#sqcpt:%llu\n",GETSQCPT(move));
+  fprintf(stdout,"#pfrom:%llu\n",GETPFROM(move));
+  fprintf(stdout,"#pto:%llu\n",GETPTO(move));
+  fprintf(stdout,"#pcpt:%llu\n",GETPCPT(move));
+  fprintf(stdout,"#sqep:%llu\n",GETSQEP(move));
+  fprintf(stdout,"#hmc:%u\n",(u32)GETHMC(move));
+  fprintf(stdout,"#score:%i\n",(Score)GETSCORE(move));
 }
 /* move in algebraic notation, eg. e2e4, to internal packed move  */
 static Move can2move(char *usermove, Bitboard *board, bool stm) 

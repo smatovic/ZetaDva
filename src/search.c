@@ -308,7 +308,7 @@ Move rootsearch(Bitboard *board, bool stm, s32 depth)
   for (i=0;i<movecounter;i++)
   {
     if (rootmove!=MOVENONE&&JUSTMOVE(rootmove)==JUSTMOVE(moves[i]))
-      return rootmove;
+      return moves[i];
   }
   /* gui output */
   if (!xboard_mode&&!epd_mode)
