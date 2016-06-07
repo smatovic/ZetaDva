@@ -1,16 +1,16 @@
 A) Root-Structure
-    - basic Xboard protocol                                           WIP
+    - basic Xboard protocol                             DONE
     - setboard with FEN                                 DONE
     - coordinate algebraic notation                     DONE
     - time control                                      DONE
-    - SAN                                                       TODO
+    - san                                               DEP
     - internal selftest, perft with nodecount           DONE
     - external test suite, node count                   DONE
     - external test suite, bestomve                     DONE
     - external test suite, bestomves from STS                   TODO
     - internal draw by repetition                               TODO
     - fifty moves rule                                          TODO
-    - opening book                                              TODO
+    - polyglot opening book support                     DONE
     - pondering                                                 TODO
     - SMP, mutlicore                                            TODO
 
@@ -38,7 +38,7 @@ D) DoMove, UnDoMove
     - normal moves                                      DONE
     - special moves                                     DONE
     - quick version                                     DONE
-    - compute hash                                              TODO
+    - compute hash                                      DONE
     - incremental hash                                          TODO
 
 E) Evaluation
