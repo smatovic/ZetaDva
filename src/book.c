@@ -501,7 +501,7 @@ Move bookmove(Bitboard *board, bool stm)
   int count=0;
   int ret;
   uint64 key = 0;
-  Move move;
+  Move move = MOVENONE;
   struct entry_t entry;
   struct entry_t entries[MAXBOOKMOVES];
 
