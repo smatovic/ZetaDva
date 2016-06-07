@@ -119,6 +119,8 @@ static bool release_inits(void)
   if (TT) 
     free(TT);
 
+  bookclose();
+
   return true;
 }
 static Hash computehash(Bitboard *board, bool stm)
@@ -241,6 +243,8 @@ static bool inits(void)
             MAXGAMEPLY);
     return false;
   }
+
+  bookopen();
 
 /* init pawn attack tables
   Square sq =0;

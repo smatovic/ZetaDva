@@ -23,6 +23,7 @@
 #include <stdlib.h>     /* for qsort */
 
 #include "bitboard.h"   /* for population count, pop_count */
+#include "book.h"       /* for polyglot book access */
 #include "eval.h"       /* for evalmove and eval */
 #include "movegen.h"    /* for move generator thingies */
 #include "timer.h"      /* for time measurement */
@@ -300,6 +301,13 @@ Move rootsearch(Bitboard *board, bool stm, s32 depth)
   {
     printf("result 1/2-1/2 { stalemate }");
     return MOVENONE;
+  }
+  /* check for bookmove */
+  rootmove = bookmove(board, stm);
+  for (i=0;i<movecounter;i++)
+  {
+    if (rootmove!=MOVENONE&&JUSTMOVE(rootmove)==JUSTMOVE(moves[i]))
+      return rootmove;
   }
   /* gui output */
   if (!xboard_mode&&!epd_mode)

@@ -14,7 +14,6 @@
 #define MAXBOOKMOVES 100
 
 FILE * BookFile = NULL;
-size_t BookSize = 0;
 
 typedef u64 uint64;
 typedef u32 uint32;
@@ -370,12 +369,12 @@ Hash computebookhash(Bitboard *board, bool stm)
 
 void bookopen(void)
 {
-    BookFile=fopen("book.bin","rb");
+  BookFile=fopen("book.bin","rb");
 }
 
 void bookclose(void)
 {
-  if (BookFile!=NULL)
+  if (BookFile)
     fclose(BookFile);
 }
 Move book2zeta(Bitboard *board, uint16 bookmove){
@@ -400,7 +399,7 @@ Move book2zeta(Bitboard *board, uint16 bookmove){
   tf=t&0x7;
   p=(bookmove>>12)&0x7;
 
-  if (!move)
+  if (!bookmove)
       return MOVENONE;
 
   zetafrom = MAKESQ(ff,fr);
@@ -433,45 +432,74 @@ Move book2zeta(Bitboard *board, uint16 bookmove){
   if ((zetapfrom>>1)==PAWN&&GETRRANK(zetafrom,stm)==1&&GETRRANK(zetato,stm)==3)
     zetasqep = zetato;
 
-
-  /* check castling */
-  if (GETPTYPE(zetapfrom)==KING&&(zetato-zetafrom==3||zetafrom-zetato==4)) 
+  /* check castling white kingside */
+  if (GETPTYPE(zetapfrom)==KING&&!stm&&zetafrom==4&&zetato==7)
   {
     /* white kingside */
-    if (zetafrom == 4 && zetato == 7)
-    {
-      zetato = 6;
-      zetacpt = 6;
-    }
-    /* white queenside */
-    if (zetafrom == 4 && zetato == 0)
-    {
-      zetato = 2;
-      zetacpt = 2;
-    }
-    /* black kingside */
-    if (zetafrom == 60 && zetato == 63)
-    {
-      zetato = 62;
-      zetacpt = 62;
-    }
-    /* white queenside */
-    if (zetafrom == 60 && zetato == 56)
-    {
-      zetato = 56;
-      zetacpt = 56;
-    }
+    zetato = 6;
+    zetacpt = 6;
     zetapfrom = KING;
     zetapto = KING;
     zetacpt = PNONE;            
     zetasqep = 0;
+    /* pack move into 64 bits, considering castle rights and halfmovecounter and score */
+    move = MAKEMOVE(zetafrom, zetato, zetacpt, zetapfrom, zetapto, zetapcpt, zetasqep, (u64)GETHMC(board[QBBLAST]), (u64)0);
+    move|= MOVEISCRK;
+    return move;
   }
+  /* check castling white queenside */
+  if (GETPTYPE(zetapfrom)==KING&&!stm&&zetafrom==4&&zetato==0)
+  {
+    /* white kingside */
+    zetato = 2;
+    zetacpt = 2;
+    zetapfrom = KING;
+    zetapto = KING;
+    zetacpt = PNONE;            
+    zetasqep = 0;
+    /* pack move into 64 bits, considering castle rights and halfmovecounter and score */
+    move = MAKEMOVE(zetafrom, zetato, zetacpt, zetapfrom, zetapto, zetapcpt, zetasqep, (u64)GETHMC(board[QBBLAST]), (u64)0);
+    move|= MOVEISCRQ;
+    return move;
+  }
+  /* check castling black kingside */
+  if (GETPTYPE(zetapfrom)==KING&&stm&&zetafrom==60&&zetato==63)
+  {
+    /* white kingside */
+    zetato = 62;
+    zetacpt = 62;
+    zetapfrom = KING;
+    zetapto = KING;
+    zetacpt = PNONE;            
+    zetasqep = 0;
+    /* pack move into 64 bits, considering castle rights and halfmovecounter and score */
+    move = MAKEMOVE(zetafrom, zetato, zetacpt, zetapfrom, zetapto, zetapcpt, zetasqep, (u64)GETHMC(board[QBBLAST]), (u64)0);
+    move|= MOVEISCRK;
+    return move;
+  }
+  /* check castling black queenside */
+  if (GETPTYPE(zetapfrom)==KING&&stm&&zetafrom==60&&zetato==56)
+  {
+    /* white kingside */
+    zetato = 58;
+    zetacpt = 58;
+    zetapfrom = KING;
+    zetapto = KING;
+    zetacpt = PNONE;            
+    zetasqep = 0;
+    /* pack move into 64 bits, considering castle rights and halfmovecounter and score */
+    move = MAKEMOVE(zetafrom, zetato, zetacpt, zetapfrom, zetapto, zetapcpt, zetasqep, (u64)GETHMC(board[QBBLAST]), (u64)0);
+    move|= MOVEISCRQ;
+    return move;
+  }
+
   /* pack move into 64 bits, considering castle rights and halfmovecounter and score */
   move = MAKEMOVE(zetafrom, zetato, zetacpt, zetapfrom, zetapto, zetapcpt, zetasqep, (u64)GETHMC(board[QBBLAST]), (u64)0);
 
   return move;
 }
-Move bookmove(Bitboard *board, bool stm) {
+Move bookmove(Bitboard *board, bool stm)
+{
 
   int offset;
   int count=0;
@@ -489,8 +517,11 @@ Move bookmove(Bitboard *board, bool stm) {
   offset=find_key(BookFile,key,&entry);
 
   if(entry.key!=key)
+{
+printf("#no such book key\n");
     return MOVENONE;
 
+}
   entries[0]=entry;
   count=1;
 

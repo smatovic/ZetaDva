@@ -18,7 +18,7 @@ void bookopen(void);
 void bookclose(void);
 
 Hash computebookhash(Bitboard *board, bool stm);
-
+Move bookmove(Bitboard *board, bool stm);
 
 #endif /* BOOK_H_INCLUDED */
 
