@@ -250,10 +250,10 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
       alpha=score;
   }
   /* checkmate */
-  if (legalmovecounter == 0 && kic)
+  if (legalmovecounter==0&&kic)
     return -INF+ply;
   /* stalemate */
-  if (legalmovecounter == 0 && !kic) 
+  if (legalmovecounter==0&&!kic) 
     return STALEMATESCORE;
 
   return alpha;
