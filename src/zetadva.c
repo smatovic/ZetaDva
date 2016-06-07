@@ -1232,10 +1232,9 @@ static bool setboard(Bitboard *board, char *fenstring)
   /* game ply can be more */
   GAMEPLY = fendepth*2+STM;
 
-  /* TODO: compute  hash
-  board[QBBHASH] = compute_hash(BOARD);
-  HashHistory[PLY] = compute_hash(BOARD);
-  */
+  /* compute zobrist hash */
+  board[QBBHASH] = computehash(BOARD, STM);
+  HashHistory[PLY] = board[QBBHASH];
 
   /* store lastmove+ in board */
   board[QBBLAST] = lastmove;
