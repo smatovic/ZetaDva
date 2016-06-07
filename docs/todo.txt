@@ -2,11 +2,12 @@ A) Root-Structure
     - basic Xboard protocol                                           WIP
     - setboard with FEN                                 DONE
     - coordinate algebraic notation                     DONE
-    - time control                                                    WIP
-    - SAN                                                       TOOD
+    - time control                                      DONE
+    - SAN                                                       TODO
     - internal selftest, perft with nodecount           DONE
     - external test suite, node count                   DONE
-    - external test suite, bestomve from STS                    TODO
+    - external test suite, bestomve                     DONE
+    - external test suite, bestomves from STS                   TODO
     - internal draw by repetition                               TODO
     - fifty moves rule                                          TODO
     - opening book                                              TODO
@@ -37,6 +38,7 @@ D) DoMove, UnDoMove
     - normal moves                                      DONE
     - special moves                                     DONE
     - quick version                                     DONE
+    - compute hash                                              TODO
     - incremental hash                                          TODO
 
 E) Evaluation
@@ -55,7 +57,7 @@ F) Search Algorithm
     - search extension, king in check                   DONE
     - PV-Search, Nullwindows                            DONE
     - Transposition/Hash-Tables                                       WIP
-    - Iterative Deepening Framwork                                    WIP
+    - Iterative Deepening Framwork                      DONE
     - Aspiration Windows                                DEP
     - Null Move Pruning                                         TODO
     - Late Move Reductions                                      TODO
