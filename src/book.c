@@ -438,12 +438,12 @@ Move book2zeta(Bitboard *board, uint16 bookmove){
     /* white kingside */
     zetato = 6;
     zetacpt = 6;
-    zetapfrom = KING;
-    zetapto = KING;
+    zetapfrom = MAKEPIECE(KING,stm);
+    zetapto = zetapfrom;
     zetacpt = PNONE;            
     zetasqep = 0;
     /* pack move into 64 bits, considering castle rights and halfmovecounter and score */
-    move = MAKEMOVE(zetafrom, zetato, zetacpt, zetapfrom, zetapto, zetapcpt, zetasqep, (u64)GETHMC(board[QBBLAST]), (u64)0);
+    move = MAKEMOVE(zetafrom, zetato, zetacpt, zetapfrom, zetapto, zetapcpt, (u64)0, (u64)GETHMC(board[QBBLAST]), (u64)0);
     move|= MOVEISCRK;
     return move;
   }
@@ -453,12 +453,12 @@ Move book2zeta(Bitboard *board, uint16 bookmove){
     /* white kingside */
     zetato = 2;
     zetacpt = 2;
-    zetapfrom = KING;
-    zetapto = KING;
+    zetapfrom = MAKEPIECE(KING,stm);
+    zetapto = zetapfrom;
     zetacpt = PNONE;            
     zetasqep = 0;
     /* pack move into 64 bits, considering castle rights and halfmovecounter and score */
-    move = MAKEMOVE(zetafrom, zetato, zetacpt, zetapfrom, zetapto, zetapcpt, zetasqep, (u64)GETHMC(board[QBBLAST]), (u64)0);
+    move = MAKEMOVE(zetafrom, zetato, zetacpt, zetapfrom, zetapto, zetapcpt, (u64)0, (u64)GETHMC(board[QBBLAST]), (u64)0);
     move|= MOVEISCRQ;
     return move;
   }
@@ -468,12 +468,12 @@ Move book2zeta(Bitboard *board, uint16 bookmove){
     /* white kingside */
     zetato = 62;
     zetacpt = 62;
-    zetapfrom = KING;
-    zetapto = KING;
+    zetapfrom = MAKEPIECE(KING,stm);
+    zetapto = zetapfrom;
     zetacpt = PNONE;            
     zetasqep = 0;
     /* pack move into 64 bits, considering castle rights and halfmovecounter and score */
-    move = MAKEMOVE(zetafrom, zetato, zetacpt, zetapfrom, zetapto, zetapcpt, zetasqep, (u64)GETHMC(board[QBBLAST]), (u64)0);
+    move = MAKEMOVE(zetafrom, zetato, zetacpt, zetapfrom, zetapto, zetapcpt, (u64)0, (u64)GETHMC(board[QBBLAST]), (u64)0);
     move|= MOVEISCRK;
     return move;
   }
@@ -483,18 +483,18 @@ Move book2zeta(Bitboard *board, uint16 bookmove){
     /* white kingside */
     zetato = 58;
     zetacpt = 58;
-    zetapfrom = KING;
-    zetapto = KING;
+    zetapfrom = MAKEPIECE(KING,stm);
+    zetapto = zetapfrom;
     zetacpt = PNONE;            
     zetasqep = 0;
     /* pack move into 64 bits, considering castle rights and halfmovecounter and score */
-    move = MAKEMOVE(zetafrom, zetato, zetacpt, zetapfrom, zetapto, zetapcpt, zetasqep, (u64)GETHMC(board[QBBLAST]), (u64)0);
+    move = MAKEMOVE(zetafrom, zetato, zetacpt, zetapfrom, zetapto, zetapcpt, (u64)0, (u64)GETHMC(board[QBBLAST]), (u64)0);
     move|= MOVEISCRQ;
     return move;
   }
 
   /* pack move into 64 bits, considering castle rights and halfmovecounter and score */
-  move = MAKEMOVE(zetafrom, zetato, zetacpt, zetapfrom, zetapto, zetapcpt, zetasqep, (u64)GETHMC(board[QBBLAST]), (u64)0);
+  move = MAKEMOVE(zetafrom, zetato, zetacpt, zetapfrom, zetapto, zetapcpt, (u64)0, (u64)GETHMC(board[QBBLAST]), (u64)0);
 
   return move;
 }
