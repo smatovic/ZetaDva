@@ -265,6 +265,7 @@ Move rootsearch(Bitboard *board, bool stm, s32 depth)
   Score boardscore = (Score)board[QBBSCORE];
   Score alpha;
   Score beta;
+  s32 xboard_score;
   s32 i = 0;
   s32 idf = 1;
   s32 movecounter = 0;
@@ -359,7 +360,11 @@ Move rootsearch(Bitboard *board, bool stm, s32 depth)
     /* gui output */
     if (!TIMEOUT&&(xboard_post||!xboard_mode)&&!epd_mode)
     {
-      fprintf(stdout, "%d %d %d %llu ", idf, alpha, (s32)(elapsed/10), NODECOUNT);
+      /* xboard mate scores */
+      xboard_score = (s32)alpha;
+      xboard_score = (alpha<=-MATESCORE)?-100000-(INF+alpha):xboard_score;
+      xboard_score = (alpha>=MATESCORE)?100000-(-INF+alpha):xboard_score;
+      fprintf(stdout, "%d %d %d %llu ", idf, xboard_score, (s32)(elapsed/10), NODECOUNT);
       printmovecan(bestmove);
       fprintf(stdout, "\n");
     }
