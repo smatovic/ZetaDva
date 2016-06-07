@@ -438,10 +438,8 @@ Move book2zeta(Bitboard *board, uint16 bookmove){
     /* white kingside */
     zetato = 6;
     zetacpt = 6;
-    zetapfrom = MAKEPIECE(KING,stm);
     zetapto = zetapfrom;
     zetacpt = PNONE;            
-    zetasqep = 0;
     /* pack move into 64 bits, considering castle rights and halfmovecounter and score */
     move = MAKEMOVE(zetafrom, zetato, zetacpt, zetapfrom, zetapto, zetapcpt, (u64)0, (u64)GETHMC(board[QBBLAST]), (u64)0);
     move|= MOVEISCRK;
@@ -453,10 +451,8 @@ Move book2zeta(Bitboard *board, uint16 bookmove){
     /* white kingside */
     zetato = 2;
     zetacpt = 2;
-    zetapfrom = MAKEPIECE(KING,stm);
     zetapto = zetapfrom;
     zetacpt = PNONE;            
-    zetasqep = 0;
     /* pack move into 64 bits, considering castle rights and halfmovecounter and score */
     move = MAKEMOVE(zetafrom, zetato, zetacpt, zetapfrom, zetapto, zetapcpt, (u64)0, (u64)GETHMC(board[QBBLAST]), (u64)0);
     move|= MOVEISCRQ;
@@ -468,10 +464,8 @@ Move book2zeta(Bitboard *board, uint16 bookmove){
     /* white kingside */
     zetato = 62;
     zetacpt = 62;
-    zetapfrom = MAKEPIECE(KING,stm);
     zetapto = zetapfrom;
     zetacpt = PNONE;            
-    zetasqep = 0;
     /* pack move into 64 bits, considering castle rights and halfmovecounter and score */
     move = MAKEMOVE(zetafrom, zetato, zetacpt, zetapfrom, zetapto, zetapcpt, (u64)0, (u64)GETHMC(board[QBBLAST]), (u64)0);
     move|= MOVEISCRK;
@@ -483,10 +477,8 @@ Move book2zeta(Bitboard *board, uint16 bookmove){
     /* white kingside */
     zetato = 58;
     zetacpt = 58;
-    zetapfrom = MAKEPIECE(KING,stm);
     zetapto = zetapfrom;
     zetacpt = PNONE;            
-    zetasqep = 0;
     /* pack move into 64 bits, considering castle rights and halfmovecounter and score */
     move = MAKEMOVE(zetafrom, zetato, zetacpt, zetapfrom, zetapto, zetapcpt, (u64)0, (u64)GETHMC(board[QBBLAST]), (u64)0);
     move|= MOVEISCRQ;
@@ -517,11 +509,8 @@ Move bookmove(Bitboard *board, bool stm)
   offset=find_key(BookFile,key,&entry);
 
   if(entry.key!=key)
-{
-printf("#no such book key\n");
     return MOVENONE;
 
-}
   entries[0]=entry;
   count=1;
 
