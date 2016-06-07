@@ -23,6 +23,7 @@
 #include <string.h>     /* for string compare */ 
 #include <getopt.h>     /* for getopt_long */
 
+#include "book.h"       /* for polyglot book access */
 #include "bitboard.h"   /* for population count, pop_count */
 #include "eval.h"       /* for evalmove and eval */
 #include "movegen.h"    /* for move generator thingies */
@@ -120,6 +121,47 @@ static bool release_inits(void)
 
   return true;
 }
+static Hash computehash(Bitboard *board, bool stm)
+{
+  Piece piece;
+  Bitboard bbWork;
+  Square sq;
+  u64 hash = HASHNONE;
+  u8 side;
+
+  /* pieces with position */
+  for (side=WHITE;side<=BLACK;side++)
+  {
+    bbWork = (stm)?board[QBBBLACK]:(board[QBBBLACK]^(board[QBBP1]|board[QBBP2]|board[QBBP3]));
+    while(bbWork)
+    {
+      sq    = popfirst1(&bbWork);
+      piece = GETPTYPE(GETPIECE(board,sq));
+      hash ^= Random64[side*64+6+piece*64+sq];
+    }
+  }
+  /* castle rights */
+  if (((~board[QBBPMVD])&SMCRWHITEK)==SMCRWHITEK)
+      hash ^= RandomCastle[0];
+  if (((~board[QBBPMVD])&SMCRWHITEQ)==SMCRWHITEQ)
+      hash ^= RandomCastle[1];
+  if (((~board[QBBPMVD])&SMCRBLACKK)==SMCRBLACKK)
+      hash ^= RandomCastle[2];
+  if (((~board[QBBPMVD])&SMCRBLACKQ)==SMCRBLACKQ)
+      hash ^= RandomCastle[3];
+
+  /* en passant */
+  sq  = GETSQEP(board[QBBLAST]); 
+  if (sq)
+    hash ^= RandomEnPassant[GETFILE(sq)]; 
+
+  /* side to move */
+  if (!stm)
+      hash^=RandomTurn[0];
+
+  return hash;
+}
+
 static void initTT(u32 mb) 
 {
   u64 val = mb*1024*1024/sizeof(struct TTE);
@@ -1002,6 +1044,10 @@ static void createfen(char *fenstring, Bitboard *board, bool stm, s32 gameply)
   sq = GETSQEP(board[QBBLAST]);
   if (sq > 0)
   {
+    if (stm)
+      sq-=8;
+    if (!stm)
+      sq+=8;
     stringptr+=sprintf(stringptr, "%c", filec[GETFILE(sq)]);
     stringptr+=sprintf(stringptr, "%c", rankc[GETRANK(sq)]);
   }
@@ -1179,7 +1225,7 @@ static bool setboard(Bitboard *board, char *fenstring)
     rank  = cep[1] - 49;
   }
   sq    = MAKESQ(file, rank);
-  lastmove = SETSQEP (lastmove, sq);
+  lastmove = SETSQEP(lastmove, sq);
 
   /* ply starts at zero */
   PLY = 0;
@@ -1230,8 +1276,40 @@ static void selftest(void)
   Score scoreb = 0;
   u64 done;
   u64 passed = 0;
-  const u64 todo = 23;
-
+  const u64 todo = 32;
+  Hash hash;
+  Move move;
+  char movesc1[6][5] =
+  {
+    "e2e4",
+    "d7d5",
+    "e4e5", 
+    "f7f5",
+    "e1e2", 
+    "e8f7"
+  };
+  char movesc2[7][5] =
+  {
+    "a2a4",
+    "b7b5",
+    "h2h4",
+    "b5b4",
+    "c2c4",
+    "b4c3",
+    "a1a3"
+  };
+  Hash hashes[9] =
+  { 
+    0x463b96181691fc9c,
+    0x823c9b50fd114196,
+    0x0756b94461c50fb0,
+    0x662fafb965db29d4,
+    0x22a48b5a8e47ff78,
+    0x652a607ca3f242c1,
+    0x00fdd303c946bdd9,
+    0x3c8123ea7b067637,
+    0x5c3f9b829b279560
+  };
   char fenpositions[23][256]  =
   {
     "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq -",
@@ -1277,7 +1355,7 @@ static void selftest(void)
     46,2079,89890,3894594
   };
 
-  for (done=0;done<todo;done++)
+  for (done=0;done<23;done++)
   {
     NODECOUNT = 0;
     MOVECOUNT = 0;
@@ -1355,7 +1433,101 @@ nodes for depth %d.\n", NODECOUNT, nodecounts[done], SD);
       }
     }
   }
-  fprintf(stdout,"\n###############################\n");
+  /* test for book hashes */
+  setboard(BOARD,"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
+  fprintf(stdout,"#\n");  
+  fprintf(stdout,"# doing book hash checks\n");  
+  if (LogFile != NULL)
+  {
+    fprinttime(LogFile);
+    fprintf(LogFile,"#\n");  
+    fprintf(LogFile,"# doing book hash checks\n");  
+  }
+  done = 0;
+  do
+  {
+    hash = computebookhash(BOARD,STM);
+    if(hash!=hashes[done])
+    {
+      fprintf(stdout,"# Book hash NOT Correct, 0x%016llx != 0x%016llx\n", hash, hashes[done]);
+      if (LogFile != NULL)
+      {
+        fprinttime(LogFile);
+       fprintf(LogFile,"# Book hash NOT Correct, 0x%016llx != 0x%016llx\n", hash, hashes[done]);
+      }
+    }
+    else
+    {
+      passed++;
+      fprintf(stdout,"# Book hash Correct, 0x%016llx == 0x%016llx\n", hash, hashes[done]);
+      if (LogFile != NULL)
+      {
+        fprinttime(LogFile);
+       fprintf(LogFile,"# Book hash Correct, 0x%016llx == 0x%016llx\n", hash, hashes[done]);
+      }
+    }
+    move = can2move(movesc1[done], BOARD, STM);
+    domove(BOARD, move);
+    STM = !STM;
+  }
+  while (done++<6);
+
+  /* test for book hashes */
+  setboard(BOARD,"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
+  for (done=0;done<5;done++)
+  {
+    move = can2move(movesc2[done], BOARD, STM);
+    domove(BOARD, move);
+    STM = !STM;
+  }
+  hash = computebookhash(BOARD,STM);
+  if(hash!=0x3c8123ea7b067637)
+  {
+    fprintf(stdout,"# Book hash NOT Correct, 0x%016llx != 0x3c8123ea7b067637\n", hash);
+    if (LogFile != NULL)
+    {
+      fprinttime(LogFile);
+     fprintf(LogFile,"# Book hash NOT Correct, 0x%016llx != 0x3c8123ea7b067637\n", hash);
+    }
+  }
+  else
+  {
+    passed++;
+    fprintf(stdout,"# Book hash Correct, 0x%016llx == 0x3c8123ea7b067637\n", hash);
+    if (LogFile != NULL)
+    {
+      fprinttime(LogFile);
+     fprintf(LogFile,"# Book hash Correct, 0x%016llx == 0x3c8123ea7b067637\n", hash);
+    }
+  }
+  for (done=5;done<7;done++)
+  {
+    move = can2move(movesc2[done], BOARD, STM);
+    domove(BOARD, move);
+    STM = !STM;
+  }
+  hash = computebookhash(BOARD,STM);
+  if(hash!=0x5c3f9b829b279560)
+  {
+    fprintf(stdout,"# Book hash NOT Correct, 0x%016llx != 0x5c3f9b829b279560\n", hash);
+    if (LogFile != NULL)
+    {
+      fprinttime(LogFile);
+     fprintf(LogFile,"# Book hash NOT Correct, 0x%016llx != 0x5c3f9b829b279560\n", hash);
+    }
+  }
+  else
+  {
+    passed++;
+    fprintf(stdout,"# Book hash Correct, 0x%016llx == 0x5c3f9b829b279560\n", hash);
+    if (LogFile != NULL)
+    {
+      fprinttime(LogFile);
+     fprintf(LogFile,"# Book hash Correct, 0x%016llx == 0x5c3f9b829b279560\n", hash);
+    }
+  }  
+
+  fprintf(stdout,"#\n###############################\n");
   fprintf(stdout,"### passed %llu from %llu tests ###\n", passed, todo);
   fprintf(stdout,"###############################\n");
 }
@@ -1483,14 +1655,15 @@ int main(int argc, char* argv[])
     }
     fprintf(LogFile, "\n");
   }
+
+  /* init starting position */
+  setboard(BOARD,"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
+
   /* print engine info to console */
   fprintf(stdout,"Zeta Dva %s\n",VERSION);
   fprintf(stdout,"Yet another amateur level chess engine.\n");
   fprintf(stdout,"Copyright (C) 2011-2016 Srdja Matovic, Montenegro\n");
   fprintf(stdout,"This is free software, licensed under GPL >= v2\n");
-
-  /* init starting position */
-  setboard(BOARD,"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
 
   /* xboard command loop */
   for (;;)

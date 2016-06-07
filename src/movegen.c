@@ -288,7 +288,7 @@ int genmoves_enpassant(Bitboard *board, Move *moves, int movecounter, bool stm)
   sqep    = GETSQEP(board[QBBLAST]); 
   bbWork  = bbBoth[stm]&(board[QBBP1]&~board[QBBP2]&~board[QBBP3]);
   bbWork &= (stm)? 0xFF000000 : 0xFF00000000;
-  bbTempA = (sqep)? (stm)? bbWork&(SETMASKBB(sqep+7)|SETMASKBB(sqep+9)):bbWork&(SETMASKBB(sqep-7)|SETMASKBB(sqep-9)):BBEMPTY;
+  bbTempA = (sqep)? bbWork&(SETMASKBB(sqep+1)|SETMASKBB(sqep-1)):BBEMPTY;
   pfrom   = MAKEPIECE(PAWN,stm);
   pto     = pfrom; 
   pcpt    = MAKEPIECE(PAWN,(u64)!stm);
@@ -296,8 +296,8 @@ int genmoves_enpassant(Bitboard *board, Move *moves, int movecounter, bool stm)
 
   /* check for first en passant pawn */
   sqfrom  = (bbTempA)?popfirst1(&bbTempA):0x0;
-  sqto    = sqep;
-  sqcpt   = (stm)? sqep+8:sqep-8;
+  sqcpt   = sqep;
+  sqto    = (stm)? sqep-8:sqep+8;
   /* pack move into 64 bits, considering castle rights and halfmovecounter and score */
   move    = (sqfrom)?MAKEMOVE(sqfrom, sqto, sqcpt, pfrom, pto, pcpt, 0, (u64)GETHMC(lastmove), (u64)score):MOVENONE;
   /* legal moves only */
@@ -309,8 +309,8 @@ int genmoves_enpassant(Bitboard *board, Move *moves, int movecounter, bool stm)
 
   /* check for second en passant pawn */
   sqfrom  = (bbTempA)?popfirst1(&bbTempA):0x0;
-  sqto    = sqep;
-  sqcpt   = (stm)? sqep+8:sqep-8;
+  sqcpt   = sqep;
+  sqto    = (stm)? sqep-8:sqep+8;
   /* pack move into 64 bits, considering castle rights and halfmovecounter and score */
   move    = (sqfrom)?MAKEMOVE(sqfrom, sqto, sqcpt, pfrom, pto, pcpt, 0, (u64)GETHMC(lastmove), (u64)score):MOVENONE;
   /* legal moves only */
@@ -559,7 +559,7 @@ int genmoves_noncaptures(Bitboard *board, Move *moves, int movecounter, bool stm
       pto     = pfrom;
 
       /* set en passant target square */
-      sqep    = (GETPTYPE(pfrom)==PAWN&&GETRRANK(sqto,stm)-GETRRANK(sqfrom,stm)==2)?(stm)?sqto+8:sqto-8:0x0; 
+      sqep    = (GETPTYPE(pfrom)==PAWN&&GETRRANK(sqto,stm)-GETRRANK(sqfrom,stm)==2)?(stm)?sqto:sqto:0x0; 
 
       /* get score, non captures via static values, capture via MVV-LVA */
       score = (evalmove (pto, sqto)-evalmove(pfrom, sqfrom));
@@ -699,7 +699,7 @@ int genmoves_general(Bitboard *board, Move *moves, int movecounter, bool stm, bo
       pcpt    = GETPIECE(board, sqcpt);
 
       /* set en passant target square */
-      sqep      = (GETPTYPE(pfrom)==PAWN&&GETRRANK(sqto,stm)-GETRRANK(sqfrom,stm)==2)?(stm)?sqto+8:sqto-8:0x0; 
+      sqep      = (GETPTYPE(pfrom)==PAWN&&GETRRANK(sqto,stm)-GETRRANK(sqfrom,stm)==2)?(stm)?sqto:sqto:0x0; 
 
       /* handle pawn promo: knight */
       pto = (GETPTYPE(pfrom)==PAWN&&GETRRANK(sqto,stm)==RANK_8)?MAKEPIECE(KNIGHT, GETCOLOR(pfrom)):pfrom;
@@ -780,9 +780,7 @@ int genmoves_general(Bitboard *board, Move *moves, int movecounter, bool stm, bo
   sqep    = GETSQEP(board[QBBLAST]); 
   bbPro   = bbBoth[stm]&(board[QBBP1]&~board[QBBP2]&~board[QBBP3]);
   bbPro   &= (stm)? 0xFF000000 : 0xFF00000000;
-  bbTemp  = (sqep)? (stm)? bbPro&(SETMASKBB(sqep+7)|SETMASKBB(sqep+9)):
-                          bbPro&(SETMASKBB(sqep-7)|SETMASKBB(sqep-9))          
-           : BBEMPTY;
+  bbTemp  = (sqep)?bbPro&(SETMASKBB(sqep+1)|SETMASKBB(sqep-1)):BBEMPTY;
   pfrom   = MAKEPIECE(PAWN,stm);
   pto     = pfrom; 
   pcpt    = MAKEPIECE(PAWN,(u64)!stm);
@@ -790,8 +788,8 @@ int genmoves_general(Bitboard *board, Move *moves, int movecounter, bool stm, bo
 
   /* check for first en passant pawn */
   sqfrom  = (bbTemp)?popfirst1(&bbTemp):0x0;
-  sqto    = sqep;
-  sqcpt   = (stm)? sqep+8:sqep-8;
+  sqcpt   = sqep;
+  sqto    = (stm)? sqep-8:sqep+8;
   /* pack move into 64 bits, considering castle rights and halfmovecounter and score */
   move    = (sqfrom)?MAKEMOVE(sqfrom, sqto, sqcpt, pfrom, pto, pcpt, 0, (u64)GETHMC(lastmove), (u64)score):MOVENONE;
   /* legal moves only */
@@ -803,8 +801,8 @@ int genmoves_general(Bitboard *board, Move *moves, int movecounter, bool stm, bo
 
   /* check for second en passant pawn */
   sqfrom  = (bbTemp)?popfirst1(&bbTemp):0x0;
-  sqto    = sqep;
-  sqcpt   = (stm)? sqep+8:sqep-8;
+  sqcpt   = sqep;
+  sqto    = (stm)? sqep-8:sqep+8;
   /* pack move into 64 bits, considering castle rights and halfmovecounter and score */
   move    = (sqfrom)?MAKEMOVE(sqfrom, sqto, sqcpt, pfrom, pto, pcpt, 0, (u64)GETHMC(lastmove), (u64)score):MOVENONE;
   /* legal moves only */

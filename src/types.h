@@ -98,6 +98,8 @@ typedef u64             Rank;
 #define BISHOP              4
 #define ROOK                5
 #define QUEEN               6
+/* handle u long long*/
+#define C64(val)            (val##ULL)
 /* move is castle flag */
 #define MOVEISCR            0x0000C00000000000ULL
 #define MOVEISCRK           0x0000400000000000ULL
@@ -195,6 +197,8 @@ enum Ranks
   RANK_1, RANK_2, RANK_3, RANK_4, RANK_5, RANK_6, RANK_7, RANK_8, RANK_NONE
 };
 #define BBRANK7             0x00FF000000000000
+#define BBRANK5             0x000000FF00000000
+#define BBRANK4             0x00000000FF000000
 #define BBRANK2             0x000000000000FF00
 /* square enumeration */
 enum Squares
