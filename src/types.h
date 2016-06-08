@@ -80,6 +80,8 @@ typedef u64             Rank;
   40  - 47  halfmove clock for fity move rule, last capture/castle/pawn move
   48  - 63  move score, signed 16 bit
 */
+#define MAX(a,b)            ((a>b)?a:b)
+#define MIN(a,b)            ((a<b)?a:b)
 /* engine defaults */
 #define MAXPLY      128     /* max internal search ply */
 #define MAXGAMEPLY  1024    /* max ply a game can reach */
