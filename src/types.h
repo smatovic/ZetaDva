@@ -219,14 +219,14 @@ struct TTE {
         Hash hash;
         Move bestmove;
         Score score;
-        signed char flag;
+        u8 flag;
         s32 depth;
         s32 ply;
 };
-/* tt flags */
-#define EXACTSCORE      0
+/* node flags */
+#define EXACTSCORE      2
 #define FAILHIGH        1
-#define FAILLOW        -1
+#define FAILLOW         0
 
 #endif /* TYPES_H_INCLUDED */
 
