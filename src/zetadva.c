@@ -132,15 +132,16 @@ static Hash computehash(Bitboard *board, bool stm)
   u64 hash = HASHNONE;
   u8 side;
 
-  /* pieces with position */
+  /* for each color */
   for (side=WHITE;side<=BLACK;side++)
   {
     bbWork = (side==BLACK)?board[QBBBLACK]:(board[QBBBLACK]^(board[QBBP1]|board[QBBP2]|board[QBBP3]));
+    /* for each piece */
     while(bbWork)
     {
       sq    = popfirst1(&bbWork);
       piece = GETPIECE(board,sq);
-      piece = GETPTYPE(piece);
+      piece = GETPTYPE(piece)-1;
       hash ^= Random64[side*6*64+piece*64+sq];
     }
   }
@@ -308,8 +309,23 @@ void domove(Bitboard *board, Move move)
   /* increase half move clock */
   hmc = GETHMC(move);
   hmc++;
-  /* store lastmove in board */
-  board[QBBLAST] = move;
+
+  /* do hash increment , clear old */
+  /* castle rights */
+  if(((~board[QBBPMVD])&SMCRWHITEK)==SMCRWHITEK)
+    board[QBBHASH] ^= RandomCastle[0];
+  if(((~board[QBBPMVD])&SMCRWHITEQ)==SMCRWHITEQ)
+    board[QBBHASH] ^= RandomCastle[1];
+  if(((~board[QBBPMVD])&SMCRBLACKK)==SMCRBLACKK)
+    board[QBBHASH] ^= RandomCastle[2];
+  if(((~board[QBBPMVD])&SMCRBLACKQ)==SMCRBLACKQ)
+    board[QBBHASH] ^= RandomCastle[3];
+  /* file en passant */
+  if (GETSQEP(board[QBBLAST]))
+    board[QBBHASH] ^= RandomEnPassant[GETFILE(GETSQEP(board[QBBLAST]))]; 
+  if (GETCOLOR(pfrom)==WHITE)
+      board[QBBHASH] ^=RandomTurn[0];
+
 
   /* unset square from, square capture and square to */
   bbTemp = CLRMASKBB(sqfrom)&CLRMASKBB(sqcpt)&CLRMASKBB(sqto);
@@ -349,6 +365,10 @@ void domove(Bitboard *board, Move move)
   /* do score increment */
   score-= (pcastle==PNONE)?0:evalmove(pcastle, sqfrom-4);
   score+= (pcastle==PNONE)?0:evalmove(pcastle, sqto+1);
+  /* do hash increment, clear old rook */
+  board[QBBHASH] ^= (pcastle)?Random64[GETCOLOR(pfrom)*6*64+(ROOK-1)*64+sqfrom-4]:BBEMPTY;
+  /* do hash increment, set new rook */
+  board[QBBHASH] ^= (pcastle)?Random64[GETCOLOR(pfrom)*6*64+(ROOK-1)*64+sqto+1]:BBEMPTY;
 
   /* handle castle rook, kingside */
   pcastle = (move&MOVEISCRK)?MAKEPIECE(ROOK,GETCOLOR(pfrom)):PNONE;
@@ -370,6 +390,10 @@ void domove(Bitboard *board, Move move)
   /* do score increment */
   score-= (pcastle==PNONE)?0:evalmove(pcastle, sqfrom+3);
   score+= (pcastle==PNONE)?0:evalmove(pcastle, sqto-1);
+  /* do hash increment, clear old rook */
+  board[QBBHASH] ^= (pcastle)?Random64[GETCOLOR(pfrom)*6*64+(ROOK-1)*64+sqfrom+3]:BBEMPTY;
+  /* do hash increment, set new rook */
+  board[QBBHASH] ^= (pcastle)?Random64[GETCOLOR(pfrom)*6*64+(ROOK-1)*64+sqto-1]:BBEMPTY;
 
   /* handle halfmove clock */
   hmc = (GETPTYPE(pfrom)==PAWN)?0:hmc;   /* pawn move */
@@ -386,6 +410,32 @@ void domove(Bitboard *board, Move move)
   boardscore = (Score)board[QBBSCORE];
   boardscore+= score;
   board[QBBSCORE] = (u64)boardscore;
+
+  /* do hash increment, clear piece from */
+  board[QBBHASH] ^= Random64[GETCOLOR(pfrom)*6*64+(GETPTYPE(pfrom)-1)*64+sqfrom];
+  /* do hash increment, set piece to */
+  board[QBBHASH] ^= Random64[GETCOLOR(pfrom)*6*64+(GETPTYPE(pto)-1)*64+sqto];
+  /* do hash increment, clear piece capture */
+  board[QBBHASH] ^= (pcpt)?Random64[GETCOLOR(pcpt)*6*64+(GETPTYPE(pcpt)-1)*64+sqcpt]:BBEMPTY;
+
+  /* do hash increment , set new */
+  /* castle rights */
+  if(((~board[QBBPMVD])&SMCRWHITEK)==SMCRWHITEK)
+    board[QBBHASH] ^= RandomCastle[0];
+  if(((~board[QBBPMVD])&SMCRWHITEQ)==SMCRWHITEQ)
+    board[QBBHASH] ^= RandomCastle[1];
+  if(((~board[QBBPMVD])&SMCRBLACKK)==SMCRBLACKK)
+    board[QBBHASH] ^= RandomCastle[2];
+  if(((~board[QBBPMVD])&SMCRBLACKQ)==SMCRBLACKQ)
+    board[QBBHASH] ^= RandomCastle[3];
+  /* file en passant */
+  if (GETSQEP(move))
+    board[QBBHASH] ^= RandomEnPassant[GETFILE(GETSQEP(move))]; 
+  if (!GETCOLOR(pfrom)==WHITE)
+      board[QBBHASH] ^=RandomTurn[0];
+
+  /* store lastmove in board */
+  board[QBBLAST] = move;
 }
 /* apply move on board, quick during move generation */
 void domovequick(Bitboard *board, Move move)
@@ -414,7 +464,7 @@ void domovequick(Bitboard *board, Move move)
   board[QBBP3]    |= ((pto>>3)&0x1)<<sqto;
 }
 /* restore board again */
-void undomove(Bitboard *board, Move move, Move lastmove, Cr cr, Score score)
+void undomove(Bitboard *board, Move move, Move lastmove, Cr cr, Score score, Hash hash)
 {
   Square sqfrom   = GETSQFROM(move);
   Square sqto     = GETSQTO(move);
@@ -434,6 +484,8 @@ void undomove(Bitboard *board, Move move, Move lastmove, Cr cr, Score score)
   board[QBBPMVD] = cr;
   /* restore board score */
   board[QBBSCORE] = (u64)score;
+  /* restore hash */
+  board[QBBHASH] = hash;
 
   /* unset square capture, square to */
   bbTemp = CLRMASKBB(sqcpt)&CLRMASKBB(sqto);
@@ -704,165 +756,6 @@ static Move can2move(char *usermove, Bitboard *board, bool stm)
   e1c1 => when king, indicates castle queenside  
   e7e8q => indicates pawn promotion to queen
 */
-/* TODO: dummy, convert internal move to algebraic notation */
-static void move2san(Bitboard *board, Move move, char *san) 
-{
-  bool stm;
-  bool kic = 0;
-  char rankc[] = "12345678";
-  char filec[] = "abcdefgh";
-  char piecetypes[] = "-PNKBRQ";
-  s32 i = 0;
-  s32 checkfile = 0;
-  s32 checkrank = 0;
-  Move tempmove = 0;
-  Square sq = 0;
-  Piece piece = 0;
-  Piece piececpt = 0;
-  Square sqfrom = GETSQFROM(move);
-  Square sqto   = GETSQTO(move);
-  Square sqcpt  = GETSQCPT(move);
-  PieceType pfrom = GETPTYPE(GETPFROM(move));
-  PieceType pto   = GETPTYPE(GETPTO(move));
-  PieceType pcpt  = GETPTYPE(GETPCPT(move));
-  Bitboard bbMe   = BBEMPTY;
-  Bitboard bbWork = BBEMPTY;
-  Bitboard bbMoves = BBEMPTY;
-  Bitboard bbBlockers = board[QBBP1]|board[QBBP2]|board[QBBP3];
-
-  stm   = GETCOLOR(GETPFROM(move));
-  bbMe  = (stm)?board[QBBBLACK]:board[QBBBLACK]^bbBlockers;
-
-  /* castle kingside */
-  if (pfrom == KING && (move&MOVEISCRK)) 
-  {
-    san[0] = 'O';
-    san[1] = '-';
-    san[2] = 'O';
-    san[3] = '\0';
-    return;
-  }
-  /* castle queenside */
-  if (pfrom == KING && (move&MOVEISCRQ)) 
-  {
-    san[0] = 'O';
-    san[1] = '-';
-    san[2] = 'O';
-    san[3] = '-';
-    san[4] = 'O';
-    san[5] = '\0';
-    return;
-  }
-  /* pawns */
-  if (pfrom == PAWN) 
-  {
-    if (pcpt == PNONE) 
-    {
-      san[i++] = filec[GETFILE(sqto)];
-      san[i++] = rankc[GETRANK(sqto)];
-    }
-    else
-    {
-      san[i++] = filec[GETFILE(sqto)];
-    }
-  }
-  /* non pawns */
-  else
-  {
-    san[i++] = piecetypes[pfrom];
-
-    bbMoves = 0;
-    if (pfrom == ROOK || pfrom == QUEEN )
-        bbMoves = rook_attacks(bbBlockers, sqfrom);
-    if (pfrom == BISHOP  || pfrom == QUEEN )
-        bbMoves |= bishop_attacks(bbBlockers, sqfrom);
-
-    if (pfrom == KNIGHT)
-        bbMoves = AttackTables[128+sqto];
-
-    bbWork = bbMoves&bbMe;
-
-    piececpt = GETPTYPE(GETPIECE(board,sqto));
-
-    /* TODO: rook n queens */
-    while (bbWork) 
-    {
-
-      sq = popfirst1(&bbWork);
-
-      if (sq == sqfrom)
-        continue;
-  
-      piece = GETPTYPE(GETPIECE(board,sqfrom));
-  
-      if ( (piece&0x7) != (pfrom&0x7))
-        continue;
-
-
-      /* make move */
-      tempmove = MAKEMOVE(sq, sqto, sqto, piece, piece, piececpt, 
-                          0x0ULL, 0x0ULL, 0x0ULL);
-
-      domove(board,tempmove);
-
-      kic = kingincheck(board, stm);
-
-      undomove(board,tempmove, 0, 0, 0);
-
-      /* king in check so ignore this piece */
-      if (kic)
-        continue;
-
-      checkfile = 1;
-
-      /* check rank */
-      if ( (sqfrom&7) == (sq&7) )
-      {
-          checkrank = 1;
-      }           
-    }
-
-    if ( checkfile == 1 )
-    {
-      san[i++] = filec[GETFILE(sqfrom)];
-    }           
-    if ( checkrank == 1 )
-    {
-      san[i++] = rankc[GETRANK(sqfrom)];
-    }           
-  }    
-  /* captures */
-  if (pcpt != PNONE)
-  {
-    san[i++] = 'x';
-    san[i++] = filec[GETFILE(sqcpt)];
-    san[i++] = rankc[GETRANK(sqcpt)];
-  }
-  /* non pawn to */
-  else if (pfrom != PAWN) 
-  {
-    san[i++] = filec[GETFILE(sqto)];
-    san[i++] = rankc[GETRANK(sqto)];
-  }
-  /* pawn promo to queen */
-  if (pfrom == PAWN && pto == QUEEN)
-  {
-    san[i++] = 'Q';
-  }
-  else if (pfrom == PAWN && pto == KNIGHT)
-  {
-    san[i++] = 'N';
-  }
-  else if (pfrom == PAWN && pto == ROOK)
-  {
-    san[i++] = 'R';
-  }
-  else if (pfrom == PAWN && pto == BISHOP)
-  {
-    san[i++] = 'B';
-  }
-  san[i] = '\0';
-}
 static void move2can(Move move, char * movec) 
 {
   char rankc[8] = "12345678";
@@ -1281,9 +1174,12 @@ static void selftest(void)
   Score scoreb = 0;
   u64 done;
   u64 passed = 0;
-  const u64 todo = 32;
-  Hash hash;
+  const u64 todo = 41;
   Move move;
+  Hash hash;
+  Hash computedhash;
+  Hash incrementalhash;
+
   char movesc1[6][5] =
   {
     "e2e4",
@@ -1441,16 +1337,17 @@ nodes for depth %d.\n", NODECOUNT, nodecounts[done], SD);
   /* test for book hashes */
   setboard(BOARD,"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
   fprintf(stdout,"#\n");  
-  fprintf(stdout,"# doing book hash checks\n");  
+  fprintf(stdout,"# doing zobrist hash checks\n");  
   if (LogFile)
   {
     fprinttime(LogFile);
     fprintf(LogFile,"#\n");  
-    fprintf(LogFile,"# doing book hash checks\n");  
+    fprintf(LogFile,"# doing zobrist hash checks\n");  
   }
   done = 0;
   do
   {
+    printboard(BOARD);
     hash = computebookhash(BOARD,STM);
     if(hash!=hashes[done])
     {
@@ -1471,6 +1368,27 @@ nodes for depth %d.\n", NODECOUNT, nodecounts[done], SD);
        fprintf(LogFile,"# Book hash Correct, 0x%016llx == 0x%016llx\n", hash, hashes[done]);
       }
     }
+    incrementalhash = BOARD[QBBHASH];
+    computedhash = computehash(BOARD,STM);
+    if(incrementalhash!=computedhash)
+    {
+      fprintf(stdout,"# incremental hash NOT Correct, 0x%016llx != 0x%016llx\n", incrementalhash, computedhash);
+      if (LogFile)
+      {
+        fprinttime(LogFile);
+       fprintf(LogFile,"# incremental hash NOT Correct, 0x%016llx != 0x%016llx\n", incrementalhash, computedhash);
+      }
+    }
+    else
+    {
+      passed++;
+      fprintf(stdout,"# incremental hash Correct, 0x%016llx == 0x%016llx\n", incrementalhash, computedhash);
+      if (LogFile)
+      {
+        fprinttime(LogFile);
+       fprintf(LogFile,"# incremental hash Correct, 0x%016llx == 0x%016llx\n", incrementalhash, computedhash);
+      }
+    }
     move = can2move(movesc1[done], BOARD, STM);
     domove(BOARD, move);
     STM = !STM;
@@ -1485,6 +1403,7 @@ nodes for depth %d.\n", NODECOUNT, nodecounts[done], SD);
     domove(BOARD, move);
     STM = !STM;
   }
+  printboard(BOARD);
   hash = computebookhash(BOARD,STM);
   if(hash!=0x3c8123ea7b067637)
   {
@@ -1505,12 +1424,33 @@ nodes for depth %d.\n", NODECOUNT, nodecounts[done], SD);
      fprintf(LogFile,"# Book hash Correct, 0x%016llx == 0x3c8123ea7b067637\n", hash);
     }
   }
-  for (done=5;done<7;done++)
+  incrementalhash = BOARD[QBBHASH];
+  computedhash = computehash(BOARD,STM);
+  if(incrementalhash!=computedhash)
+  {
+    fprintf(stdout,"# incremental hash NOT Correct, 0x%016llx != 0x%016llx\n", incrementalhash, computedhash);
+    if (LogFile)
+    {
+      fprinttime(LogFile);
+     fprintf(LogFile,"# incremental hash NOT Correct, 0x%016llx != 0x%016llx\n", incrementalhash, computedhash);
+    }
+  }
+  else
+  {
+    passed++;
+    fprintf(stdout,"# incremental hash Correct, 0x%016llx == 0x%016llx\n", incrementalhash, computedhash);
+    if (LogFile)
+    {
+      fprinttime(LogFile);
+     fprintf(LogFile,"# incremental hash Correct, 0x%016llx == 0x%016llx\n", incrementalhash, computedhash);
+    }
+  }  for (done=5;done<7;done++)
   {
     move = can2move(movesc2[done], BOARD, STM);
     domove(BOARD, move);
     STM = !STM;
   }
+  printboard(BOARD);
   hash = computebookhash(BOARD,STM);
   if(hash!=0x5c3f9b829b279560)
   {
@@ -1531,6 +1471,27 @@ nodes for depth %d.\n", NODECOUNT, nodecounts[done], SD);
      fprintf(LogFile,"# Book hash Correct, 0x%016llx == 0x5c3f9b829b279560\n", hash);
     }
   }  
+  incrementalhash = BOARD[QBBHASH];
+  computedhash = computehash(BOARD,STM);
+  if(incrementalhash!=computedhash)
+  {
+    fprintf(stdout,"# incremental hash NOT Correct, 0x%016llx != 0x%016llx\n", incrementalhash, computedhash);
+    if (LogFile)
+    {
+      fprinttime(LogFile);
+     fprintf(LogFile,"# incremental hash NOT Correct, 0x%016llx != 0x%016llx\n", incrementalhash, computedhash);
+    }
+  }
+  else
+  {
+    passed++;
+    fprintf(stdout,"# incremental hash Correct, 0x%016llx == 0x%016llx\n", incrementalhash, computedhash);
+    if (LogFile)
+    {
+      fprinttime(LogFile);
+     fprintf(LogFile,"# incremental hash Correct, 0x%016llx == 0x%016llx\n", incrementalhash, computedhash);
+    }
+  }
 
   fprintf(stdout,"#\n###############################\n");
   fprintf(stdout,"### passed %llu from %llu tests ###\n", passed, todo);

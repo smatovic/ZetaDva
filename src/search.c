@@ -42,6 +42,7 @@ Score perft(Bitboard *board, bool stm, s32 depth)
   Cr cr = board[QBBPMVD];
   Move lastmove = board[QBBLAST];
   Move moves[MAXMOVES];
+  Hash hash = board[QBBHASH];
 
   kic = kingincheck(board, stm);
   /* leaf node, count */
@@ -66,7 +67,7 @@ Score perft(Bitboard *board, bool stm, s32 depth)
   {
     domove(board, moves[i]);
     perft(board, !stm, depth-1);
-    undomove(board, moves[i], lastmove, cr, boardscore);
+    undomove(board, moves[i], lastmove, cr, boardscore, hash);
   }
   return 0;
 }
@@ -80,6 +81,7 @@ Score qsearch(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
   Cr cr = board[QBBPMVD];
   Move lastmove = board[QBBLAST];
   Move moves[MAXMOVES];
+  Hash hash = board[QBBHASH];
 
   NODECOUNT++;
 
@@ -123,7 +125,7 @@ Score qsearch(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
   {
     domove(board, moves[i]);
     score = -qsearch(board, !stm, -beta, -alpha, depth-1, ply+1);
-    undomove(board, moves[i], lastmove, cr, boardscore);
+    undomove(board, moves[i], lastmove, cr, boardscore, hash);
 
     if(score>=beta)
       return score;
@@ -144,6 +146,7 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
   Cr cr = board[QBBPMVD];
   Move lastmove = board[QBBLAST];
   Move moves[MAXMOVES];
+  Hash hash = board[QBBHASH];
 
   kic = kingincheck(board, stm);
 
@@ -173,7 +176,7 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
   {
     domove(board, moves[i]);
     score = -negamax(board, !stm, -beta, -alpha, depth-1, ply+1);
-    undomove(board, moves[i], lastmove, cr, boardscore);
+    undomove(board, moves[i], lastmove, cr, boardscore, hash);
 
     if(score>=beta)
       return score;
@@ -191,7 +194,7 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
   {
     domove(board, moves[i]);
     score = -negamax(board, !stm, -beta, -alpha, depth-1, ply+1);
-    undomove(board, moves[i], lastmove, cr, boardscore);
+    undomove(board, moves[i], lastmove, cr, boardscore, hash);
 
     if(score>=beta)
       return score;
@@ -207,7 +210,7 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
   {
     domove(board, moves[i]);
     score = -negamax(board, !stm, -beta, -alpha, depth-1, ply+1);
-    undomove(board, moves[i], lastmove, cr, boardscore);
+    undomove(board, moves[i], lastmove, cr, boardscore, hash);
 
     if(score>=beta)
       return score;
@@ -223,7 +226,7 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
   {
     domove(board, moves[i]);
     score = -negamax(board, !stm, -beta, -alpha, depth-1, ply+1);
-    undomove(board, moves[i], lastmove, cr, boardscore);
+    undomove(board, moves[i], lastmove, cr, boardscore, hash);
 
     if(score>=beta)
       return score;
@@ -241,7 +244,7 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
   {
     domove(board, moves[i]);
     score = -negamax(board, !stm, -beta, -alpha, depth-1, ply+1);
-    undomove(board, moves[i], lastmove, cr, boardscore);
+    undomove(board, moves[i], lastmove, cr, boardscore, hash);
 
     if(score>=beta)
       return score;
@@ -274,6 +277,7 @@ Move rootsearch(Bitboard *board, bool stm, s32 depth)
   Move bestmove = MOVENONE;
   Move lastmove = board[QBBLAST];
   Move moves[MAXMOVES];
+  Hash hash = board[QBBHASH];
 
   TIMEOUT   = false;
   NODECOUNT = 0;
@@ -326,7 +330,7 @@ Move rootsearch(Bitboard *board, bool stm, s32 depth)
     score = -negamax(board, !stm, -beta, -alpha, idf-1, 1);
     alpha=score;
     rootmove = bestmove = moves[0];
-    undomove(board, moves[0], lastmove, cr, boardscore);
+    undomove(board, moves[0], lastmove, cr, boardscore, hash);
     moves[0] = SETSCORE(moves[0],(Move)score);
     /* iterate through moves */
     for (i=1;i<movecounter;i++)
@@ -338,7 +342,7 @@ Move rootsearch(Bitboard *board, bool stm, s32 depth)
       score = -negamax(board, !stm, -(alpha+1), -alpha, idf-1, 1);
       if (score>alpha)
         score = -negamax(board, !stm, -beta, -alpha, idf-1, 1);
-      undomove(board, moves[i], lastmove, cr, boardscore);
+      undomove(board, moves[i], lastmove, cr, boardscore, hash);
 
       if(score>alpha)
       {
