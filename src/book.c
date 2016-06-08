@@ -261,7 +261,7 @@ int int_from_file(FILE *f, int l, uint64 *r)
 
 int entry_from_file(FILE *f, struct entry_t *entry){
   int ret;
-  uint64 r;
+  uint64 r = 0;
   ret=int_from_file(f,8,&r);
   if(ret) return 1;
   entry->key=r;
@@ -279,7 +279,7 @@ int entry_from_file(FILE *f, struct entry_t *entry){
 int find_key(FILE *f, uint64 key, struct entry_t *entry)
 {
   int first, last, middle;
-  struct entry_t first_entry=entry_none, last_entry,middle_entry;
+  struct entry_t last_entry,middle_entry;
   first=-1;
   if(fseek(f,-16,SEEK_END))
   {
@@ -306,7 +306,6 @@ int find_key(FILE *f, uint64 key, struct entry_t *entry)
     }else
     {
       first=middle;
-      first_entry=middle_entry;
     }
   }
 }
@@ -484,10 +483,8 @@ Move book2zeta(Bitboard *board, uint16 bookmove){
 Move bookmove(Bitboard *board, bool stm)
 {
 
-  int offset;
   int count=0;
   int ret;
-  int i =0;
   uint64 key = 0;
   Move move = MOVENONE;
   struct entry_t entry;
@@ -498,7 +495,7 @@ Move bookmove(Bitboard *board, bool stm)
   if(!BookFile)
       return MOVENONE;
 
-  offset=find_key(BookFile,key,&entry);
+  find_key(BookFile,key,&entry);
 
   if(entry.key!=key)
     return MOVENONE;
