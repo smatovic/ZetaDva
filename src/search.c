@@ -171,26 +171,23 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
     TIMEOUT=true;
     return 0;
   }
-
   HashHistory[PLY+ply] = hash;
-
+  /* check for fifty move rule */
+  if (hmc>=50)
+    return DRAWSCORE;
   /* check for repetition */
   for (i=PLY+ply-2;i>=(s32)(PLY+ply)-hmc;i-=2)
   {
     if (HashHistory[i]==hash) 
       return DRAWSCORE;
   }
-
-
   /* search extension, checks and pawn promo */
   if(depth==0&&kic)
     depth++;
-
+  /* call quiescence search */
   if (depth == 0)
     return qsearch(board, stm, alpha, beta, depth-1, ply+1);
-
   NODECOUNT++;
-
   /* check transposition table */
   tt = load_from_tt(hash);
   if (tt&&tt->hash==hash&&tt->flag>FAILLOW) 
@@ -198,8 +195,6 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
     COUNTERS1++;
     ttmove = tt->bestmove;
   }
-
-
   /* generate pawn promo moves first */  
   movecounter = genmoves_promo(board, moves, 0, stm);
   legalmovecounter+= movecounter;
