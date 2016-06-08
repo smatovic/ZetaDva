@@ -37,8 +37,8 @@ extern bool STM;
 extern s32 SD;
 extern u32 GAMEPLY;
 extern u32 PLY;
-extern Move *Move_History;
-extern Hash *Hash_History;
+extern Move *MoveHistory;
+extern Hash *HashHistory;
 extern const Bitboard LRANK[2];
 extern double MaxTime;
 
