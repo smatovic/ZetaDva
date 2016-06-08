@@ -39,6 +39,8 @@ char *Fen;                    /* for storing the fen chess baord string */
 /* counters */
 u64 NODECOUNT       = 0;
 u64 MOVECOUNT       = 0;
+u64 COUNTERS1       = 0;
+u64 COUNTERS2       = 0;
 /* xboard flags */
 bool xboard_mode    = false;  /* chess GUI sets to true */
 bool epd_mode       = false;  /* process epd mode, no fancy print */
@@ -47,7 +49,7 @@ bool xboard_post    = false;  /* post search thinking output */
 bool xboard_san     = false;  /* use san move notation instead of can */
 bool xboard_time    = false;  /* use xboards time command for time management */
 bool xboard_debug   = false;  /* use xboards time command for time management */
-u32 xboardmb        = 16;     /* mega bytes for hash table */
+s32 xboardmb        = 16;     /* mega bytes for hash table */
 /* timers */
 double start        = 0;
 double end          = 0;
@@ -125,7 +127,7 @@ static bool release_inits(void)
 
   return true;
 }
-static Hash computehash(Bitboard *board, bool stm)
+Hash computehash(Bitboard *board, bool stm)
 {
   Piece piece;
   Bitboard bbWork;
@@ -170,15 +172,16 @@ static Hash computehash(Bitboard *board, bool stm)
 
 static void initTT(void) 
 {
-  u64 val = (xboardmb*1024*1024)/(sizeof(struct TTE));
+  u64 mem = (xboardmb*1024*1024)/(sizeof(struct TTE));
 
   ttbits = 0;
-  while ( val >>= 1)   /* get msb */
+  while ( mem >>= 1)   /* get msb */
     ttbits++;
-  val = 1ULL<<ttbits;   /* get number of tt entries */
+  mem = 1ULL<<ttbits;   /* get number of tt entries */
+  ttbits=mem;
   if (TT)
     free(TT);
-  TT = (struct TTE*)calloc(val,sizeof(struct TTE));
+  TT = (struct TTE*)calloc(mem,sizeof(struct TTE));
   if (!TT)
     fprintf(stdout,"Error (hash table memory allocation, %u mb, failed): memory", xboardmb);
 }
@@ -190,7 +193,7 @@ void save_to_tt(Hash hash, Move move, Score score, u8 flag, s32 ply, s32 depth)
   if (TIMEOUT==true)
     return;
 
-  tete = &TT[((hash))&(ttbits-1)];
+  tete = &TT[hash&(ttbits-1)];
   tete->hash      = hash;
   tete->bestmove  = move;
   tete->score     = score;
@@ -202,13 +205,12 @@ struct TTE *load_from_tt(Hash hash)
 {
   struct TTE *tete;
 
-  tete = &TT[((hash))&(ttbits-1)];
-  if (hash==tete->hash)
+  tete = &TT[hash&(ttbits-1)];
+  if (tete->hash==hash)
     return tete;
 
   return NULL;
 }
-
 /* innitialize memory, files and tables */
 static bool inits(void)
 {
@@ -564,6 +566,36 @@ void undomovequick(Bitboard *board, Move move)
   board[QBBP1]    |= ((pfrom>>1)&0x1)<<sqfrom;
   board[QBBP2]    |= ((pfrom>>2)&0x1)<<sqfrom;
   board[QBBP3]    |= ((pfrom>>3)&0x1)<<sqfrom;
+}
+s32 collect_pv_from_hash(Bitboard *board, Hash hash, Move *moves)
+{
+  s32 i = 0;
+  s32 count = 0;
+  struct TTE *tt = NULL;
+  Cr cr[MAXMOVES];
+  Score scores[MAXMOVES];
+  Hash hashes[MAXMOVES];
+  Hash lastmoves[MAXMOVES];
+
+  tt = load_from_tt(hash);
+  while (tt&&tt->hash==hash&&JUSTMOVE(tt->bestmove)!=MOVENONE&&i<MAXMOVES)
+  {
+    hashes[i] = hash;
+    scores[i] = board[QBBSCORE];
+    cr[i] = board[QBBPMVD];
+    lastmoves[i] = board[QBBLAST];
+
+    moves[i++] = tt->bestmove;
+    domove(board, tt->bestmove);
+    hash = board[QBBHASH];
+    tt = load_from_tt(hash);
+  }
+  count = i;
+  while(i-->0)
+  {
+    undomove(board, moves[i], lastmoves[i], cr[i], scores[i], hashes[i]);
+  }
+  return count;
 }
 /* is square attacked by an enemy piece, via superpiece approach */
 bool squareunderattack(Bitboard *board, bool stm, Square sq) 
@@ -1913,7 +1945,7 @@ int main(int argc, char* argv[])
     /* memory for hash size  */
 		if (!strcmp(Command, "memory"))
     {
-      sscanf(Line, "memory %u", &xboardmb);
+      sscanf(Line, "memory %d", &xboardmb);
       initTT();
       continue;
     }
