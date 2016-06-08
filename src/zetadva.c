@@ -301,14 +301,13 @@ void domove(Bitboard *board, Move move)
   Piece pcpt      = GETPCPT(move);
   Bitboard bbTemp = BBEMPTY;
   Piece pcastle   = PNONE;
-  u64 hmc;
+  u64 hmc         = GETHMC(board[QBBLAST]);
 
   /* check for edges */
   if (move==MOVENONE)
     return;
 
   /* increase half move clock */
-  hmc = GETHMC(move);
   hmc++;
 
   /* do hash increment , clear old */
@@ -400,9 +399,6 @@ void domove(Bitboard *board, Move move)
   hmc = (GETPTYPE(pfrom)==PAWN)?0:hmc;   /* pawn move */
   hmc = (GETPTYPE(pcpt)!=PNONE)?0:hmc;  /* capture move */
 
-  /* store hmc in board */  
-  board[QBBLAST] = SETHMC(board[QBBLAST], hmc);
-
   /* do score increment */
   score-= evalmove(pfrom, sqfrom);
   score+= (pcpt==PNONE)?0:evalmove(pcpt, sqcpt);
@@ -435,6 +431,8 @@ void domove(Bitboard *board, Move move)
   if (!GETCOLOR(pfrom)==WHITE)
       board[QBBHASH] ^=RandomTurn[0];
 
+  /* store hmc in move */  
+  move = SETHMC(board[QBBLAST], hmc);
   /* store lastmove in board */
   board[QBBLAST] = move;
 }
@@ -957,7 +955,7 @@ static void createfen(char *fenstring, Bitboard *board, bool stm, s32 gameply)
   stringptr+=sprintf(stringptr," ");
 
   /* add halpfmove clock  */
-  stringptr+=sprintf(stringptr, "%d",GETHMC(board[QBBLAST]));
+  stringptr+=sprintf(stringptr, "%llu",GETHMC(board[QBBLAST]));
   stringptr+=sprintf(stringptr, " ");
 
   stringptr+=sprintf(stringptr, "%d", ((gameply+PLY)/2));
