@@ -571,6 +571,7 @@ s32 collect_pv_from_hash(Bitboard *board, Hash hash, Move *moves)
 {
   s32 i = 0;
   s32 count = 0;
+  s32 repcount = 0;
   struct TTE *tt = NULL;
   Cr cr[MAXMOVES];
   Score scores[MAXMOVES];
@@ -589,6 +590,15 @@ s32 collect_pv_from_hash(Bitboard *board, Hash hash, Move *moves)
     domove(board, tt->bestmove);
     hash = board[QBBHASH];
     tt = load_from_tt(hash);
+    /* check for repetition loop */
+    count = i-1;
+    for (count=i;count>=0;count--)
+    {
+      if (hash==hashes[count])
+        repcount++;
+    }      
+    if (repcount>2)
+      break;
   }
   count = i;
   while(i-->0)
