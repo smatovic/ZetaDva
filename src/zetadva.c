@@ -401,6 +401,7 @@ void domove(Bitboard *board, Move move)
   hmc = (GETPTYPE(pfrom)==PAWN)?0:hmc;   /* pawn move */
   hmc = (GETPTYPE(pcpt)!=PNONE)?0:hmc;  /* capture move */
 
+
   /* do score increment */
   score-= evalmove(pfrom, sqfrom);
   score+= (pcpt==PNONE)?0:evalmove(pcpt, sqcpt);
@@ -433,8 +434,8 @@ void domove(Bitboard *board, Move move)
   if (!GETCOLOR(pfrom)==WHITE)
       board[QBBHASH] ^=RandomTurn[0];
 
-  /* store hmc in move */  
-  move = SETHMC(board[QBBLAST], hmc);
+  /* store hmc  */  
+  move = SETHMC(move, hmc);
   /* store lastmove in board */
   board[QBBLAST] = move;
 }
