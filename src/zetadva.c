@@ -286,7 +286,7 @@ int cmp_move_desc(const void *ap, const void *bp)
     const Move *a = ap;
     const Move *b = bp;
 
-    return GETSCORE(*b) - GETSCORE(*a);
+    return (Score)GETSCORE(*b) - (Score)GETSCORE(*a);
 }
 /* apply move on board */
 void domove(Bitboard *board, Move move)
