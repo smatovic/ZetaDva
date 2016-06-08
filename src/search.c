@@ -87,6 +87,9 @@ Score qsearch(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
 
   kic = kingincheck(board, stm);
 
+  if (kic)
+    return negamax(board, stm, alpha, beta, 1, ply);
+
 /*
   score = eval(board);
   score = (stm)? -score : score;
@@ -417,7 +420,7 @@ Move rootsearch(Bitboard *board, bool stm, s32 depth)
         break;
       domove(board, moves[i]);
       /* null window */
-      score = -negamax(board, !stm, -(alpha+1), -alpha, idf-1, 1);
+      score = -negamax(board, !stm, -alpha -1, -alpha, idf-1, 1);
       if (score>alpha)
         score = -negamax(board, !stm, -beta, -alpha, idf-1, 1);
       undomove(board, moves[i], lastmove, cr, boardscore, hash);
