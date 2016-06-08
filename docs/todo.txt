@@ -8,11 +8,11 @@ A) Root-Structure
     - external test suite, node count                   DONE
     - external test suite, bestomve                     DONE
     - external test suite, bestomves from STS                   TODO
-    - internal draw by repetition                               TODO
-    - fifty moves rule                                          TODO
+    - internal draw by repetition                                     WIP
+    - fifty moves rule                                                WIP
     - polyglot opening book support                     DONE
-    - pondering                                                 TODO
-    - SMP, mutlicore                                            TODO
+    - pondering                                         DEP
+    - SMP, mutlicore                                    DEP
 
 B) Board-Presentation
   4*8 Bytes Quat-Bitbaord board presentation            DONE
@@ -39,7 +39,7 @@ D) DoMove, UnDoMove
     - special moves                                     DONE
     - quick version                                     DONE
     - compute hash                                      DONE
-    - incremental hash                                          TODO
+    - incremental hash                                  DONE
 
 E) Evaluation
     - move score, stati eval + MVV-LVA                  DONE
