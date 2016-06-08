@@ -138,6 +138,7 @@ Score qsearch(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
 Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32 ply)
 {
   bool kic = false;
+  u8  type = FAILLOW;
   Score score = 0;
   Score boardscore = (Score)board[QBBSCORE];
   s32 i = 0;
@@ -145,6 +146,7 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
   s32 legalmovecounter = 0;
   Cr cr = board[QBBPMVD];
   Move lastmove = board[QBBLAST];
+  Move bestmove = MOVENONE;
   Move moves[MAXMOVES];
   Hash hash = board[QBBHASH];
 
@@ -179,10 +181,16 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
     undomove(board, moves[i], lastmove, cr, boardscore, hash);
 
     if(score>=beta)
+    {
+      save_to_tt(hash, moves[i], score, FAILHIGH, ply, PLY);
       return score;
-
+    }
     if(score>alpha)
+    {
       alpha=score;
+      bestmove = moves[i];
+      type = EXACTSCORE;
+    }
   }
   /* generate capturing moves next */  
   movecounter = genmoves_captures(board, moves, 0, stm);
@@ -197,10 +205,16 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
     undomove(board, moves[i], lastmove, cr, boardscore, hash);
 
     if(score>=beta)
+    {
+      save_to_tt(hash, moves[i], score, FAILHIGH, ply, PLY);
       return score;
-
+    }
     if(score>alpha)
+    {
       alpha=score;
+      bestmove = moves[i];
+      type = EXACTSCORE;
+    }
   }
   /* generate pawn en passant moves next */  
   movecounter = genmoves_enpassant(board, moves, 0, stm);
@@ -213,10 +227,16 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
     undomove(board, moves[i], lastmove, cr, boardscore, hash);
 
     if(score>=beta)
+    {
+      save_to_tt(hash, moves[i], score, FAILHIGH, ply, PLY);
       return score;
-
+    }
     if(score>alpha)
+    {
       alpha=score;
+      bestmove = moves[i];
+      type = EXACTSCORE;
+    }
   }
   /* generate castle moves next */  
   movecounter = genmoves_castles(board, moves, 0, stm);
@@ -229,10 +249,16 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
     undomove(board, moves[i], lastmove, cr, boardscore, hash);
 
     if(score>=beta)
+    {
+      save_to_tt(hash, moves[i], score, FAILHIGH, ply, PLY);
       return score;
-
+    }
     if(score>alpha)
+    {
       alpha=score;
+      bestmove = moves[i];
+      type = EXACTSCORE;
+    }
   }
   /* generate quiet moves last */  
   movecounter = genmoves_noncaptures(board, moves, 0, stm);
@@ -247,10 +273,16 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
     undomove(board, moves[i], lastmove, cr, boardscore, hash);
 
     if(score>=beta)
+    {
+      save_to_tt(hash, moves[i], score, FAILHIGH, ply, PLY);
       return score;
-
+    }
     if(score>alpha)
+    {
       alpha=score;
+      bestmove = moves[i];
+      type = EXACTSCORE;
+    }
   }
   /* checkmate */
   if (legalmovecounter==0&&kic)
@@ -259,6 +291,7 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
   if (legalmovecounter==0&&!kic) 
     return STALEMATESCORE;
 
+  save_to_tt(hash, bestmove, score, type, ply, PLY);
   return alpha;
 }
 Move rootsearch(Bitboard *board, bool stm, s32 depth)
@@ -278,6 +311,7 @@ Move rootsearch(Bitboard *board, bool stm, s32 depth)
   Move lastmove = board[QBBLAST];
   Move moves[MAXMOVES];
   Hash hash = board[QBBHASH];
+  struct TTE *tt = NULL;
 
   TIMEOUT   = false;
   NODECOUNT = 0;
@@ -286,8 +320,6 @@ Move rootsearch(Bitboard *board, bool stm, s32 depth)
 
   kic = kingincheck(board, stm);
   movecounter = genmoves(board, moves, movecounter, stm, false);
-  /* sort moves */
-  qsort(moves, movecounter, sizeof(Move), cmp_move_desc);
 
   /* print checkmate and stalemate result */
   if (movecounter==0&&kic)
@@ -314,6 +346,19 @@ Move rootsearch(Bitboard *board, bool stm, s32 depth)
     if (rootmove!=MOVENONE&&JUSTMOVE(rootmove)==JUSTMOVE(moves[i]))
       return moves[i];
   }
+  /* check transposition table */
+  tt = load_from_tt(hash);
+  if (tt&&tt->hash==hash&&tt->flag>FAILLOW) 
+  {
+    for(i=0;i<movecounter;i++)
+    {
+      if (JUSTMOVE(tt->bestmove)==JUSTMOVE(moves[i]))
+        moves[i] = SETSCORE(moves[i], (Move)(INF-10));
+    }
+  }
+  /* sort moves */
+  qsort(moves, movecounter, sizeof(Move), cmp_move_desc);
+
   /* gui output */
   if (!xboard_mode&&!epd_mode)
       fprintf(stdout, "ply score time nodes pv\n");
@@ -329,7 +374,7 @@ Move rootsearch(Bitboard *board, bool stm, s32 depth)
     domove(board, moves[0]);
     score = -negamax(board, !stm, -beta, -alpha, idf-1, 1);
     alpha=score;
-    rootmove = bestmove = moves[0];
+    bestmove = moves[0];
     undomove(board, moves[0], lastmove, cr, boardscore, hash);
     moves[0] = SETSCORE(moves[0],(Move)score);
     /* iterate through moves */
@@ -369,7 +414,7 @@ Move rootsearch(Bitboard *board, bool stm, s32 depth)
       xboard_score = (alpha<=-MATESCORE)?-100000-(INF+alpha):xboard_score;
       xboard_score = (alpha>=MATESCORE)?100000-(-INF+alpha):xboard_score;
       fprintf(stdout, "%d %d %d %llu ", idf, xboard_score, (s32)(elapsed/10), NODECOUNT);
-      printmovecan(bestmove);
+      printmovecan(rootmove);
       fprintf(stdout, "\n");
     }
   } while (++idf<=depth&&elapsed*2<MaxTime);
