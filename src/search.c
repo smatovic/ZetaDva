@@ -143,6 +143,7 @@ Score qsearch(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
 Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32 ply)
 {
   bool kic = false;
+  bool ext = false;
 /*
   bool nullwindow = (-alpha+alpha==1)?true:false;
 */
@@ -184,7 +185,10 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
   }
   /* search extension, checks and pawn promo */
   if(depth==0&&kic)
+  {
     depth++;
+    ext = true;
+  }
   /* call quiescence search */
   if (depth == 0)
     return qsearch(board, stm, alpha, beta, depth-1, ply+1);
@@ -332,6 +336,11 @@ COUNTERS2++;
   /* sort moves */
   qsort(moves, movecounter, sizeof(Move), cmp_move_desc);
   /* iterate through moves, caputres */
+/*
+  reduction = 0;
+  if (!kic&&!ext&&legalmovecounter>3&&depth<3)
+    reduction = 1;
+*/
   for (i=0;i<movecounter;i++)
   {
     domove(board, moves[i]);
