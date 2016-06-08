@@ -139,6 +139,7 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
 {
   bool kic = false;
   u8  type = FAILLOW;
+  s32 hmc = (s32)GETHMC(board[QBBLAST]);
   Score score = 0;
   Score boardscore = (Score)board[QBBSCORE];
   s32 i = 0;
@@ -147,8 +148,10 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
   Cr cr = board[QBBPMVD];
   Move lastmove = board[QBBLAST];
   Move bestmove = MOVENONE;
+  Move ttmove = MOVENONE;
   Move moves[MAXMOVES];
   Hash hash = board[QBBHASH];
+  struct TTE *tt = NULL;
 
   kic = kingincheck(board, stm);
 
@@ -161,6 +164,16 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
     return 0;
   }
 
+  HashHistory[PLY+ply] = hash;
+
+  /* check for repetition */
+  for (i=PLY+ply-2;i>=(s32)(PLY+ply)-hmc;i-=2)
+  {
+    if (HashHistory[i]==hash) 
+      return DRAWSCORE;
+  }
+
+
   /* search extension, checks and pawn promo */
   if(depth==0&&kic)
     depth++;
@@ -169,6 +182,14 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
     return qsearch(board, stm, alpha, beta, depth-1, ply+1);
 
   NODECOUNT++;
+
+  /* check transposition table */
+  tt = load_from_tt(hash);
+  if (tt&&tt->hash==hash&&tt->flag>FAILLOW) 
+  {
+    ttmove = tt->bestmove;
+  }
+
 
   /* generate pawn promo moves first */  
   movecounter = genmoves_promo(board, moves, 0, stm);
@@ -195,6 +216,11 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
   /* generate capturing moves next */  
   movecounter = genmoves_captures(board, moves, 0, stm);
   legalmovecounter+= movecounter;
+  for(i=0;i<movecounter;i++)
+  {
+    if (JUSTMOVE(ttmove)==JUSTMOVE(moves[i]))
+      moves[i] = SETSCORE(moves[i], (Move)(INF-10));
+  }
   /* sort moves */
   qsort(moves, movecounter, sizeof(Move), cmp_move_desc);
   /* iterate through moves */
@@ -241,7 +267,7 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
   /* generate castle moves next */  
   movecounter = genmoves_castles(board, moves, 0, stm);
   legalmovecounter+= movecounter;
-  /* iterate through moves, caputres */
+  /* iterate through moves */
   for (i=0;i<movecounter;i++)
   {
     domove(board, moves[i]);
@@ -263,6 +289,11 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
   /* generate quiet moves last */  
   movecounter = genmoves_noncaptures(board, moves, 0, stm);
   legalmovecounter+= movecounter;
+  for(i=0;i<movecounter;i++)
+  {
+    if (JUSTMOVE(ttmove)==JUSTMOVE(moves[i]))
+      moves[i] = SETSCORE(moves[i], (Move)(INF-10));
+  }
   /* sort moves */
   qsort(moves, movecounter, sizeof(Move), cmp_move_desc);
   /* iterate through moves, caputres */
@@ -317,6 +348,8 @@ Move rootsearch(Bitboard *board, bool stm, s32 depth)
   NODECOUNT = 0;
   MOVECOUNT = 0;
   start = get_time(); /* start timer */
+
+  HashHistory[PLY] = hash;
 
   kic = kingincheck(board, stm);
   movecounter = genmoves(board, moves, movecounter, stm, false);
@@ -404,8 +437,10 @@ Move rootsearch(Bitboard *board, bool stm, s32 depth)
     qsort(moves, movecounter, sizeof(Move), cmp_move_desc);
 
     if (!TIMEOUT)
+    {
       rootmove = bestmove;
-
+      save_to_tt(hash, rootmove, alpha, EXACTSCORE, 1, PLY);
+    }
     /* gui output */
     if (!TIMEOUT&&(xboard_post||!xboard_mode)&&!epd_mode)
     {
