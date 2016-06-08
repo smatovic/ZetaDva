@@ -87,8 +87,10 @@ Score qsearch(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
 
   kic = kingincheck(board, stm);
 
+/*
   if (kic)
     return negamax(board, stm, alpha, beta, 1, ply);
+*/
 
 /*
   score = eval(board);
