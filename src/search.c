@@ -143,7 +143,10 @@ Score qsearch(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
 Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32 ply)
 {
   bool kic = false;
-  u8  type = FAILLOW;
+/*
+  bool nullwindow = (-alpha+alpha==1)?true:false;
+*/
+  u8 type = FAILLOW;
   s32 hmc = (s32)GETHMC(board[QBBLAST]);
   Score score = 0;
   Score boardscore = (Score)board[QBBSCORE];
@@ -154,8 +157,8 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
   Move lastmove = board[QBBLAST];
   Move bestmove = MOVENONE;
   Move ttmove = MOVENONE;
-  Move moves[MAXMOVES];
   Hash hash = board[QBBHASH];
+  Move moves[MAXMOVES];
   struct TTE *tt = NULL;
 
   kic = kingincheck(board, stm);
@@ -192,6 +195,7 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
   tt = load_from_tt(hash);
   if (tt&&tt->hash==hash&&tt->flag>FAILLOW) 
   {
+    COUNTERS1++;
     ttmove = tt->bestmove;
   }
 
@@ -224,7 +228,10 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
   for(i=0;i<movecounter;i++)
   {
     if (JUSTMOVE(ttmove)==JUSTMOVE(moves[i]))
+    {
       moves[i] = SETSCORE(moves[i], (Move)(INF-10));
+      COUNTERS2++;
+    }
   }
   /* sort moves */
   qsort(moves, movecounter, sizeof(Move), cmp_move_desc);
@@ -297,7 +304,10 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
   for(i=0;i<movecounter;i++)
   {
     if (JUSTMOVE(ttmove)==JUSTMOVE(moves[i]))
+    {
       moves[i] = SETSCORE(moves[i], (Move)(INF-10));
+      COUNTERS2++;
+    }
   }
   /* sort moves */
   qsort(moves, movecounter, sizeof(Move), cmp_move_desc);
@@ -327,7 +337,7 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
   if (legalmovecounter==0&&!kic) 
     return STALEMATESCORE;
 
-  save_to_tt(hash, bestmove, score, type, ply, PLY);
+  save_to_tt(hash, bestmove, alpha, type, ply, PLY);
   return alpha;
 }
 Move rootsearch(Bitboard *board, bool stm, s32 depth)
@@ -339,19 +349,24 @@ Move rootsearch(Bitboard *board, bool stm, s32 depth)
   Score beta;
   s32 xboard_score;
   s32 i = 0;
+  s32 pvcount = 0;
   s32 idf = 1;
   s32 movecounter = 0;
+  Hash hash = board[QBBHASH];
   Cr cr = board[QBBPMVD];
   Move rootmove = MOVENONE;
   Move bestmove = MOVENONE;
   Move lastmove = board[QBBLAST];
   Move moves[MAXMOVES];
-  Hash hash = board[QBBHASH];
+  Move pvmoves[MAXMOVES];
   struct TTE *tt = NULL;
 
   TIMEOUT   = false;
   NODECOUNT = 0;
   MOVECOUNT = 0;
+  COUNTERS1       = 0;
+  COUNTERS2       = 0;
+
   start = get_time(); /* start timer */
 
   HashHistory[PLY] = hash;
@@ -449,15 +464,23 @@ Move rootsearch(Bitboard *board, bool stm, s32 depth)
     /* gui output */
     if (!TIMEOUT&&(xboard_post||!xboard_mode)&&!epd_mode)
     {
+      pvcount = collect_pv_from_hash(board, hash, pvmoves);
       /* xboard mate scores */
       xboard_score = (s32)alpha;
       xboard_score = (alpha<=-MATESCORE)?-100000-(INF+alpha):xboard_score;
       xboard_score = (alpha>=MATESCORE)?100000-(-INF+alpha):xboard_score;
       fprintf(stdout, "%d %d %d %llu ", idf, xboard_score, (s32)(elapsed/10), NODECOUNT);
-      printmovecan(rootmove);
+      for (i=0;i<pvcount;i++)
+      {
+        printmovecan(pvmoves[i]);
+        fprintf(stdout, " ");
+      }
       fprintf(stdout, "\n");
     }
   } while (++idf<=depth&&elapsed*2<MaxTime);
+
+printf("#COUNTERS1:%llu\n", COUNTERS1);
+printf("#COUNTERS2:%llu\n", COUNTERS2);
 
   return rootmove;
 }

@@ -27,6 +27,9 @@ extern FILE 	*LogFile;
 /* counters */
 extern u64 NODECOUNT;
 extern u64 MOVECOUNT;
+extern u64 COUNTERS1;
+extern u64 COUNTERS2;
+
 /* timers */
 extern double start;
 extern double end;
@@ -57,8 +60,10 @@ void printboard(Bitboard *board);
 void printbitboard(Bitboard board);
 void printmove(Move move);
 void printmovecan(Move move);
+Hash computehash(Bitboard *board, bool stm);
 void save_to_tt(Hash hash, Move move, Score score, u8 flag, s32 ply, s32 depth);
 struct TTE *load_from_tt(Hash hash);
+s32 collect_pv_from_hash(Bitboard *board, Hash hash, Move *moves);
 
 #endif /* ZETA_H_INCLUDED */
 
