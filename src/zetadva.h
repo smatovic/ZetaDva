@@ -38,8 +38,8 @@ bool TIMEOUT;  /* global value for time control*/
 /* game state */
 extern bool STM;
 extern s32 SD;
-extern u32 GAMEPLY;
-extern u32 PLY;
+extern s32 GAMEPLY;
+extern s32 PLY;
 extern Move *MoveHistory;
 extern Hash *HashHistory;
 extern const Bitboard LRANK[2];
@@ -56,6 +56,8 @@ void domove(Bitboard *board, Move move);
 void undomove(Bitboard *board, Move move, Move lastmove, Cr cr, Score score, Hash hash);
 void domovequick (Bitboard *board, Move move);
 void undomovequick (Bitboard *board, Move move);
+void donullmove(Bitboard *board);
+void undonullmove(Bitboard *board, Move lastmove, Hash hash);
 void printboard(Bitboard *board);
 void printbitboard(Bitboard board);
 void printmove(Move move);

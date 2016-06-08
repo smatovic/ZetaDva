@@ -465,6 +465,22 @@ void domovequick(Bitboard *board, Move move)
   board[QBBP2]    |= ((pto>>2)&0x1)<<sqto;
   board[QBBP3]    |= ((pto>>3)&0x1)<<sqto;
 }
+void donullmove(Bitboard *board)
+{
+  /* consider color */
+  board[QBBHASH] ^=RandomTurn[0];
+  /* clear en passant */
+  if (GETSQEP(board[QBBLAST]))
+    board[QBBHASH] ^= RandomEnPassant[GETFILE(GETSQEP(board[QBBLAST]))]; 
+
+  board[QBBLAST] = MOVENONE;
+}
+void undonullmove(Bitboard *board, Move lastmove, Hash hash)
+{
+  board[QBBHASH] = hash;
+  board[QBBLAST] = lastmove;
+}
+
 /* restore board again */
 void undomove(Bitboard *board, Move move, Move lastmove, Cr cr, Score score, Hash hash)
 {
