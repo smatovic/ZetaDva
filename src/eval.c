@@ -66,11 +66,11 @@ Score evalstatic(Bitboard *board)
       piecet  = GETPTYPE(GETPIECE(board,sq));
 
       /* wodd count */
-      score+= (side)? -EvalPieceValues[piecet-1]   : EvalPieceValues[piecet-1];
+      score+= (side)? -EvalPieceValues[piecet-1]:EvalPieceValues[piecet-1];
       /* piece square tables */
-      score+= (side)? -EvalTable[(piecet-1)*64+sq] : EvalTable[(piecet-1)*64+FLOP(sq)];
+      score+= (side)? -EvalTable[(piecet-1)*64+FLIP(sq)]:EvalTable[(piecet-1)*64+FLOP(sq)];
       /* square control table */
-      score+= (side)? -EvalControl[sq]             : EvalControl[sq];
+      score+= (side)? -EvalControl[FLIP(sq)]:EvalControl[FLOP(sq)];
     }
   }
   return score;
@@ -104,9 +104,9 @@ Score eval(Bitboard *board)
       /* wodd count */
       score+= (side)?-EvalPieceValues[piecet-1]:EvalPieceValues[piecet-1];
       /* piece square tables */
-      score+= (side)?-EvalTable[(piecet-1)*64+sq]:EvalTable[(piecet-1)*64+FLOP(sq)];
+      score+= (side)?-EvalTable[(piecet-1)*64+FLIP(sq)]:EvalTable[(piecet-1)*64+FLOP(sq)];
       /* square control table */
-      score+= (side)?-EvalControl[sq]:EvalControl[sq];
+      score+= (side)?-EvalControl[FLIP(sq)]:EvalControl[FLOP(sq)];
       /* simple pawn structure white */
       /* blocked */
       score-=(piecet==PAWN&&!side&&GETRANK(sq)<RANK_8&&(board[!side]&SETMASKBB(sq+8)))?15:0;
@@ -122,21 +122,21 @@ Score eval(Bitboard *board)
     }
     /* pawn columns */
     sq = popcount(bbPawns&bbBoth[side]&BBFILEA);
-    score-= (sq>1)?(side)?sq*-15:sq*15:0;
+    score-= (sq>1)?(side)?(sq-1)*-15:(sq-1)*15:0;
     sq = popcount(bbPawns&bbBoth[side]&BBFILEB);
-    score-= (sq>1)?(side)?sq*-15:sq*15:0;
+    score-= (sq>1)?(side)?(sq-1)*-15:(sq-1)*15:0;
     sq = popcount(bbPawns&bbBoth[side]&BBFILEC);
-    score-= (sq>1)?(side)?sq*-15:sq*15:0;
+    score-= (sq>1)?(side)?(sq-1)*-15:(sq-1)*15:0;
     sq = popcount(bbPawns&bbBoth[side]&BBFILED);
-    score-= (sq>1)?(side)?sq*-15:sq*15:0;
+    score-= (sq>1)?(side)?(sq-1)*-15:(sq-1)*15:0;
     sq = popcount(bbPawns&bbBoth[side]&BBFILEE);
-    score-= (sq>1)?(side)?sq*-15:sq*15:0;
+    score-= (sq>1)?(side)?(sq-1)*-15:(sq-1)*15:0;
     sq = popcount(bbPawns&bbBoth[side]&BBFILEF);
-    score-= (sq>1)?(side)?sq*-15:sq*15:0;
+    score-= (sq>1)?(side)?(sq-1)*-15:(sq-1)*15:0;
     sq = popcount(bbPawns&bbBoth[side]&BBFILEG);
-    score-= (sq>1)?(side)?sq*-15:sq*15:0;
+    score-= (sq>1)?(side)?(sq-1)*-15:(sq-1)*15:0;
     sq = popcount(bbPawns&bbBoth[side]&BBFILEH);
-    score-= (sq>1)?(side)?sq*-15:sq*15:0;
+    score-= (sq>1)?(side)?(sq-1)*-15:(sq-1)*15:0;
     /* duble bishop */
     score+= (popcount(bbBoth[side]&(~board[QBBP1]&~board[QBBP2]&board[QBBP3]))>=2)?(side)?-25:25:0;
   }
