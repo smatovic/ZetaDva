@@ -57,6 +57,8 @@ void printboard(Bitboard *board);
 void printbitboard(Bitboard board);
 void printmove(Move move);
 void printmovecan(Move move);
+void save_to_tt(Hash hash, Move move, Score score, u8 flag, s32 ply, s32 depth);
+struct TTE *load_from_tt(Hash hash);
 
 #endif /* ZETA_H_INCLUDED */
 
