@@ -47,6 +47,7 @@ bool xboard_post    = false;  /* post search thinking output */
 bool xboard_san     = false;  /* use san move notation instead of can */
 bool xboard_time    = false;  /* use xboards time command for time management */
 bool xboard_debug   = false;  /* use xboards time command for time management */
+u32 xboardmb        = 16;     /* mega bytes for hash table */
 /* timers */
 double start        = 0;
 double end          = 0;
@@ -167,9 +168,9 @@ static Hash computehash(Bitboard *board, bool stm)
   return hash;
 }
 
-static void initTT(u64 mb) 
+static void initTT(void) 
 {
-  u64 val = (mb*1024*1024)/(sizeof(struct TTE));
+  u64 val = (xboardmb*1024*1024)/(sizeof(struct TTE));
 
   ttbits = 0;
   while ( val >>= 1)   /* get msb */
@@ -179,9 +180,9 @@ static void initTT(u64 mb)
     free(TT);
   TT = (struct TTE*)calloc(val,sizeof(struct TTE));
   if (!TT)
-    fprintf(stdout,"Error (hash table memory allocation, %u mb, failed): memory", mb);
+    fprintf(stdout,"Error (hash table memory allocation, %u mb, failed): memory", xboardmb);
 }
-void save_to_tt(Hash hash, Move move, Score score, signed char flag, s32 depth, s32 ply)
+void save_to_tt(Hash hash, Move move, Score score, u8 flag, s32 ply, s32 depth)
 {
   struct TTE *tete;
 
@@ -194,8 +195,8 @@ void save_to_tt(Hash hash, Move move, Score score, signed char flag, s32 depth, 
   tete->bestmove  = move;
   tete->score     = score;
   tete->flag      = flag;
-  tete->depth     = depth;
   tete->ply       = ply;
+  tete->depth     = depth;
 }
 struct TTE *load_from_tt(Hash hash)
 {
@@ -1572,7 +1573,7 @@ int main(int argc, char* argv[])
     exit (EXIT_FAILURE);
   }
   /* init transposition hash table with 64 mb*/
-  initTT(16);
+  initTT();
   /* init starting position */
   setboard(BOARD,"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
 
@@ -1764,6 +1765,7 @@ int main(int argc, char* argv[])
           fprintf(LogFile,"Error (in setting start postition): new\n");        
         }
       }
+      initTT();
       if (!xboard_mode&&!epd_mode)
         printboard(BOARD);
       xboard_force  = false;
@@ -1913,9 +1915,8 @@ int main(int argc, char* argv[])
     /* memory for hash size  */
 		if (!strcmp(Command, "memory"))
     {
-      u32 xboardmb = 0;
       sscanf(Line, "memory %u", &xboardmb);
-      initTT(xboardmb);
+      initTT();
       continue;
     }
     if (!strcmp(Command, "usermove"))
