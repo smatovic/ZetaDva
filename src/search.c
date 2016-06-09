@@ -190,7 +190,7 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
     ext = true;
   }
   /* call quiescence search */
-  if (depth == 0)
+  if (depth <= 0)
     return qsearch(board, stm, alpha, beta, depth-1, ply+1);
   NODECOUNT++;
   /* null move pruning, Bruce Moreland style */
@@ -208,17 +208,17 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
   if (tt&&tt->hash==hash) 
   {
     /* update and check bounds 
-    if (tt->depth+tt->ply>=PLY+ply)
+    if ((tt->depth+tt->ply)>(PLY+ply))
     {
       if (tt->flag==EXACTSCORE||tt->flag==FAILHIGH)
       {
-COUNTERS1++;
-          alpha = MAX(alpha, tt->score);
+        COUNTERS1++;
+        alpha = MAX(alpha, tt->score);
       }
       if (tt->flag==EXACTSCORE||tt->flag==FAILLOW) 
       {
-COUNTERS2++;
-          beta  = MIN(beta, tt->score);
+        COUNTERS2++;
+        beta  = MIN(beta, tt->score);
       }
       if (alpha >= beta) return alpha;
     }
