@@ -184,7 +184,7 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
       return DRAWSCORE;
   }
   /* search extension, checks and pawn promo */
-  if(depth==0&&kic)
+  if(kic||(GETPTYPE(GETPFROM(lastmove))==PAWN&&GETPTYPE(GETPTO(lastmove))==QUEEN))
   {
     depth++;
     ext = true;
