@@ -331,10 +331,10 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
   qsort(moves, movecounter, sizeof(Move), cmp_move_desc);
   /* iterate through moves, caputres */
   reduction = 0;
-  /* late move reductions 
-  if (!kic&&!ext&&legalmovecounter>0)
-    reduction = (depth>3&&legalmovecounter>3&&ply>3)?2:1;
-*/
+  /* late move reductions */
+  if (prune&&!kic&&!ext&&legalmovecounter>0)
+    reduction = 1;
+
   for (i=0;i<movecounter;i++)
   {
     domove(board, moves[i]);
