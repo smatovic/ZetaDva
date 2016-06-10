@@ -49,7 +49,7 @@ bool xboard_post    = false;  /* post search thinking output */
 bool xboard_san     = false;  /* use san move notation instead of can */
 bool xboard_time    = false;  /* use xboards time command for time management */
 bool xboard_debug   = false;  /* use xboards time command for time management */
-s32 xboardmb        = 16;     /* mega bytes for hash table */
+s32 xboardmb        = 64;     /* mega bytes for hash table */
 /* timers */
 double start        = 0;
 double end          = 0;
