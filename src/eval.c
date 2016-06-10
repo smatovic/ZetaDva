@@ -109,13 +109,13 @@ Score eval(Bitboard *board)
       score+= (side)?-EvalControl[FLIP(sq)]:EvalControl[FLIP(FLOP(sq))];
       /* simple pawn structure white */
       /* blocked */
-      score-=(piecet==PAWN&&!side&&GETRANK(sq)<RANK_8&&((bbPawns|board[!side])&SETMASKBB(sq+8)))?15:0;
+      score-=(piecet==PAWN&&!side&&GETRANK(sq)<RANK_8&&(board[!side]&SETMASKBB(sq+8)))?15:0;
         /* chain */
       score+=(piecet==PAWN&&!side&&(GETFILE(sq)<FILE_H&&(bbPawns&board[side]&SETMASKBB(sq-7))))?10:0;
       score+=(piecet==PAWN&&!side&&(GETFILE(sq)>FILE_A&&(bbPawns&board[side]&SETMASKBB(sq-9))))?10:0;
       /* simple pawn structure black */
       /* blocked */
-      score+=(piecet==PAWN&&!side&&GETRANK(sq)>RANK_1&&((bbPawns|board[!side])&SETMASKBB(sq-8)))?15:0;
+      score+=(piecet==PAWN&&!side&&GETRANK(sq)>RANK_1&&(board[!side]&SETMASKBB(sq-8)))?15:0;
         /* chain */
       score-=(piecet==PAWN&&side&&(GETFILE(sq)>FILE_A&&(bbPawns&board[side]&SETMASKBB(sq+7))))?10:0;
       score-=(piecet==PAWN&&side&&(GETFILE(sq)<FILE_H&&(bbPawns&board[side]&SETMASKBB(sq+9))))?10:0;
