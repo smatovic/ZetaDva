@@ -473,7 +473,7 @@ void donullmove(Bitboard *board)
   if (GETSQEP(board[QBBLAST]))
     board[QBBHASH] ^= RandomEnPassant[GETFILE(GETSQEP(board[QBBLAST]))]; 
 
-  board[QBBLAST] = MOVENONE;
+  board[QBBLAST] = MOVENONE|(CMMOVE&board[QBBLAST]);
 }
 void undonullmove(Bitboard *board, Move lastmove, Hash hash)
 {
