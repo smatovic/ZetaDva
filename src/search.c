@@ -90,7 +90,9 @@ Score qsearch(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
   kic = kingincheck(board, stm);
   /* get static, incremental board score */
   score = (stm)? -boardscore : boardscore;
-  
+  /* get full eval score 
+  score = (stm)? -eval(board): eval(board);
+  */
   /* stand pat */
   if(!kic&&score>=beta)
       return beta;
@@ -113,11 +115,9 @@ Score qsearch(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
   }
   else
     movecounter_caps = genmoves_captures(board, moves_caps, movecounter_caps, stm);
-  /* get full eval score */
-  score = (stm)? -eval(board): eval(board);
   /* quiet leaf node, return  evaluation board score */
   if (!kic&&movecounter_caps==0)
-    return score;
+    return (stm)? -eval(board): eval(board);
   /* sort moves */
   qsort(moves_caps, movecounter_caps, sizeof(Move), cmp_move_desc);
   /* iterate through moves */
@@ -187,7 +187,7 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
   if (depth <= 0)
     return qsearch(board, stm, alpha, beta, depth-1, ply+1);
   NODECOUNT++;
-  /* null move pruning, Bruce Moreland style */
+  /* null move pruning, Bruce Moreland style 
   reduction = 2;
   if (!kic&&!ext&&lastmove!=MOVENONE&&depth>2)
   {
@@ -197,6 +197,7 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
     if (score>=beta)
       return score;
   }
+*/
   /* check transposition table */
   tt = load_from_tt(hash);
   if (tt&&tt->hash==hash) 
@@ -330,15 +331,15 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
   /* sort moves */
   qsort(moves, movecounter, sizeof(Move), cmp_move_desc);
   /* iterate through moves, caputres */
-/*
   reduction = 0;
-  if (!kic&&!ext&&legalmovecounter>3&&depth<3)
-    reduction = 1;
+  /* late move reductions 
+  if (!kic&&!ext&&legalmovecounter>0)
+    reduction = (depth>3&&legalmovecounter>3&&ply>3)?2:1;
 */
   for (i=0;i<movecounter;i++)
   {
     domove(board, moves[i]);
-    score = -negamax(board, !stm, -beta, -alpha, depth-1, ply+1);
+    score = -negamax(board, !stm, -beta, -alpha, depth-1-reduction, ply+1);
     undomove(board, moves[i], lastmove, cr, boardscore, hash);
 
     if(score>=beta)
@@ -482,7 +483,7 @@ Move rootsearch(Bitboard *board, bool stm, s32 depth)
     if (!TIMEOUT)
     {
       rootmove = bestmove;
-      save_to_tt(hash, rootmove, alpha, EXACTSCORE, 1, PLY);
+      save_to_tt(hash, rootmove, alpha, EXACTSCORE, idf, PLY);
     }
     /* gui output */
     if (!TIMEOUT&&(xboard_post||!xboard_mode)&&!epd_mode)
