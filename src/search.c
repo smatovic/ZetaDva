@@ -202,7 +202,7 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
   if (tt&&tt->hash==hash) 
   {
     /* update and check bounds 
-    if ((tt->depth+tt->ply)>(PLY+ply))
+    if (tt->depth>depth)
     {
       if (tt->flag==EXACTSCORE||tt->flag==FAILHIGH)
       {
@@ -213,10 +213,11 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
       {
         COUNTERS2++;
         beta  = MIN(beta, tt->score);
+        beta  = tt->score;
       }
       if (alpha >= beta) return alpha;
     }
-*/
+    */
     if (tt->flag>FAILLOW&&JUSTMOVE(tt->bestmove)!=MOVENONE) 
       ttmove = tt->bestmove;
   }
@@ -231,7 +232,7 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
     undomove(board, ttmove, lastmove, cr, boardscore, hash);
     if(score>=beta)
     {
-      save_to_tt(hash, ttmove, score, FAILHIGH, ply, PLY);
+      save_to_tt(hash, ttmove, score, FAILHIGH, depth, ply);
       return score;
     }
     if(score>alpha)
@@ -256,7 +257,7 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
 
     if(score>=beta)
     {
-      save_to_tt(hash, moves[i], score, FAILHIGH, ply, PLY);
+      save_to_tt(hash, moves[i], score, FAILHIGH, depth, ply);
       return score;
     }
     if(score>alpha)
@@ -283,7 +284,7 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
 
     if(score>=beta)
     {
-      save_to_tt(hash, moves[i], score, FAILHIGH, ply, PLY);
+      save_to_tt(hash, moves[i], score, FAILHIGH, depth, ply);
       return score;
     }
     if(score>alpha)
@@ -308,7 +309,7 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
 
     if(score>=beta)
     {
-      save_to_tt(hash, moves[i], score, FAILHIGH, ply, PLY);
+      save_to_tt(hash, moves[i], score, FAILHIGH, depth, ply);
       return score;
     }
     if(score>alpha)
@@ -333,7 +334,7 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
 
     if(score>=beta)
     {
-      save_to_tt(hash, moves[i], score, FAILHIGH, ply, PLY);
+      save_to_tt(hash, moves[i], score, FAILHIGH, depth, ply);
       return score;
     }
     if(score>alpha)
@@ -365,7 +366,7 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
 
     if(score>=beta)
     {
-      save_to_tt(hash, moves[i], score, FAILHIGH, ply, PLY);
+      save_to_tt(hash, moves[i], score, FAILHIGH, depth, ply);
       return score;
     }
     if(score>alpha)
@@ -382,7 +383,7 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
   if (legalmovecounter==0&&!kic) 
     return STALEMATESCORE;
 
-  save_to_tt(hash, bestmove, alpha, type, ply, PLY);
+  save_to_tt(hash, bestmove, alpha, type, depth, ply);
   return alpha;
 }
 Move rootsearch(Bitboard *board, bool stm, s32 depth)
@@ -495,7 +496,7 @@ Move rootsearch(Bitboard *board, bool stm, s32 depth)
     if (!TIMEOUT)
     {
       rootmove = bestmove;
-      save_to_tt(hash, rootmove, alpha, EXACTSCORE, idf, PLY);
+      save_to_tt(hash, rootmove, alpha, EXACTSCORE, idf, 0);
     }
     /* gui output */
     if (!TIMEOUT&&(xboard_post||!xboard_mode)&&!epd_mode)
@@ -514,10 +515,11 @@ Move rootsearch(Bitboard *board, bool stm, s32 depth)
       fprintf(stdout, "\n");
     }
   } while (++idf<=depth&&elapsed*2<MaxTime);
-
-printf("#COUNTERS1:%llu\n", COUNTERS1);
-printf("#COUNTERS2:%llu\n", COUNTERS2);
-
+  if (xboard_debug)
+  {
+    printf("#COUNTERS1:%llu\n", COUNTERS1);
+    printf("#COUNTERS2:%llu\n", COUNTERS2);
+  }
   return rootmove;
 }
 
