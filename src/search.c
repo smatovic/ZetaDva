@@ -184,19 +184,19 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
   if (depth <= 0)
     return qsearch(board, stm, alpha, beta, depth-1, ply+1);
   NODECOUNT++;
-  /* null move pruning
-  reduction = depth>6? 3:2;
-  if (prune&&!kic&&!ext&&JUSTMOVE(lastmove)!=MOVENONE&&depth>2)
+  /* null move pruning */
+  reduction = depth>6? 4:3;
+  if (prune&&!kic&&!ext&&JUSTMOVE(lastmove)!=MOVENONE)
   {
     donullmove(board);
     score = -negamax(board, !stm, -beta, -alpha, depth-1-reduction, ply+1, false);
     undonullmove(board, lastmove, hash);
-    if (score>=beta&&score)
-      score = -negamax(board, !stm, -beta, -alpha, depth-1, ply+1, false);
-    if (score>=beta&&score)
+    if (score>=beta)
+      score = -negamax(board, !stm, -beta, -alpha, MAX(1,depth-1-5), ply+1, false);
+    if (score>=beta)
       return score;
   }
-*/
+
   /* check transposition table */
   tt = load_from_tt(hash);
   if (tt&&tt->hash==hash) 
