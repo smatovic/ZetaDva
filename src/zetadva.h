@@ -47,6 +47,7 @@ extern double MaxTime;
 
 extern bool xboard_post;
 extern bool xboard_mode;
+extern bool xboard_debug;
 extern bool epd_mode;
 
 bool squareunderattack(Bitboard *board, bool stm, Square sq);
