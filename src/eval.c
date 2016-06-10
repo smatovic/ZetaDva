@@ -35,7 +35,7 @@ Score evalmove(Piece piece, Square sq)
   /* wood count */
   score+= EvalPieceValues[GETPTYPE(piece)-1];
   /* piece square tables */
-  sq = (GETCOLOR(piece))? sq : FLOP(sq);
+  sq = (GETCOLOR(piece))? FLIP(sq) : FLIP(FLOP(sq));
   score+= EvalTable[(GETPTYPE(piece)-1)*64+sq];
   /* sqaure control */
   score+= EvalControl[sq];
@@ -68,9 +68,9 @@ Score evalstatic(Bitboard *board)
       /* wodd count */
       score+= (side)? -EvalPieceValues[piecet-1]:EvalPieceValues[piecet-1];
       /* piece square tables */
-      score+= (side)? -EvalTable[(piecet-1)*64+FLIP(sq)]:EvalTable[(piecet-1)*64+FLOP(sq)];
+      score+= (side)? -EvalTable[(piecet-1)*64+FLIP(sq)]:EvalTable[(piecet-1)*64+FLIP(FLOP(sq))];
       /* square control table */
-      score+= (side)? -EvalControl[FLIP(sq)]:EvalControl[FLOP(sq)];
+      score+= (side)? -EvalControl[FLIP(sq)]:EvalControl[FLIP(FLOP(sq))];
     }
   }
   return score;
@@ -104,18 +104,18 @@ Score eval(Bitboard *board)
       /* wodd count */
       score+= (side)?-EvalPieceValues[piecet-1]:EvalPieceValues[piecet-1];
       /* piece square tables */
-      score+= (side)?-EvalTable[(piecet-1)*64+FLIP(sq)]:EvalTable[(piecet-1)*64+FLOP(sq)];
+      score+= (side)?-EvalTable[(piecet-1)*64+FLIP(sq)]:EvalTable[(piecet-1)*64+FLIP(FLOP(sq))];
       /* square control table */
-      score+= (side)?-EvalControl[FLIP(sq)]:EvalControl[FLOP(sq)];
+      score+= (side)?-EvalControl[FLIP(sq)]:EvalControl[FLIP(FLOP(sq))];
       /* simple pawn structure white */
       /* blocked */
-      score-=(piecet==PAWN&&!side&&GETRANK(sq)<RANK_8&&(board[!side]&SETMASKBB(sq+8)))?15:0;
+      score-=(piecet==PAWN&&!side&&GETRANK(sq)<RANK_8&&((bbPawns|board[!side])&SETMASKBB(sq+8)))?15:0;
         /* chain */
       score+=(piecet==PAWN&&!side&&(GETFILE(sq)<FILE_H&&(bbPawns&board[side]&SETMASKBB(sq-7))))?10:0;
       score+=(piecet==PAWN&&!side&&(GETFILE(sq)>FILE_A&&(bbPawns&board[side]&SETMASKBB(sq-9))))?10:0;
       /* simple pawn structure black */
       /* blocked */
-      score+=(piecet==PAWN&&!side&&GETRANK(sq)>RANK_1&&(board[!side]&SETMASKBB(sq-8)))?15:0;
+      score+=(piecet==PAWN&&!side&&GETRANK(sq)>RANK_1&&((bbPawns|board[!side])&SETMASKBB(sq-8)))?15:0;
         /* chain */
       score-=(piecet==PAWN&&side&&(GETFILE(sq)>FILE_A&&(bbPawns&board[side]&SETMASKBB(sq+7))))?10:0;
       score-=(piecet==PAWN&&side&&(GETFILE(sq)<FILE_H&&(bbPawns&board[side]&SETMASKBB(sq+9))))?10:0;
