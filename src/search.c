@@ -217,6 +217,7 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
       }
       if (alpha >= beta) return alpha;
     }
+    /* get tt move */
     if (tt->flag>FAILLOW&&JUSTMOVE(tt->bestmove)!=MOVENONE) 
       ttmove = tt->bestmove;
   }
