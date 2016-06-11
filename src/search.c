@@ -201,15 +201,15 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
   tt = load_from_tt(hash);
   if (tt&&tt->hash==hash) 
   {
-    /* update and check bounds 
-    if (tt->depth>depth)
+    /* update and check bounds */
+    if (tt->depth>depth&&tt->score<MATESCORE&&tt->score>-MATESCORE)
     {
-      if (tt->flag==EXACTSCORE||tt->flag==FAILHIGH)
+      if ((tt->flag==EXACTSCORE||tt->flag==FAILHIGH)&&alpha<MATESCORE&&alpha>-MATESCORE)
       {
         COUNTERS1++;
         alpha = MAX(alpha, tt->score);
       }
-      if (tt->flag==EXACTSCORE||tt->flag==FAILLOW) 
+      if ((tt->flag==EXACTSCORE||tt->flag==FAILLOW)&&beta<MATESCORE&&beta>-MATESCORE)
       {
         COUNTERS2++;
         beta  = MIN(beta, tt->score);
@@ -217,7 +217,6 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
       }
       if (alpha >= beta) return alpha;
     }
-    */
     if (tt->flag>FAILLOW&&JUSTMOVE(tt->bestmove)!=MOVENONE) 
       ttmove = tt->bestmove;
   }
