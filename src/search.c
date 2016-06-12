@@ -475,7 +475,6 @@ Move rootsearch(Bitboard *board, bool stm, s32 depth)
       if (TIMEOUT)
         break;
       domove(board, moves[i]);
-      /* null window */
       score = -negamax(board, !stm, -beta, -alpha, idf-1, 1, false);
       undomove(board, moves[i], lastmove, cr, boardscore, hash);
 
