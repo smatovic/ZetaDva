@@ -42,6 +42,8 @@ extern s32 GAMEPLY;
 extern s32 PLY;
 extern Move *MoveHistory;
 extern Hash *HashHistory;
+extern Move *Killers;
+extern Move *Counters;
 extern const Bitboard LRANK[2];
 extern double MaxTime;
 
@@ -67,6 +69,8 @@ Hash computehash(Bitboard *board, bool stm);
 void save_to_tt(Hash hash, Move move, Score score, u8 flag, s32 ply, s32 depth);
 struct TTE *load_from_tt(Hash hash);
 s32 collect_pv_from_hash(Bitboard *board, Hash hash, Move *moves);
+void save_killer(Move move, Score score, s32 ply);
+bool isvalid(Bitboard *board);
 
 #endif /* ZETA_H_INCLUDED */
 
