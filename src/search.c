@@ -424,24 +424,11 @@ Move rootsearch(Bitboard *board, bool stm, s32 depth)
   kic = kingincheck(board, stm);
   movecounter = genmoves(board, moves, movecounter, stm, false, 0);
 
-  /* print checkmate and stalemate result */
+  /* checkmate and stalemate */
   if (movecounter==0&&kic)
-  {
-    if (stm)
-    {
-      printf("result 1-0 { checkmate }");
-    }
-    else if (!stm)
-    {
-      printf("result 0-1 { checkmate }");
-    }
     return MOVENONE;
-  }
   if (movecounter==0&&!kic) 
-  {
-    printf("result 1/2-1/2 { stalemate }");
     return MOVENONE;
-  }
   /* check for bookmove */
   rootmove = bookmove(board, stm);
   for (i=0;i<movecounter;i++)

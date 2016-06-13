@@ -1880,31 +1880,58 @@ int main(int argc, char* argv[])
       }
       else 
       {
+        bool kic = false;
+        s32 movecounter = 0;
         Move move;
+        Move moves[MAXMOVES];
         xboard_force = false;
         NODECOUNT = 0;
         MOVECOUNT = 0;
         start = get_time();
 
-        /* start thinking */
-        move = rootsearch(BOARD,STM, SD);
-
-        end = get_time();   
-        elapsed = end-start;
-        elapsed /= 1000;
-        MoveHistory[PLY] = move;
-        domove(BOARD, move);
-        if (!epd_mode)
-          fprintf(stdout,"move ");
-        printmovecan(move);
-        fprintf(stdout,"\n");
-        if ((!xboard_mode&&!epd_mode)||xboard_debug)
+        kic = kingincheck(BOARD, STM);
+        movecounter = genmoves(BOARD, moves, movecounter, STM, false, 0);
+        /* print checkmate and stalemate result */
+        if (kic&&movecounter==0)
         {
-          printboard(BOARD);
-          fprintf(stdout,"#%llu searched nodes in %lf seconds, nps: %llu \n", NODECOUNT, elapsed, (u64)(NODECOUNT/elapsed));
+          if (STM)
+          {
+            if (!epd_mode)
+              printf("result 1-0 { checkmate }\n");
+          }
+          else if (!STM)
+          {
+            if (!epd_mode)
+              printf("result 0-1 { checkmate }\n");
+          }
         }
-        PLY++;
-        STM = !STM;
+        else if (!kic&&movecounter==0) 
+        {
+          if (!epd_mode)
+            printf("result 1/2-1/2 { stalemate }\n");
+        }
+        else 
+        {
+          /* start thinking */
+          move = rootsearch(BOARD,STM, SD);
+
+          end = get_time();   
+          elapsed = end-start;
+          elapsed /= 1000;
+          MoveHistory[PLY] = move;
+          domove(BOARD, move);
+          if (!epd_mode)
+            fprintf(stdout,"move ");
+          printmovecan(move);
+          fprintf(stdout,"\n");
+          if ((!xboard_mode&&!epd_mode)||xboard_debug)
+          {
+            printboard(BOARD);
+            fprintf(stdout,"#%llu searched nodes in %lf seconds, nps: %llu \n", NODECOUNT, elapsed, (u64)(NODECOUNT/elapsed));
+          }
+          PLY++;
+          STM = !STM;
+        }
       }
       continue;
     }
@@ -1998,8 +2025,11 @@ int main(int argc, char* argv[])
     }
     if (!strcmp(Command, "usermove"))
     {
-      Move move;
+      bool kic = false;
+      s32 movecounter = 0;
       char movec[6];
+      Move move;
+      Move moves[MAXMOVES];
       /* zeta supports only CECP >= v2 */
       if (xboard_mode && xboard_protover<2)
       {
@@ -2023,22 +2053,49 @@ int main(int argc, char* argv[])
       /* start thinking */
       if (!xboard_force)
       {
-        /* start thinking */
-        move = rootsearch(BOARD,STM, SD);
-
-        MoveHistory[PLY] = move;
-        domove(BOARD, move);
-        if (!epd_mode)
-          fprintf(stdout,"move ");
-        printmovecan(move);
-        fprintf(stdout,"\n");
-        if ((!xboard_mode&&!epd_mode)||xboard_debug)
+        kic = kingincheck(BOARD, STM);
+        movecounter = genmoves(BOARD, moves, movecounter, STM, false, 0);
+        /* print checkmate and stalemate result */
+        if (kic&&movecounter==0)
         {
-          printboard(BOARD);
-          fprintf(stdout,"#%llu searched nodes in %lf seconds, nps: %llu \n", NODECOUNT, elapsed/1000, (u64)(NODECOUNT/(elapsed/1000)));
+          if (STM)
+          {
+            if (!epd_mode)
+              printf("result 1-0 { checkmate }\n");
+          }
+          else if (!STM)
+          {
+            if (!epd_mode)
+              printf("result 0-1 { checkmate }\n");
+          }
         }
-        PLY++;
-        STM = !STM;
+        else if (!kic&&movecounter==0) 
+        {
+          if (!epd_mode)
+            printf("result 1/2-1/2 { stalemate }\n");
+        }
+        else 
+        {
+          /* start thinking */
+          move = rootsearch(BOARD,STM, SD);
+
+          end = get_time();   
+          elapsed = end-start;
+          elapsed /= 1000;
+          MoveHistory[PLY] = move;
+          domove(BOARD, move);
+          if (!epd_mode)
+            fprintf(stdout,"move ");
+          printmovecan(move);
+          fprintf(stdout,"\n");
+          if ((!xboard_mode&&!epd_mode)||xboard_debug)
+          {
+            printboard(BOARD);
+            fprintf(stdout,"#%llu searched nodes in %lf seconds, nps: %llu \n", NODECOUNT, elapsed, (u64)(NODECOUNT/elapsed));
+          }
+          PLY++;
+          STM = !STM;
+        }
       }
       continue;
     }
