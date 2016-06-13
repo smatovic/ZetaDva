@@ -199,28 +199,25 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
 */
   /* check transposition table */
   tt = load_from_tt(hash);
-  if (tt&&tt->hash==hash) 
+  if (tt&&tt->hash==hash&&tt->depth>depth&&tt->score<MATESCORE&&tt->score>-MATESCORE) 
   {
-    /* update and check bounds */
-    if (tt->depth>depth&&tt->score<MATESCORE&&tt->score>-MATESCORE)
+    if ((tt->flag==EXACTSCORE||tt->flag==FAILHIGH)&&alpha<MATESCORE&&alpha>-MATESCORE)
     {
-      if ((tt->flag==EXACTSCORE||tt->flag==FAILHIGH)&&alpha<MATESCORE&&alpha>-MATESCORE)
-      {
-        COUNTERS1++;
-        alpha = MAX(alpha, tt->score);
-      }
-      if ((tt->flag==EXACTSCORE||tt->flag==FAILLOW)&&beta<MATESCORE&&beta>-MATESCORE)
-      {
-        COUNTERS2++;
-        beta  = MIN(beta, tt->score);
-        beta  = tt->score;
-      }
-      if (alpha >= beta) return alpha;
+      COUNTERS1++;
+      alpha = MAX(alpha, tt->score);
     }
-    /* get tt move */
-    if (tt->flag>FAILLOW&&JUSTMOVE(tt->bestmove)!=MOVENONE) 
-      ttmove = tt->bestmove;
+    if (tt->flag==FAILLOW&&beta<MATESCORE&&beta>-MATESCORE)
+    {
+      COUNTERS2++;
+      beta  = MIN(beta, tt->score);
+      beta  = tt->score;
+    }
+    if (alpha >= beta) return alpha;
   }
+
+  /* get tt move */
+  if (tt&&tt->hash==hash&&tt->flag>FAILLOW&&JUSTMOVE(tt->bestmove)!=MOVENONE) 
+    ttmove = tt->bestmove;
   /* check tt move */
   if (JUSTMOVE(ttmove)!=MOVENONE
       &&GETPFROM(ttmove)==GETPIECE(board,(GETSQFROM(ttmove)))
