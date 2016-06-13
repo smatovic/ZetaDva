@@ -208,7 +208,7 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
       COUNTERS1++;
       alpha = MAX(alpha, tt->score);
     }
-    if ((tt->flag==EXACTSCORE||tt->flag==FAILLOW)&&beta<MATESCORE&&beta>-MATESCORE)
+    if (tt->flag==FAILLOW&&beta<MATESCORE&&beta>-MATESCORE)
     {
       COUNTERS2++;
       beta  = MIN(beta, tt->score);
