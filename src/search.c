@@ -138,8 +138,6 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
 {
   bool kic = false;
   bool ext = false;
-  bool pvnode = (beta-alpha>1)?true:false;
-  bool pvsearch = false;
   u8 type = FAILLOW;
   Score score = 0;
   s32 hmc = (s32)GETHMC(board[QBBLAST]);
@@ -185,7 +183,6 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
   /* call quiescence search */
   if (depth <= 0)
     return qsearch(board, stm, alpha, beta, depth, ply);
-
   NODECOUNT++;
   /* null move pruning 
   reduction = depth>6? 4:3;
@@ -197,12 +194,12 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
     if (score>=beta)
       score = -negamax(board, !stm, -beta, -alpha, MAX(1,depth-1-5), ply+1, false);
     if (score>=beta)
-      return beta;
+      return score;
   }
 */
   /* check transposition table */
   tt = load_from_tt(hash);
-  if (pvnode&&tt&&tt->hash==hash&&tt->depth>depth&&tt->score<MATESCORE&&tt->score>-MATESCORE) 
+  if (tt&&tt->hash==hash&&tt->depth>depth&&tt->score<MATESCORE&&tt->score>-MATESCORE) 
   {
     if ((tt->flag==EXACTSCORE||tt->flag==FAILHIGH)&&alpha<MATESCORE&&alpha>-MATESCORE)
     {
@@ -242,7 +239,6 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
         alpha=score;
         bestmove = ttmove;
         type = EXACTSCORE;
-        pvsearch = true;
       }
     }
     else
@@ -258,14 +254,7 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
       continue;
 
     domove(board, moves[i]);
-    if (pvnode&&pvsearch)
-    {
-      score = -negamax(board, !stm, -alpha-1, -alpha, depth-1, ply+1, prune);
-      if (score>alpha&&score<beta)
-        score = -negamax(board, !stm, -beta, -alpha, depth-1, ply+1, prune);
-    }
-    else
-      score = -negamax(board, !stm, -beta, -alpha, depth-1, ply+1, prune);
+    score = -negamax(board, !stm, -beta, -alpha, depth-1, ply+1, prune);
     undomove(board, moves[i], lastmove, cr, boardscore, hash);
 
     if(score>=beta)
@@ -278,7 +267,6 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
       alpha=score;
       bestmove = moves[i];
       type = EXACTSCORE;
-      pvsearch = true;
     }
   }
   /* generate capturing moves next */  
@@ -293,14 +281,7 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
       continue;
 
     domove(board, moves[i]);
-    if (pvnode&&pvsearch)
-    {
-      score = -negamax(board, !stm, -alpha-1, -alpha, depth-1, ply+1, prune);
-      if (score>alpha&&score<beta)
-        score = -negamax(board, !stm, -beta, -alpha, depth-1, ply+1, prune);
-    }
-    else
-      score = -negamax(board, !stm, -beta, -alpha, depth-1, ply+1, prune);
+    score = -negamax(board, !stm, -beta, -alpha, depth-1, ply+1, prune);
     undomove(board, moves[i], lastmove, cr, boardscore, hash);
 
     if(score>=beta)
@@ -313,7 +294,6 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
       alpha=score;
       bestmove = moves[i];
       type = EXACTSCORE;
-      pvsearch = true;
     }
   }
   /* generate pawn en passant moves next */  
@@ -326,14 +306,7 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
       continue;
 
     domove(board, moves[i]);
-    if (pvnode&&pvsearch)
-    {
-      score = -negamax(board, !stm, -alpha-1, -alpha, depth-1, ply+1, prune);
-      if (score>alpha&&score<beta)
-        score = -negamax(board, !stm, -beta, -alpha, depth-1, ply+1, prune);
-    }
-    else
-      score = -negamax(board, !stm, -beta, -alpha, depth-1, ply+1, prune);
+    score = -negamax(board, !stm, -beta, -alpha, depth-1, ply+1, prune);
     undomove(board, moves[i], lastmove, cr, boardscore, hash);
 
     if(score>=beta)
@@ -346,7 +319,6 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
       alpha=score;
       bestmove = moves[i];
       type = EXACTSCORE;
-      pvsearch = true;
     }
   }
   /* generate castle moves next */  
@@ -359,14 +331,7 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
       continue;
 
     domove(board, moves[i]);
-    if (pvnode&&pvsearch)
-    {
-      score = -negamax(board, !stm, -alpha-1, -alpha, depth-1, ply+1, prune);
-      if (score>alpha&&score<beta)
-        score = -negamax(board, !stm, -beta, -alpha, depth-1, ply+1, prune);
-    }
-    else
-      score = -negamax(board, !stm, -beta, -alpha, depth-1, ply+1, prune);
+    score = -negamax(board, !stm, -beta, -alpha, depth-1, ply+1, prune);
     undomove(board, moves[i], lastmove, cr, boardscore, hash);
 
     if(score>=beta)
@@ -379,7 +344,6 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
       alpha=score;
       bestmove = moves[i];
       type = EXACTSCORE;
-      pvsearch = true;
     }
   }
   /* generate quiet moves last */  
@@ -399,14 +363,7 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
       continue;
 
     domove(board, moves[i]);
-    if (pvnode&&pvsearch)
-    {
-      score = -negamax(board, !stm, -alpha-1, -alpha, depth-1, ply+1, prune);
-      if (score>alpha&&score<beta)
-        score = -negamax(board, !stm, -beta, -alpha, depth-1, ply+1, prune);
-    }
-    else
-      score = -negamax(board, !stm, -beta, -alpha, depth-1, ply+1, prune);
+    score = -negamax(board, !stm, -beta, -alpha, depth-1-reduction, ply+1, prune);
     undomove(board, moves[i], lastmove, cr, boardscore, hash);
 
     if(score>=beta)
@@ -421,7 +378,6 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
       alpha=score;
       bestmove = moves[i];
       type = EXACTSCORE;
-      pvsearch = true;
     }
   }
   /* checkmate */
@@ -504,24 +460,13 @@ Move rootsearch(Bitboard *board, bool stm, s32 depth)
     alpha = -INF;
     beta  =  INF;
 
-      domove(board, moves[0]);
-      score = -negamax(board, !stm, -beta, -alpha, idf-1, 1, false);
-      undomove(board, moves[0], lastmove, cr, boardscore, hash);
-
-      alpha=score;
-      bestmove = moves[0];
-      moves[0] = SETSCORE(moves[0],(Move)score);
-
     /* iterate through moves */
-    for (i=1;i<movecounter;i++)
+    for (i=0;i<movecounter;i++)
     {
       if (TIMEOUT)
         break;
       domove(board, moves[i]);
-      /* null window */
-      score = -negamax(board, !stm, -alpha-1, -alpha, idf-1, 1, false);
-      if (score>alpha&&score<beta)
-        score = -negamax(board, !stm, -beta, -alpha, idf-1, 1, true);
+      score = -negamax(board, !stm, -beta, -alpha, idf-1, 1, false);
       undomove(board, moves[i], lastmove, cr, boardscore, hash);
 
       if(score>alpha)
