@@ -57,8 +57,10 @@ F) Search Algorithm
     - search extension, king in check                   DONE
     - PV-Search, Nullwindows                            DONE
     - Transposition/Hash-Tables                                       WIP
+    - TT score bounds                                                 WIP
     - Iterative Deepening Framwork                      DONE
     - Aspiration Windows                                DEP
+    - Killer and Countermove heuristics                               WIP
     - Null Move Pruning                                         TODO
     - Late Move Reductions                                      TODO
 
