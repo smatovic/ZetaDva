@@ -138,6 +138,7 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
 {
   bool kic = false;
   bool ext = false;
+  bool pvnode = (beta-alpha>1)?true:false;
   u8 type = FAILLOW;
   Score score = 0;
   s32 hmc = (s32)GETHMC(board[QBBLAST]);
@@ -200,7 +201,7 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
 */
   /* check transposition table */
   tt = load_from_tt(hash);
-  if (tt&&tt->hash==hash&&tt->depth>depth&&tt->score<MATESCORE&&tt->score>-MATESCORE) 
+  if (pvnode&&tt&&tt->hash==hash&&tt->depth>depth&&tt->score<MATESCORE&&tt->score>-MATESCORE) 
   {
     if ((tt->flag==EXACTSCORE||tt->flag==FAILHIGH)&&alpha<MATESCORE&&alpha>-MATESCORE)
     {
@@ -461,13 +462,23 @@ Move rootsearch(Bitboard *board, bool stm, s32 depth)
     alpha = -INF;
     beta  =  INF;
 
+      domove(board, moves[0]);
+      score = -negamax(board, !stm, -beta, -alpha, idf-1, 1, false);
+      undomove(board, moves[0], lastmove, cr, boardscore, hash);
+
+      alpha=score;
+      bestmove = moves[0];
+      moves[0] = SETSCORE(moves[0],(Move)score);
+
     /* iterate through moves */
-    for (i=0;i<movecounter;i++)
+    for (i=1;i<movecounter;i++)
     {
       if (TIMEOUT)
         break;
       domove(board, moves[i]);
-      score = -negamax(board, !stm, -beta, -alpha, idf-1, 1, false);
+      score = -negamax(board, !stm, -alpha-1, -alpha, idf-1, 1, false);
+      if (score>alpha&&score<beta)
+        score = -negamax(board, !stm, -beta, -alpha, idf-1, 1, false);
       undomove(board, moves[i], lastmove, cr, boardscore, hash);
 
       if(score>alpha)
