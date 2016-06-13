@@ -63,12 +63,14 @@ double TimeInc  = 0;  /* time increase */
 double TimeLeft = 5*1000;  /* overall time on clock, 5s default */
 double MaxTime  = 5*1000;  /* max time per move */
 /* game state */
-bool STM            = WHITE;  /* site to move */
-s32 SD              = MAXPLY; /* max search depth*/
-s32 GAMEPLY         = 0;      /* total ply, considering depth via fen string */
-s32 PLY             = 0;      /* engine specifix ply counter */
+bool STM            = WHITE; /* site to move */
+s32 SD              = MAXPLY;/* max search depth*/
+s32 GAMEPLY         = 0;     /* total ply, considering depth via fen string */
+s32 PLY             = 0;     /* engine specifix ply counter */
 Move *MoveHistory;           /* last game moves indexed by ply */
 Hash *HashHistory;           /* last game hashes indexed by ply */
+Move *Killers;               /* killer move heuristic */
+Move *Counters;              /* counter move heuristic */
 /* Quad Bitboard */
 /* based on http://chessprogramming.wikispaces.com/Quad-Bitboards */
 /* by Gerd Isenberg */
@@ -184,6 +186,16 @@ static void initTT(void)
   TT = (struct TTE*)calloc(mem,sizeof(struct TTE));
   if (!TT)
     fprintf(stdout,"Error (hash table memory allocation, %u mb, failed): memory", xboardmb);
+  if (Killers)
+    free(Killers);
+  Killers = (Move*)calloc(1024*2,sizeof(Killers));
+  if (!Killers)
+    fprintf(stdout,"Error (Killers table memory allocation failed)");
+  if (Counters)
+    free(Counters);
+  Counters = (Move*)calloc(64*64,sizeof(Killers));
+  if (!Killers)
+    fprintf(stdout,"Error (Counters table memory allocation failed)");
 }
 void save_to_tt(Hash hash, Move move, Score score, u8 flag, s32 ply, s32 depth)
 {
@@ -211,6 +223,14 @@ struct TTE *load_from_tt(Hash hash)
 
   return NULL;
 }
+void save_killer(Move move, Score score, s32 ply)
+{
+  if(score>(Score)GETSCORE(Killers[ply*2+0]))
+    Killers[ply*2+0] = SETSCORE(move, (Move)score);
+  else if(score>(Score)GETSCORE(Killers[ply*2+1]))
+    Killers[ply*2+1] = SETSCORE(move, (Move)score);
+}
+
 /* innitialize memory, files and tables */
 static bool inits(void)
 {

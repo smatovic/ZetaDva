@@ -107,7 +107,7 @@ Score qsearch(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
       movecounter_caps = genmoves_enpassant(board, moves_caps, movecounter_caps, stm);
     if ((board[QBBPMVD]&SMCRALL))
       movecounter = genmoves_castles(board, moves, movecounter, stm);
-    movecounter = genmoves_noncaptures(board, moves, movecounter, stm);
+    movecounter = genmoves_noncaptures(board, moves, movecounter, stm, ply);
     movecounter_caps = genmoves_captures(board, moves_caps, movecounter_caps, stm);
     /* checkmate */
     if (kic&&movecounter==0&&movecounter_caps==0)
@@ -350,7 +350,7 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
     }
   }
   /* generate quiet moves last */  
-  movecounter = genmoves_noncaptures(board, moves, 0, stm);
+  movecounter = genmoves_noncaptures(board, moves, 0, stm, ply);
   legalmovecounter+= movecounter;
   /* sort moves */
   qsort(moves, movecounter, sizeof(Move), cmp_move_desc);
@@ -371,6 +371,8 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
 
     if(score>=beta)
     {
+      Counters[GETSQFROM(lastmove)*64+GETSQTO(lastmove)] = JUSTMOVE(moves[i]);
+      save_killer(JUSTMOVE(moves[i]), score, ply);
       save_to_tt(hash, moves[i], score, FAILHIGH, depth, ply);
       return score;
     }
@@ -423,7 +425,7 @@ Move rootsearch(Bitboard *board, bool stm, s32 depth)
   HashHistory[PLY] = hash;
 
   kic = kingincheck(board, stm);
-  movecounter = genmoves(board, moves, movecounter, stm, false);
+  movecounter = genmoves(board, moves, movecounter, stm, false, 0);
 
   /* print checkmate and stalemate result */
   if (movecounter==0&&kic)

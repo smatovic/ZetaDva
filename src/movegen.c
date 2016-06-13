@@ -465,7 +465,7 @@ int genmoves_captures(Bitboard *board, Move *moves, int movecounter, bool stm)
   return movecounter;
 }
 /* quiet moves only */
-int genmoves_noncaptures(Bitboard *board, Move *moves, int movecounter, bool stm) 
+int genmoves_noncaptures(Bitboard *board, Move *moves, int movecounter, bool stm, s32 ply) 
 {
   bool kic = false;
   Score score;
@@ -564,7 +564,22 @@ int genmoves_noncaptures(Bitboard *board, Move *moves, int movecounter, bool stm
       /* get score, non captures via static values, capture via MVV-LVA */
       score = (evalmove (pto, sqto)-evalmove(pfrom, sqfrom));
       /* pack move into 64 bits, considering castle rights and halfmovecounter and score */
-      move = MAKEMOVE(sqfrom, sqto, sqto, pfrom, pto, PNONE, sqep, (u64)GETHMC(lastmove), (u64)score);
+      move = MAKEMOVE(sqfrom, sqto, sqto, pfrom, pto, PNONE, sqep, (Move)GETHMC(lastmove), (Move)score);
+
+      /* set killers and counters score */
+      if (JUSTMOVE(move)==JUSTMOVE(Killers[ply*2+0]))
+      {
+        score = INF-10;
+      }
+      else if (JUSTMOVE(move)==JUSTMOVE(Killers[ply*2+1]))
+      {
+        score = INF-20;
+      }
+      else if (JUSTMOVE(move)==JUSTMOVE(Counters[GETSQFROM(lastmove)*64+GETSQTO(lastmove)]))
+      {
+        score = INF-30;
+      }
+      move = SETSCORE(move,(Move)score);
 
       /* legal moves only */
       /* domove */
@@ -849,7 +864,7 @@ int genmoves_general(Bitboard *board, Move *moves, int movecounter, bool stm, bo
   return movecounter;
 }
 /* wrapper for move genration */
-int genmoves(Bitboard *board, Move *moves, int movecounter, bool stm, bool qs)
+int genmoves(Bitboard *board, Move *moves, int movecounter, bool stm, bool qs, s32 ply)
 {
 
 /*
@@ -867,7 +882,7 @@ int genmoves(Bitboard *board, Move *moves, int movecounter, bool stm, bool qs)
   movecounter = genmoves_captures(board, moves, movecounter, stm);
 
   if (!qs)
-    movecounter = genmoves_noncaptures(board, moves, movecounter, stm);
+    movecounter = genmoves_noncaptures(board, moves, movecounter, stm, ply);
 
   return movecounter;
 }
