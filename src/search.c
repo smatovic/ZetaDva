@@ -228,19 +228,24 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
     )
   {
     domove(board, ttmove);
-    score = -negamax(board, !stm, -beta, -alpha, depth-1, ply+1, prune);
-    undomove(board, ttmove, lastmove, cr, boardscore, hash);
-    if(score>=beta)
+    if (isvalid(board))
     {
-      save_to_tt(hash, ttmove, score, FAILHIGH, depth, ply);
-      return score;
+      score = -negamax(board, !stm, -beta, -alpha, depth-1, ply+1, prune);
+      undomove(board, ttmove, lastmove, cr, boardscore, hash);
+      if(score>=beta)
+      {
+        save_to_tt(hash, ttmove, score, FAILHIGH, depth, ply);
+        return score;
+      }
+      if(score>alpha)
+      {
+        alpha=score;
+        bestmove = ttmove;
+        type = EXACTSCORE;
+      }
     }
-    if(score>alpha)
-    {
-      alpha=score;
-      bestmove = ttmove;
-      type = EXACTSCORE;
-    }
+    else
+      undomove(board, ttmove, lastmove, cr, boardscore, hash);
   }
   /* generate pawn promo moves first */  
   movecounter = genmoves_promo(board, moves, 0, stm);
