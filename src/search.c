@@ -134,6 +134,48 @@ Score qsearch(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
   }
   return alpha;
 }
+/* internal iterative deepening */
+Move iid(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32 ply)
+{
+  Score score = alpha;
+  Score boardscore = (Score)board[QBBSCORE];
+  s32 i = 0;
+  s32 movecounter = 0;
+  Cr cr = board[QBBPMVD];
+  Move lastmove = board[QBBLAST];
+  Move bestmove = MOVENONE;
+  Hash hash = board[QBBHASH];
+  Move moves[MAXMOVES];
+
+
+  movecounter = genmoves(board, moves, 0, stm, false, 0);
+
+  if (movecounter<=1)
+      return MOVENONE;
+
+  /* iterate through moves */
+  for (i=0;i<movecounter; i++)
+  {
+
+    domove(board, moves[i]);
+    score = -negamax(board, !stm, -beta, -alpha, depth-1, ply+1, false);
+    undomove(board, moves[i], lastmove, cr, boardscore, hash);
+
+    if (score>=beta)
+    {
+      bestmove = moves[i];
+      return bestmove;
+    }
+    if (score>alpha)
+    {
+      alpha = score;
+      bestmove = moves[i];
+    }
+
+  }
+  return bestmove;
+}
+
 Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32 ply, bool prune)
 {
   bool kic = false;
@@ -214,10 +256,15 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
     }
     if (alpha >= beta) return beta;
   }
-
   /* get tt move */
   if (tt&&tt->hash==hash&&tt->flag>FAILLOW&&JUSTMOVE(tt->bestmove)!=MOVENONE) 
     ttmove = tt->bestmove;
+
+  /* internal iterative deepening, get a bestmove anyway */
+  if (JUSTMOVE(ttmove)==MOVENONE&&depth>5)
+  {
+      ttmove = iid(board, stm, -INF, INF, depth/5, ply);
+  }
   /* check tt move */
   if (JUSTMOVE(ttmove)!=MOVENONE
       &&GETPFROM(ttmove)==GETPIECE(board,(GETSQFROM(ttmove)))
