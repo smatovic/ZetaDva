@@ -60,7 +60,8 @@ F) Search Algorithm
     - TT score bounds                                                 WIP
     - Iterative Deepening Framwork                      DONE
     - Aspiration Windows                                DEP
-    - Killer and Countermove heuristics                               WIP
+    - Killer and Countermove heuristics                 DONE
+    - IID                                               DONE
     - Null Move Pruning                                         TODO
     - Late Move Reductions                                      TODO
 
