@@ -196,6 +196,9 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
   Move moves[MAXMOVES];
   struct TTE *tt = NULL;
 
+  /* load transposition table */
+  tt = load_from_tt(hash);
+
   kic = kingincheck(board, stm);
 
   /* time out? */  
@@ -237,8 +240,7 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
       return score;
   }
 
-  /* check transposition table */
-  tt = load_from_tt(hash);
+  /* check transposition table score bounds */
   if (tt&&tt->hash==hash&&tt->depth>depth&&!ISMATE(tt->score)&&!ISINF(tt->score)) 
   {
     if ((tt->flag==EXACTSCORE||tt->flag==FAILHIGH)&&!ISMATE(alpha)&&!ISINF(alpha))
