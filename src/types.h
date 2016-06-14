@@ -225,7 +225,7 @@ struct TTE {
         s32 depth;
         s32 ply;
 };
-#define ISMATE(val)           ((((val)>MATESCORE&&(val)!=INF)||((val)<-MATESCORE&&(val)!=-INF))?true:false)
+#define ISMATE(val)           ((((val)>MATESCORE&&(val)<INF)||((val)<-MATESCORE&&(val)>-INF))?true:false)
 #define ISINF(val)            (((val)==INF||(val)==-INF)?true:false)
 
 /* node flags */

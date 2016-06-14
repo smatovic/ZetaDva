@@ -228,7 +228,7 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
   NODECOUNT++;
   /* null move pruning, Bruce Moreland style */
   reduction = (depth>6)?3:2;
-  if (prune&&!kic&&!ext&&JUSTMOVE(lastmove)!=MOVENONE&&beta)
+  if (prune&&!kic&&!ext&&JUSTMOVE(lastmove)!=MOVENONE)
   {
     donullmove(board);
     score = -negamax(board, !stm, -beta, -beta+1, depth-1-reduction, ply+1, false);
@@ -239,14 +239,14 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
 
   /* check transposition table */
   tt = load_from_tt(hash);
-  if (tt&&tt->hash==hash&&tt->depth>depth&&tt->score<MATESCORE&&tt->score>-MATESCORE) 
+  if (tt&&tt->hash==hash&&tt->depth>depth&&!ISMATE(tt->score)&&!ISINF(tt->score)) 
   {
-    if ((tt->flag==EXACTSCORE||tt->flag==FAILHIGH)&&alpha<MATESCORE&&alpha>-MATESCORE)
+    if ((tt->flag==EXACTSCORE||tt->flag==FAILHIGH)&&!ISMATE(alpha)&&!ISINF(alpha))
     {
       COUNTERS1++;
       alpha = MAX(alpha, tt->score);
     }
-    if (tt->flag==FAILLOW&&beta<MATESCORE&&beta>-MATESCORE)
+    if (tt->flag==FAILLOW&&!ISMATE(beta)&&!ISINF(beta))
     {
       COUNTERS2++;
       beta  = MIN(beta, tt->score);
