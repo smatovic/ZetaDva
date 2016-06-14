@@ -202,7 +202,7 @@ void save_to_tt(Hash hash, Move move, Score score, u8 flag, s32 ply, s32 depth)
   struct TTE *tete;
 
   /* exit when timeout */
-  if (TIMEOUT==true)
+  if (TIMEOUT)
     return;
 
   tete = &TT[hash&(ttbits-1)];
