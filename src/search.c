@@ -226,19 +226,17 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
   if (depth <= 0)
     return qsearch(board, stm, alpha, beta, depth, ply);
   NODECOUNT++;
-  /* null move pruning 
-  reduction = depth>6? 4:3;
-  if (prune&&!kic&&!ext&&JUSTMOVE(lastmove)!=MOVENONE)
+  /* null move pruning, Bruce Moreland style */
+  reduction = (depth>6)?3:2;
+  if (prune&&!kic&&!ext&&JUSTMOVE(lastmove)!=MOVENONE&&beta)
   {
     donullmove(board);
-    score = -negamax(board, !stm, -beta, -alpha, depth-1-reduction, ply+1, false);
+    score = -negamax(board, !stm, -beta, -beta+1, depth-1-reduction, ply+1, false);
     undonullmove(board, lastmove, hash);
-    if (score>=beta)
-      score = -negamax(board, !stm, -beta, -alpha, MAX(1,depth-1-5), ply+1, false);
     if (score>=beta)
       return score;
   }
-*/
+
   /* check transposition table */
   tt = load_from_tt(hash);
   if (tt&&tt->hash==hash&&tt->depth>depth&&tt->score<MATESCORE&&tt->score>-MATESCORE) 
@@ -513,7 +511,7 @@ Move rootsearch(Bitboard *board, bool stm, s32 depth)
       if (TIMEOUT)
         break;
       domove(board, moves[i]);
-      score = -negamax(board, !stm, -beta, -alpha, idf-1, 1, false);
+      score = -negamax(board, !stm, -beta, -alpha, idf-1, 1, true);
       undomove(board, moves[i], lastmove, cr, boardscore, hash);
 
       if(score>alpha)
