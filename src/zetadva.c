@@ -1861,6 +1861,7 @@ int main(int argc, char* argv[])
           fprintf(LogFile,"Error (in setting chess psotition via fen string): setboard\n");        
         }
       }
+      initTT();
       if (!xboard_mode&&!epd_mode)
         printboard(BOARD);
       continue;
