@@ -132,7 +132,7 @@ Score qsearch(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
     undomove(board, moves_caps[i], lastmove, cr, boardscore, hash);
 
     if(score>=beta)
-      return beta;
+      return score;
     if(score>alpha)
       alpha=score;
   }
@@ -189,6 +189,7 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
   s32 hmc = (s32)GETHMC(board[QBBLAST]);
   Score boardscore = (Score)board[QBBSCORE];
   s32 i = 0;
+  s32 rdepth = depth;
   s32 reduction = 0;
   s32 movecounter = 0;
   s32 movesplayed = 0;
@@ -258,7 +259,7 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
       alpha = MAX(alpha, tt->score);
     if ((tt->flag==EXACTSCORE||tt->flag==FAILLOW)&&!ISMATE(beta))
       beta  = MIN(beta, tt->score);
-    if (alpha >= beta) return beta;
+    if (alpha >= beta) return alpha;
   }
   /* get tt move */
   if (tt&&tt->hash==hash&&tt->flag>FAILLOW&&JUSTMOVE(tt->bestmove)!=MOVENONE) 
@@ -282,8 +283,8 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
       undomove(board, ttmove, lastmove, cr, boardscore, hash);
       if(score>=beta)
       {
-        save_to_tt(hash, ttmove, beta, FAILHIGH, depth, ply);
-        return beta;
+        save_to_tt(hash, ttmove, score, FAILHIGH, depth, ply);
+        return score;
       }
       if(score>alpha)
       {
@@ -311,8 +312,8 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
 
     if(score>=beta)
     {
-      save_to_tt(hash, moves[i], beta, FAILHIGH, depth, ply);
-      return beta;
+      save_to_tt(hash, moves[i], score, FAILHIGH, depth, ply);
+      return score;
     }
     if(score>alpha)
     {
@@ -344,8 +345,8 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
         Counters[GETSQFROM(ttmove)*64+GETSQTO(ttmove)] = JUSTMOVE(ttmove);
         save_killer(JUSTMOVE(ttmove), score, ply);
       }
-      save_to_tt(hash, moves[i], beta, FAILHIGH, depth, ply);
-      return beta;
+      save_to_tt(hash, moves[i], score, FAILHIGH, depth, ply);
+      return score;
     }
     if(score>alpha)
     {
@@ -373,8 +374,8 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
 
     if(score>=beta)
     {
-      save_to_tt(hash, moves[i], beta, FAILHIGH, depth, ply);
-      return beta;
+      save_to_tt(hash, moves[i], score, FAILHIGH, depth, ply);
+      return score;
     }
     if(score>alpha)
     {
@@ -402,8 +403,8 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
 
     if(score>=beta)
     {
-      save_to_tt(hash, moves[i], beta, FAILHIGH, depth, ply);
-      return beta;
+      save_to_tt(hash, moves[i], score, FAILHIGH, depth, ply);
+      return score;
     }
     if(score>alpha)
     {
@@ -435,13 +436,15 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
       continue;
     }
 */
-    reduction = 0;
+    rdepth = depth;
     /* late move reductions 
-    if (!kic&&!ext&&movesplayed>0&&!kingincheck(board,!stm)&&popcount(board[QBBP1]|board[QBBP2]|board[QBBP3])>=4)
-      reduction = 1;
+    if (!kic&&!ext&&ply>=3&&depth>1&&depth<=4&&popcount(board[QBBP1]|board[QBBP2]|board[QBBP3])>=4&&!kingincheck(board,!stm))
+      rdepth = (depth<3)?1:depth-2;
+    else if (!kic&&!ext&&movesplayed>0)
+      rdepth = (depth<2)?1:depth-1;
 */
-    score = -negamax(board, !stm, -beta, -alpha, depth-1-reduction, ply+1, prune);
-    if (reduction>0&&score>alpha)
+    score = -negamax(board, !stm, -beta, -alpha, rdepth-1, ply+1, prune);
+    if (rdepth!=depth&&score>alpha)
       score = -negamax(board, !stm, -beta, -alpha, depth-1, ply+1, prune);
     undomove(board, moves[i], lastmove, cr, boardscore, hash);
 
@@ -449,8 +452,8 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
     {
       Counters[GETSQFROM(lastmove)*64+GETSQTO(lastmove)] = JUSTMOVE(moves[i]);
       save_killer(JUSTMOVE(moves[i]), score, ply);
-      save_to_tt(hash, moves[i], beta, FAILHIGH, depth, ply);
-      return beta;
+      save_to_tt(hash, moves[i], score, FAILHIGH, depth, ply);
+      return score;
     }
     if(score>alpha)
     {
