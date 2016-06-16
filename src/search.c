@@ -219,7 +219,7 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
   if (hmc>=100)
     return DRAWSCORE;
   /* check for repetition */
-  for (i=PLY+ply-2;i>=PLY+ply-hmc;i-=2)
+  for (i=PLY+ply-2;i>=0&&i>=PLY+ply-hmc;i-=2)
   {
     if (HashHistory[i]==hash) 
       return DRAWSCORE;
@@ -533,13 +533,7 @@ Move rootsearch(Bitboard *board, bool stm, s32 depth)
       }
       fprintf(stdout, "\n");
     }
-    idf++;
-  } while (idf<=depth&&elapsed*2<MaxTime&&!TIMEOUT);
-  if (xboard_debug)
-  {
-    printf("#COUNTERS1:%llu\n", COUNTERS1);
-    printf("#COUNTERS2:%llu\n", COUNTERS2);
-  }
+  } while (++idf<=depth&&elapsed*2<MaxTime&&!TIMEOUT);
   return rootmove;
 }
 

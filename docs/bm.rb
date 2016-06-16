@@ -76,6 +76,8 @@ File.open(argepd, 'r') do |f1|
     # init engine
     engineIO.puts("epd")
     sleep(0.1)
+    engineIO.puts("new")
+    sleep(0.1)
     engineIO.puts("setboard "+fen)
     sleep(0.1)
     engineIO.puts("sd " + argdepth.to_s)
