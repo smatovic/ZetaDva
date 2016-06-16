@@ -24,9 +24,9 @@
 
 #include "types.h"      /* custom types, board defs, data structures, macros */
 
-extern const Score EvalPieceValues[6];
+extern const Score EvalPieceValues[7];
 extern const Score EvalControl[64];
-extern const Score EvalTable[6*64];
+extern const Score EvalTable[7*64];
 
 Score evalstatic(Bitboard *board);
 Score evalmove(PieceType piece, Square sq);
