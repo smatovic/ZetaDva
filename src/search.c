@@ -228,7 +228,7 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
     return qsearch(board, stm, alpha, beta, depth, ply);
   NODECOUNT++;
   /* null move pruning, Bruce Moreland style 
-  reduction = (depth>6)?3:2;
+  reduction = 2;
   if (prune&&!kic&&!ext&&JUSTMOVE(lastmove)!=MOVENONE)
   {
     donullmove(board);
@@ -410,7 +410,7 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
       reduction = 1;
 */
     score = -negamax(board, !stm, -beta, -alpha, depth-1-reduction, ply+1, prune);
-    if (reduction>0&&score>alpha&&score<beta)
+    if (reduction>0&&score>alpha)
       score = -negamax(board, !stm, -beta, -alpha, depth-1, ply+1, prune);
     undomove(board, moves[i], lastmove, cr, boardscore, hash);
 
