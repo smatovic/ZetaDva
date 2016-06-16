@@ -252,11 +252,11 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
   /* load transposition table */
   tt = load_from_tt(hash);
   /* check transposition table score bounds */
-  if (tt&&tt->hash==hash&&tt->depth>depth&&!ISMATE(tt->score)&&!ISINF(tt->score)) 
+  if (tt&&tt->hash==hash&&tt->depth>depth&&!ISINF(tt->score)) 
   {
-    if ((tt->flag==EXACTSCORE||tt->flag==FAILHIGH)&&!ISMATE(alpha)&&!ISINF(alpha))
+    if ((tt->flag==EXACTSCORE||tt->flag==FAILHIGH)&&!ISMATE(alpha))
       alpha = MAX(alpha, tt->score);
-    if ((tt->flag==EXACTSCORE||tt->flag==FAILLOW)&&!ISMATE(beta)&&!ISINF(beta))
+    if ((tt->flag==EXACTSCORE||tt->flag==FAILLOW)&&!ISMATE(beta))
       beta  = MIN(beta, tt->score);
     if (alpha >= beta) return beta;
   }
@@ -265,9 +265,9 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
     ttmove = tt->bestmove;
 
   /* internal iterative deepening, get a bestmove anyway */
-  if (JUSTMOVE(ttmove)==MOVENONE&&depth>=3)
+  if (JUSTMOVE(ttmove)==MOVENONE&&depth>5)
   {
-      ttmove = iid(board, stm, -INF, INF, depth/3, ply);
+      ttmove = iid(board, stm, -INF, INF, depth/5, ply);
   }
   /* check tt move */
   if (JUSTMOVE(ttmove)!=MOVENONE
