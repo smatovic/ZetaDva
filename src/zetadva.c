@@ -1890,6 +1890,8 @@ int main(int argc, char* argv[])
         MOVECOUNT = 0;
         start = get_time();
 
+        HashHistory[PLY] = BOARD[QBBHASH];
+
         kic = kingincheck(BOARD, STM);
         movecounter = genmoves(BOARD, moves, movecounter, STM, false, 0);
         /* print checkmate and stalemate result */
@@ -1932,6 +1934,7 @@ int main(int argc, char* argv[])
           }
           PLY++;
           STM = !STM;
+          HashHistory[PLY] = BOARD[QBBHASH];
         }
       }
       continue;
@@ -2049,6 +2052,7 @@ int main(int argc, char* argv[])
       domove(BOARD, move);
       PLY++;
       STM = !STM;
+      HashHistory[PLY] = BOARD[QBBHASH];
       if ((!xboard_mode&&!epd_mode)||xboard_debug)
           printboard(BOARD);
       /* start thinking */
@@ -2096,6 +2100,7 @@ int main(int argc, char* argv[])
           }
           PLY++;
           STM = !STM;
+          HashHistory[PLY] = BOARD[QBBHASH];
         }
       }
       continue;
