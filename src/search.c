@@ -103,7 +103,7 @@ Score qsearch(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
   /* when king in check, all evasion moves */
   if (kic)
   {
-    movecounter = genmoves_noncaptures(board, moves, movecounter, stm, ply);
+    movecounter = genmoves_noncaptures(board, moves, movecounter, stm, PLY+ply);
     if (cr&SMCRALL)
       movecounter = genmoves_castles(board, moves, movecounter, stm);
     movecounter_caps = genmoves_promo(board, moves_caps, movecounter_caps, stm);
@@ -347,7 +347,7 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
       if (GETPCPT(ttmove)==PNONE)
       {
         Counters[GETSQFROM(ttmove)*64+GETSQTO(ttmove)] = JUSTMOVE(ttmove);
-        save_killer(JUSTMOVE(ttmove), score, ply);
+        save_killer(JUSTMOVE(ttmove), score, PLY+ply);
       }
       save_to_tt(hash, moves[i], score, FAILHIGH, depth, ply);
       return score;
@@ -361,7 +361,7 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
     movesplayed++;
   }
   /* generate quiet moves */  
-  movecounter = genmoves_noncaptures(board, moves, 0, stm, ply);
+  movecounter = genmoves_noncaptures(board, moves, 0, stm, PLY+ply);
   if ((cr&SMCRALL))
     movecounter = genmoves_castles(board, moves, movecounter, stm);
   legalmovecounter+= movecounter;
@@ -399,7 +399,7 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
     if(score>=beta)
     {
       Counters[GETSQFROM(lastmove)*64+GETSQTO(lastmove)] = JUSTMOVE(moves[i]);
-      save_killer(JUSTMOVE(moves[i]), score, ply);
+      save_killer(JUSTMOVE(moves[i]), score, PLY+ply);
       save_to_tt(hash, moves[i], score, FAILHIGH, depth, ply);
       return score;
     }
