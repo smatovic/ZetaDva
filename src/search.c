@@ -323,8 +323,10 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
     }
     movesplayed++;
   }
-  /* generate capturing moves next */  
+  /* generate capturing moves next */
   movecounter = genmoves_captures(board, moves, 0, stm);
+  if(GETSQEP(lastmove))
+    movecounter = genmoves_enpassant(board, moves, movecounter, stm);
   legalmovecounter+= movecounter;
   /* sort moves */
   qsort(moves, movecounter, sizeof(Move), cmp_move_desc);
@@ -356,66 +358,10 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
     }
     movesplayed++;
   }
-  /* generate pawn en passant moves next */  
-  if(GETSQEP(lastmove))
-    movecounter = genmoves_enpassant(board, moves, 0, stm);
-  else
-    movecounter = 0;
-  legalmovecounter+= movecounter;
-  /* iterate through moves */
-  for (i=0;i<movecounter;i++)
-  {
-    if (ttmove&&JUSTMOVE(ttmove)==JUSTMOVE(moves[i]))
-      continue;
-
-    domove(board, moves[i]);
-    score = -negamax(board, !stm, -beta, -alpha, depth-1, ply+1, prune);
-    undomove(board, moves[i], lastmove, cr, boardscore, hash);
-
-    if(score>=beta)
-    {
-      save_to_tt(hash, moves[i], score, FAILHIGH, depth, ply);
-      return score;
-    }
-    if(score>alpha)
-    {
-      alpha=score;
-      bestmove = moves[i];
-      type = EXACTSCORE;
-    }
-    movesplayed++;
-  }
-  /* generate castle moves next */  
-  if ((cr&SMCRALL))
-    movecounter = genmoves_castles(board, moves, 0, stm);
-  else
-    movecounter = 0;
-  legalmovecounter+= movecounter;
-  /* iterate through moves */
-  for (i=0;i<movecounter;i++)
-  {
-    if (ttmove&&JUSTMOVE(ttmove)==JUSTMOVE(moves[i]))
-      continue;
-
-    domove(board, moves[i]);
-    score = -negamax(board, !stm, -beta, -alpha, depth-1, ply+1, prune);
-    undomove(board, moves[i], lastmove, cr, boardscore, hash);
-
-    if(score>=beta)
-    {
-      save_to_tt(hash, moves[i], score, FAILHIGH, depth, ply);
-      return score;
-    }
-    if(score>alpha)
-    {
-      alpha=score;
-      bestmove = moves[i];
-      type = EXACTSCORE;
-    }
-    movesplayed++;
-  }
   /* generate quiet moves last */  
   movecounter = genmoves_noncaptures(board, moves, 0, stm, ply);
+  if ((cr&SMCRALL))
+    movecounter = genmoves_castles(board, moves, movecounter, stm);
   legalmovecounter+= movecounter;
   /* sort moves */
   qsort(moves, movecounter, sizeof(Move), cmp_move_desc);
@@ -526,7 +472,7 @@ Move rootsearch(Bitboard *board, bool stm, s32 depth)
     for(i=0;i<movecounter;i++)
     {
       if (JUSTMOVE(tt->bestmove)==JUSTMOVE(moves[i]))
-        moves[i] = SETSCORE(moves[i], (Move)(INF-10));
+        moves[i] = SETSCORE(moves[i], (Move)(INF));
     }
   }
   /* sort moves */
@@ -537,8 +483,6 @@ Move rootsearch(Bitboard *board, bool stm, s32 depth)
       fprintf(stdout, "ply score time nodes pv\n");
   /* iterative deepening framework */
   do {
-    if (TIMEOUT)
-      break;
 
     alpha = -INF;
     beta  =  INF;
@@ -546,8 +490,6 @@ Move rootsearch(Bitboard *board, bool stm, s32 depth)
     /* iterate through moves */
     for (i=0;i<movecounter;i++)
     {
-      if (TIMEOUT)
-        break;
       domove(board, moves[i]);
       score = -negamax(board, !stm, -beta, -alpha, idf-1, 1, true);
       undomove(board, moves[i], lastmove, cr, boardscore, hash);
@@ -560,16 +502,18 @@ Move rootsearch(Bitboard *board, bool stm, s32 depth)
       }
       else
         moves[i] = SETSCORE(moves[i],(Move)(score-i));
+
+      if (TIMEOUT)
+        break;
     }
     end = get_time(); /* stop timer */
     elapsed = end-start;
-    /* sort moves */
-    qsort(moves, movecounter, sizeof(Move), cmp_move_desc);
-
     if (!TIMEOUT)
     {
       rootmove = bestmove;
       save_to_tt(hash, rootmove, alpha, EXACTSCORE, idf, 0);
+      /* sort moves */
+      qsort(moves, movecounter, sizeof(Move), cmp_move_desc);
     }
     /* gui output */
     if (!TIMEOUT&&(xboard_post||!xboard_mode)&&!epd_mode)
@@ -587,7 +531,8 @@ Move rootsearch(Bitboard *board, bool stm, s32 depth)
       }
       fprintf(stdout, "\n");
     }
-  } while (++idf<=depth&&elapsed*2<MaxTime);
+    idf++;
+  } while (idf<=depth&&elapsed*2<MaxTime&&!TIMEOUT);
   if (xboard_debug)
   {
     printf("#COUNTERS1:%llu\n", COUNTERS1);
