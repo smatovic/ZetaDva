@@ -190,7 +190,6 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
   Score boardscore = (Score)board[QBBSCORE];
   s32 i = 0;
   s32 rdepth = depth;
-  s32 reduction = 0;
   s32 movecounter = 0;
   s32 movesplayed = 0;
   s32 legalmovecounter = 0;
@@ -240,11 +239,11 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
   NODECOUNT++;
 
   /* null move pruning, Bruce Moreland style 
-  reduction = 2;
+  rdepth = depth-2;
   if (prune&&!kic&&!ext&&JUSTMOVE(lastmove)!=MOVENONE)
   {
     donullmove(board);
-    score = -negamax(board, !stm, -beta, -beta+1, depth-1-reduction, ply+1, false);
+    score = -negamax(board, !stm, -beta, -beta+1, rdepth-1, ply+1, false);
     undonullmove(board, lastmove, hash);
     if (score>=beta)
       return score;
@@ -270,7 +269,7 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
   {
       ttmove = iid(board, stm, -INF, INF, depth/5, ply);
   }
-  /* check tt move */
+  /* check tt move first */
   if (JUSTMOVE(ttmove)!=MOVENONE
       &&GETPFROM(ttmove)==GETPIECE(board,(GETSQFROM(ttmove)))
       &&GETPCPT(ttmove)==GETPIECE(board,(GETSQCPT(ttmove)))
@@ -297,7 +296,7 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
     else
       undomove(board, ttmove, lastmove, cr, boardscore, hash);
   }
-  /* generate pawn promo moves first */  
+  /* generate pawn promo moves */  
   movecounter = genmoves_promo(board, moves, 0, stm);
   legalmovecounter+= movecounter;
   /* iterate through moves */
@@ -323,7 +322,7 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
     }
     movesplayed++;
   }
-  /* generate capturing moves next */
+  /* generate capturing moves */
   movecounter = genmoves_captures(board, moves, 0, stm);
   if(GETSQEP(lastmove))
     movecounter = genmoves_enpassant(board, moves, movecounter, stm);
@@ -358,7 +357,7 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
     }
     movesplayed++;
   }
-  /* generate quiet moves last */  
+  /* generate quiet moves */  
   movecounter = genmoves_noncaptures(board, moves, 0, stm, ply);
   if ((cr&SMCRALL))
     movecounter = genmoves_castles(board, moves, movecounter, stm);
