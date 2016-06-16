@@ -80,6 +80,7 @@ Score eval(Bitboard *board)
 {
   Score score = 0;
   s32 side;
+  s32 i;
   Square sq;
   Piece piece;
   Bitboard bbWork;
@@ -111,6 +112,9 @@ Score eval(Bitboard *board)
       /* simple pawn structure white */
       /* blocked */
       score-=(GETPTYPE(piece)==PAWN&&!side&&GETRANK(sq)<RANK_8&&((bbPawns|board[!side])&SETMASKBB(sq+8)))?15:0;
+      /* column */
+      for(i=sq-8;i>7&&!side;i-=8)
+        score-=(bbPawns&bbBoth[side]&SETMASKBB(i))?15:0;
         /* chain */
       score+=(GETPTYPE(piece)==PAWN&&!side&&(GETFILE(sq)<FILE_H&&(bbPawns&board[side]&SETMASKBB(sq-7))))?10:0;
       score+=(GETPTYPE(piece)==PAWN&&!side&&(GETFILE(sq)>FILE_A&&(bbPawns&board[side]&SETMASKBB(sq-9))))?10:0;
@@ -120,24 +124,10 @@ Score eval(Bitboard *board)
         /* chain */
       score-=(GETPTYPE(piece)==PAWN&&side&&(GETFILE(sq)>FILE_A&&(bbPawns&board[side]&SETMASKBB(sq+7))))?10:0;
       score-=(GETPTYPE(piece)==PAWN&&side&&(GETFILE(sq)<FILE_H&&(bbPawns&board[side]&SETMASKBB(sq+9))))?10:0;
+      /* column */
+      for(i=sq+8;i<56&&side;i+=8)
+        score+=(bbPawns&bbBoth[side]&SETMASKBB(i))?15:0;
     }
-    /* pawn columns */
-    sq = popcount(bbPawns&bbBoth[side]&BBFILEA);
-    score-= (sq>1)?(side)?(sq-1)*-15:(sq-1)*15:0;
-    sq = popcount(bbPawns&bbBoth[side]&BBFILEB);
-    score-= (sq>1)?(side)?(sq-1)*-15:(sq-1)*15:0;
-    sq = popcount(bbPawns&bbBoth[side]&BBFILEC);
-    score-= (sq>1)?(side)?(sq-1)*-15:(sq-1)*15:0;
-    sq = popcount(bbPawns&bbBoth[side]&BBFILED);
-    score-= (sq>1)?(side)?(sq-1)*-15:(sq-1)*15:0;
-    sq = popcount(bbPawns&bbBoth[side]&BBFILEE);
-    score-= (sq>1)?(side)?(sq-1)*-15:(sq-1)*15:0;
-    sq = popcount(bbPawns&bbBoth[side]&BBFILEF);
-    score-= (sq>1)?(side)?(sq-1)*-15:(sq-1)*15:0;
-    sq = popcount(bbPawns&bbBoth[side]&BBFILEG);
-    score-= (sq>1)?(side)?(sq-1)*-15:(sq-1)*15:0;
-    sq = popcount(bbPawns&bbBoth[side]&BBFILEH);
-    score-= (sq>1)?(side)?(sq-1)*-15:(sq-1)*15:0;
     /* duble bishop */
     score+= (popcount(bbBoth[side]&(~board[QBBP1]&~board[QBBP2]&board[QBBP3]))==2)?(side)?-25:25:0;
 
