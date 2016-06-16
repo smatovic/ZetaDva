@@ -88,14 +88,15 @@ Score qsearch(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
   NODECOUNT++;
 
   kic = kingincheck(board, stm);
-  /* get static, incremental board score */
+  /* get static, incremental board score 
   score = (stm)? -boardscore : boardscore;
-  /* get full eval score 
-  score = (stm)? -eval(board): eval(board);
   */
+  /* get full eval score */
+  score = (stm)? -eval(board): eval(board);
+  
   /* stand pat */
   if(!kic&&score>=beta)
-      return beta;
+      return score;
   if(!kic&&alpha<score)
       alpha = score;
 
@@ -117,7 +118,10 @@ Score qsearch(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
     movecounter_caps = genmoves_captures(board, moves_caps, movecounter_caps, stm);
   /* quiet leaf node, return  evaluation board score */
   if (!kic&&movecounter_caps==0)
+    return score;
+/*
     return (stm)? -eval(board): eval(board);
+*/
   /* sort moves */
   qsort(moves_caps, movecounter_caps, sizeof(Move), cmp_move_desc);
   /* iterate through moves */
@@ -217,6 +221,11 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
     if (HashHistory[i]==hash) 
       return DRAWSCORE;
   }
+ 	/* mate distance pruning */
+  alpha = MAX((-INF+ply), alpha);
+  beta  = MIN(-(-INF+ply+1), beta);
+  if (alpha >= beta)
+    return alpha;
   /* search extension, checks and pawn promo */
   if(kic||(GETPTYPE(GETPFROM(lastmove))==PAWN&&GETPTYPE(GETPTO(lastmove))==QUEEN))
   {
@@ -226,7 +235,9 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
   /* call quiescence search */
   if (depth <= 0)
     return qsearch(board, stm, alpha, beta, depth, ply);
+
   NODECOUNT++;
+
   /* null move pruning, Bruce Moreland style 
   reduction = 2;
   if (prune&&!kic&&!ext&&JUSTMOVE(lastmove)!=MOVENONE)
@@ -245,7 +256,7 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
   {
     if ((tt->flag==EXACTSCORE||tt->flag==FAILHIGH)&&!ISMATE(alpha)&&!ISINF(alpha))
       alpha = MAX(alpha, tt->score);
-    if (tt->flag==FAILLOW&&!ISMATE(beta)&&!ISINF(beta))
+    if ((tt->flag==EXACTSCORE||tt->flag==FAILLOW)&&!ISMATE(beta)&&!ISINF(beta))
       beta  = MIN(beta, tt->score);
     if (alpha >= beta) return beta;
   }
@@ -254,9 +265,9 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
     ttmove = tt->bestmove;
 
   /* internal iterative deepening, get a bestmove anyway */
-  if (JUSTMOVE(ttmove)==MOVENONE&&depth>5)
+  if (JUSTMOVE(ttmove)==MOVENONE&&depth>=3)
   {
-      ttmove = iid(board, stm, -INF, INF, depth/5, ply);
+      ttmove = iid(board, stm, -INF, INF, depth/3, ply);
   }
   /* check tt move */
   if (JUSTMOVE(ttmove)!=MOVENONE
