@@ -97,7 +97,7 @@ Score qsearch(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
   /* stand pat */
   if(!kic&&score>=beta)
       return score;
-  if(!kic&&alpha<score)
+  if(!kic&&score>alpha)
       alpha = score;
 
   /* when king in check, all evasion moves */
@@ -339,6 +339,11 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
 
     if(score>=beta)
     {
+      if (GETPCPT(ttmove)==PNONE)
+      {
+        Counters[GETSQFROM(ttmove)*64+GETSQTO(ttmove)] = JUSTMOVE(ttmove);
+        save_killer(JUSTMOVE(ttmove), score, ply);
+      }
       save_to_tt(hash, moves[i], beta, FAILHIGH, depth, ply);
       return beta;
     }
@@ -351,7 +356,10 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
     movesplayed++;
   }
   /* generate pawn en passant moves next */  
-  movecounter = genmoves_enpassant(board, moves, 0, stm);
+  if(GETSQEP(lastmove))
+    movecounter = genmoves_enpassant(board, moves, 0, stm);
+  else
+    movecounter = 0;
   legalmovecounter+= movecounter;
   /* iterate through moves */
   for (i=0;i<movecounter;i++)
@@ -377,7 +385,10 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
     movesplayed++;
   }
   /* generate castle moves next */  
-  movecounter = genmoves_castles(board, moves, 0, stm);
+  if ((cr&SMCRALL))
+    movecounter = genmoves_castles(board, moves, 0, stm);
+  else
+    movecounter = 0;
   legalmovecounter+= movecounter;
   /* iterate through moves */
   for (i=0;i<movecounter;i++)
@@ -415,9 +426,18 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
 
     domove(board, moves[i]);
 
+    /* get static, incremental board score */
+    score = (stm)? -boardscore : boardscore;
+    /* futility pruning 
+    if (depth==1&&!kic&&!ext&&boardscore+EvalPieceValues[QUEEN]<alpha) 
+    {
+      undomove(board, moves[i], lastmove, cr, boardscore, hash);
+      continue;
+    }
+*/
     reduction = 0;
     /* late move reductions 
-    if (!kic&&!ext&&movesplayed>0&&!kingincheck(board,!stm)&&popcount(board[QBBP1]|board[QBBP2]|board[QBBP3])>=4&&!(GETPTYPE(GETPFROM(lastmove))==PAWN&&GETPTYPE(GETPTO(lastmove))==QUEEN))
+    if (!kic&&!ext&&movesplayed>0&&!kingincheck(board,!stm)&&popcount(board[QBBP1]|board[QBBP2]|board[QBBP3])>=4)
       reduction = 1;
 */
     score = -negamax(board, !stm, -beta, -alpha, depth-1-reduction, ply+1, prune);
