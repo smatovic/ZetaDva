@@ -189,6 +189,9 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
 {
   bool kic = false;
   bool ext = false;
+/*
+  bool pvnode = ((beta - alpha) > 1);
+*/
   u8 type = FAILLOW;
   Score score = 0;
   s32 hmc = (s32)GETHMC(board[QBBLAST]);
@@ -292,6 +295,18 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
     if (isvalid(board))
     {
       score = -negamax(board, !stm, -beta, -alpha, depth-1, ply+1, prune);
+
+/*
+    if (!pvnode)
+      score = -negamax(board, !stm, -beta, -alpha, depth-1, ply+1, prune);
+    else {
+      score = -negamax(board, !stm, -alpha-1, -alpha, depth-1, ply+1, prune);
+      if (score>alpha)
+      {
+        score = -negamax(board, !stm, -beta, -alpha, depth-1, ply+1, prune);
+      }
+    }
+*/
       undomove(board, ttmove, lastmove, cr, boardscore, hash);
       if(score>=beta)
       {
