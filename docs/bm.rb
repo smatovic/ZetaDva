@@ -51,7 +51,10 @@ File.open(argepd, 'r') do |f1|
         when (/\//)
           fen+= " " + e
         # add color
-        when "w" || "b" 
+        when "w" 
+          fen+= " " + e
+        # add color
+        when "b" 
           fen+= " " + e
         # add no castle rights or no en passant
         when "-"
@@ -65,6 +68,7 @@ File.open(argepd, 'r') do |f1|
         # get bestmove
         when ("bm")
           epdbm = epd[i+1].to_s.chomp(';')
+          break;
       end
     end
     # wait for engine greetings 
@@ -74,6 +78,8 @@ File.open(argepd, 'r') do |f1|
       i = IO.readlines(argfile).count
     end
     # init engine
+#    engineIO.puts("log")
+#    sleep(0.1)
     engineIO.puts("epd")
     sleep(0.1)
     engineIO.puts("new")
