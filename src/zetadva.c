@@ -188,7 +188,7 @@ static void initTT(void)
     fprintf(stdout,"Error (hash table memory allocation, %u mb, failed): memory", xboardmb);
   if (Killers)
     free(Killers);
-  Killers = (Move*)calloc(1024*2,sizeof(Killers));
+  Killers = (Move*)calloc(MAXPLY*2,sizeof(Killers));
   if (!Killers)
     fprintf(stdout,"Error (Killers table memory allocation failed)");
   if (Counters)

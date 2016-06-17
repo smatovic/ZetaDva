@@ -103,7 +103,7 @@ Score qsearch(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
   /* when king in check, all evasion moves */
   if (kic)
   {
-    movecounter = genmoves_noncaptures(board, moves, movecounter, stm, PLY+ply);
+    movecounter = genmoves_noncaptures(board, moves, movecounter, stm, ply);
     if (cr&SMCRALL)
       movecounter = genmoves_castles(board, moves, movecounter, stm);
     movecounter_caps = genmoves_promo(board, moves_caps, movecounter_caps, stm);
@@ -115,6 +115,8 @@ Score qsearch(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
   {
     movecounter_caps = genmoves_promo(board, moves_caps, movecounter_caps, stm);
     movecounter_caps = genmoves_captures(board, moves_caps, movecounter_caps, stm);
+    if(GETSQEP(lastmove))
+      movecounter_caps = genmoves_enpassant(board, moves_caps, movecounter_caps, stm);
   }
   /* checkmate */
   if (kic&&movecounter==0&&movecounter_caps==0)
@@ -214,34 +216,40 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
     TIMEOUT=true;
     return 0;
   }
+
   HashHistory[PLY+ply] = hash;
+
   /* check for fifty move rule */
   if (hmc>=100)
     return DRAWSCORE;
+
   /* check for repetition */
   for (i=PLY+ply-2;i>=0&&i>=PLY+ply-hmc;i-=2)
   {
     if (HashHistory[i]==hash) 
       return DRAWSCORE;
   }
+
  	/* mate distance pruning */
   alpha = MAX((-INF+ply), alpha);
   beta  = MIN(-(-INF+ply+1), beta);
   if (alpha >= beta)
     return alpha;
+
   /* search extension, checks and pawn promo */
   if(kic||(GETPTYPE(GETPFROM(lastmove))==PAWN&&GETPTYPE(GETPTO(lastmove))==QUEEN))
   {
     depth++;
     ext = true;
   }
+
   /* call quiescence search */
   if (depth <= 0)
     return qsearch(board, stm, alpha, beta, depth, ply);
 
   NODECOUNT++;
 
-  /* null move pruning, Bruce Moreland style */
+  /* null move pruning, Bruce Moreland style 
   rdepth = depth-2;
   if (prune&&!kic&&!ext&&JUSTMOVE(lastmove)!=MOVENONE)
   {
@@ -251,15 +259,16 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
     if (score>=beta)
       return score;
   }
-
+*/
   /* load transposition table */
   tt = load_from_tt(hash);
+
   /* check transposition table score bounds */
-  if (tt&&tt->hash==hash&&tt->depth>depth) 
+  if (tt&&tt->hash==hash&&tt->depth>depth&&!ISINF(tt->score)) 
   {
-    if (tt->flag==EXACTSCORE||tt->flag==FAILHIGH)
+    if ((tt->flag==EXACTSCORE||tt->flag==FAILHIGH)&&!ISMATE(alpha))
       alpha = MAX(alpha, tt->score);
-    if (tt->flag==EXACTSCORE||tt->flag==FAILLOW)
+    if ((tt->flag==EXACTSCORE||tt->flag==FAILLOW)&&!ISMATE(beta))
       beta  = MIN(beta, tt->score);
     if (alpha >= beta) return alpha;
   }
@@ -272,6 +281,7 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
   {
       ttmove = iid(board, stm, -INF, INF, depth/5, ply);
   }
+
   /* check tt move first */
   if (JUSTMOVE(ttmove)!=MOVENONE
       &&GETPFROM(ttmove)==GETPIECE(board,(GETSQFROM(ttmove)))
@@ -285,6 +295,11 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
       undomove(board, ttmove, lastmove, cr, boardscore, hash);
       if(score>=beta)
       {
+        if (GETPCPT(ttmove)==PNONE)
+        {
+          Counters[GETSQFROM(ttmove)*64+GETSQTO(ttmove)] = JUSTMOVE(ttmove);
+          save_killer(JUSTMOVE(ttmove), score, ply);
+        }
         save_to_tt(hash, ttmove, score, FAILHIGH, depth, ply);
         return score;
       }
@@ -299,6 +314,7 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
     else
       undomove(board, ttmove, lastmove, cr, boardscore, hash);
   }
+
   /* generate pawn promo moves */  
   movecounter = genmoves_promo(board, moves, 0, stm);
   legalmovecounter+= movecounter;
@@ -325,6 +341,7 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
     }
     movesplayed++;
   }
+
   /* generate capturing moves */
   movecounter = genmoves_captures(board, moves, 0, stm);
   if(GETSQEP(lastmove))
@@ -344,11 +361,6 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
 
     if(score>=beta)
     {
-      if (GETPCPT(ttmove)==PNONE)
-      {
-        Counters[GETSQFROM(ttmove)*64+GETSQTO(ttmove)] = JUSTMOVE(ttmove);
-        save_killer(JUSTMOVE(ttmove), score, PLY+ply);
-      }
       save_to_tt(hash, moves[i], score, FAILHIGH, depth, ply);
       return score;
     }
@@ -360,8 +372,9 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
     }
     movesplayed++;
   }
+
   /* generate quiet moves */  
-  movecounter = genmoves_noncaptures(board, moves, 0, stm, PLY+ply);
+  movecounter = genmoves_noncaptures(board, moves, 0, stm, ply);
   if ((cr&SMCRALL))
     movecounter = genmoves_castles(board, moves, movecounter, stm);
   legalmovecounter+= movecounter;
@@ -385,12 +398,12 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
     }
 */
     rdepth = depth;
-    /* late move reductions */
+    /* late move reductions 
     if (!kic&&!ext&&ply>=3&&depth>1&&depth<=4&&popcount(board[QBBP1]|board[QBBP2]|board[QBBP3])>=4&&!kingincheck(board,!stm))
       rdepth = (depth<3)?1:depth-2;
     else if (!kic&&!ext&&movesplayed>0)
       rdepth = (depth<2)?1:depth-1;
-
+*/
     score = -negamax(board, !stm, -beta, -alpha, rdepth-1, ply+1, prune);
     if (rdepth!=depth&&score>alpha)
       score = -negamax(board, !stm, -beta, -alpha, depth-1, ply+1, prune);
@@ -399,7 +412,7 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
     if(score>=beta)
     {
       Counters[GETSQFROM(lastmove)*64+GETSQTO(lastmove)] = JUSTMOVE(moves[i]);
-      save_killer(JUSTMOVE(moves[i]), score, PLY+ply);
+      save_killer(JUSTMOVE(moves[i]), score, ply);
       save_to_tt(hash, moves[i], score, FAILHIGH, depth, ply);
       return score;
     }
@@ -453,7 +466,7 @@ Move rootsearch(Bitboard *board, bool stm, s32 depth)
   HashHistory[PLY] = hash;
 
   kic = kingincheck(board, stm);
-  movecounter = genmoves(board, moves, movecounter, stm, false, 0);
+  movecounter = genmoves(board, moves, movecounter, stm, false, PLY);
 
   /* checkmate and stalemate */
   if (movecounter==0&&kic)
