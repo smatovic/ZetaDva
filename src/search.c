@@ -340,7 +340,7 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
     else
     {
       score = -negamax(board, !stm, -alpha-1, -alpha, depth-1, ply+1, prune);
-      if (score>alpha)
+      if (score>alpha&&score<beta)
       {
         score = -negamax(board, !stm, -beta, -alpha, depth-1, ply+1, prune);
       }
@@ -378,16 +378,15 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
 
     domove(board, moves[i]);
 
-    /* get static, incremental board score 
-    score = (stm)? -boardscore : boardscore;
-    */
     /* futility pruning 
-    if (depth==1&&!kic&&!ext&&boardscore+EvalPieceValues[QUEEN]<alpha) 
+    score = (stm)? -boardscore : boardscore;
+    if (depth<=2&&!kic&&!ext&&movesplayed>0&&popcount(board[QBBP1]|board[QBBP2]|board[QBBP3])>=4&&!kingincheck(board,!stm)&&boardscore+EvalPieceValues[ROOK]<alpha)
     {
       undomove(board, moves[i], lastmove, cr, boardscore, hash);
       continue;
     }
-*/
+    */
+    
     rdepth = depth;
     /* late move reductions */
     if (!kic&&!ext&&movesplayed>0&&popcount(board[QBBP1]|board[QBBP2]|board[QBBP3])>=4&&!kingincheck(board,!stm))
@@ -398,7 +397,7 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
     else
     {
       score = -negamax(board, !stm, -alpha-1, -alpha, rdepth-1, ply+1, prune);
-      if (score>alpha)
+      if (score>alpha&&score<beta)
       {
         score = -negamax(board, !stm, -beta, -alpha, rdepth-1, ply+1, prune);
       }
