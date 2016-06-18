@@ -35,7 +35,7 @@ Score evalmove(Piece piece, Square sq)
   /* wood count */
   score+= EvalPieceValues[GETPTYPE(piece)];
   /* piece square tables */
-  sq = (GETCOLOR(piece))? sq:FLOP(sq);
+  sq = (GETCOLOR(piece))? FLIP(sq):FLIP(FLOP(sq));
   score+= EvalTable[GETPTYPE(piece)*64+sq];
   /* sqaure control */
   score+= EvalControl[sq];
@@ -68,9 +68,9 @@ Score evalstatic(Bitboard *board)
       /* wodd count */
       score+= (side)? -EvalPieceValues[piecetype]:EvalPieceValues[piecetype];
       /* piece square tables */
-      score+= (side)? -EvalTable[piecetype*64+sq]:EvalTable[piecetype*64+FLOP(sq)];
+      score+= (side)? -EvalTable[piecetype*64+FLIP(sq)]:EvalTable[piecetype*64+FLIP(FLOP(sq))];
       /* square control table */
-      score+= (side)? -EvalControl[sq]:EvalControl[FLOP(sq)];
+      score+= (side)? -EvalControl[FLIP(sq)]:EvalControl[FLIP(FLOP(sq))];
     }
   }
   return score;
@@ -106,9 +106,9 @@ Score eval(Bitboard *board)
       /* wodd count */
       score+= (side)?-EvalPieceValues[GETPTYPE(piece)]:EvalPieceValues[GETPTYPE(piece)];
       /* piece square tables */
-      score+= (side)?-EvalTable[GETPTYPE(piece)*64+sq]:EvalTable[GETPTYPE(piece)*64+FLOP(sq)];
+      score+= (side)?-EvalTable[GETPTYPE(piece)*64+FLIP(sq)]:EvalTable[GETPTYPE(piece)*64+FLIP(FLOP(sq))];
       /* square control table */
-      score+= (side)?-EvalControl[sq]:EvalControl[FLOP(sq)];
+      score+= (side)?-EvalControl[FLIP(sq)]:EvalControl[FLIP(FLOP(sq))];
       /* simple pawn structure white */
       if (GETPTYPE(piece)==PAWN&&side==WHITE)
       {
