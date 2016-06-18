@@ -80,7 +80,7 @@ Score eval(Bitboard *board)
 {
   Score score = 0;
   s32 side;
-  s32 i;
+  Square i;
   Square sq;
   Piece piece;
   Bitboard bbWork;
@@ -114,12 +114,12 @@ Score eval(Bitboard *board)
       {
         /* blocked */
         score-=(GETRANK(sq)<RANK_8&&(board[BLACK]&SETMASKBB(sq+8)))?15:0;
-        /* column */
-        for(i=sq-8;i>7;i-=8)
-          score-=(bbPawns&bbBoth[WHITE]&SETMASKBB((u64)i))?15:0;
           /* chain */
         score+=(GETFILE(sq)<FILE_H&&(bbPawns&board[WHITE]&SETMASKBB(sq-7)))?10:0;
         score+=(GETFILE(sq)>FILE_A&&(bbPawns&board[WHITE]&SETMASKBB(sq-9)))?10:0;
+        /* column */
+        for(i=sq-8;i>7;i-=8)
+          score-=(bbPawns&bbBoth[WHITE]&SETMASKBB(i))?15:0;
       }
       /* simple pawn structure black */
       if (GETPTYPE(piece)==PAWN&&side==BLACK)
@@ -131,7 +131,7 @@ Score eval(Bitboard *board)
         score-=(GETFILE(sq)<FILE_H&&(bbPawns&board[BLACK]&SETMASKBB(sq+9)))?10:0;
         /* column */
         for(i=sq+8;i<56;i+=8)
-          score+=(bbPawns&bbBoth[BLACK]&SETMASKBB((u64)i))?15:0;
+          score+=(bbPawns&bbBoth[BLACK]&SETMASKBB(i))?15:0;
       }
     }
     /* duble bishop */
