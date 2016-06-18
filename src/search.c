@@ -78,12 +78,10 @@ Score qsearch(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
   Score boardscore = (Score)board[QBBSCORE];
   s32 i = 0;
   s32 movecounter = 0;
-  s32 movecounter_caps = 0;
   Cr cr = board[QBBPMVD];
   Move lastmove = board[QBBLAST];
-  Move moves[MAXMOVES];
-  Move moves_caps[MAXMOVES];
   Hash hash = board[QBBHASH];
+  Move moves[MAXMOVES];
 
   NODECOUNT++;
 
@@ -102,39 +100,30 @@ Score qsearch(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
 
   /* when king in check, all evasion moves */
   if (kic)
-  {
-    movecounter = genmoves_noncaptures(board, moves, movecounter, stm, ply);
-    if (cr&SMCRALL)
-      movecounter = genmoves_castles(board, moves, movecounter, stm);
-    movecounter_caps = genmoves_promo(board, moves_caps, movecounter_caps, stm);
-    movecounter_caps = genmoves_captures(board, moves_caps, movecounter_caps, stm);
-    if(GETSQEP(lastmove))
-      movecounter_caps = genmoves_enpassant(board, moves_caps, movecounter_caps, stm);
-  }
-  else
-  {
-    movecounter_caps = genmoves_promo(board, moves_caps, movecounter_caps, stm);
-    movecounter_caps = genmoves_captures(board, moves_caps, movecounter_caps, stm);
-    if(GETSQEP(lastmove))
-      movecounter_caps = genmoves_enpassant(board, moves_caps, movecounter_caps, stm);
-  }
+    return negamax(board, stm, alpha, beta, 0, ply, true);
+
+  movecounter = genmoves_promo(board, moves, movecounter, stm);
+  movecounter = genmoves_captures(board, moves, movecounter, stm);
+  if(GETSQEP(lastmove))
+    movecounter = genmoves_enpassant(board, moves, movecounter, stm);
+
   /* checkmate */
-  if (kic&&movecounter==0&&movecounter_caps==0)
+  if (kic&&movecounter==0)
     return -INF+ply;
   /* quiet leaf node, return  evaluation board score */
-  if (!kic&&movecounter_caps==0)
+  if (!kic&&movecounter==0)
     return score;
 /*
     return (stm)? -eval(board): eval(board);
 */
   /* sort moves */
-  qsort(moves_caps, movecounter_caps, sizeof(Move), cmp_move_desc);
+  qsort(moves, movecounter, sizeof(Move), cmp_move_desc);
   /* iterate through moves */
-  for (i=0;i<movecounter_caps;i++)
+  for (i=0;i<movecounter;i++)
   {
-    domove(board, moves_caps[i]);
+    domove(board, moves[i]);
     score = -qsearch(board, !stm, -beta, -alpha, depth-1, ply+1);
-    undomove(board, moves_caps[i], lastmove, cr, boardscore, hash);
+    undomove(board, moves[i], lastmove, cr, boardscore, hash);
 
     if(score>=beta)
       return score;
