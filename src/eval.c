@@ -113,7 +113,7 @@ Score eval(Bitboard *board)
       if (GETPTYPE(piece)==PAWN&&side==WHITE)
       {
         /* blocked */
-        score-=(GETRANK(sq)<RANK_8&&((bbPawns|board[BLACK])&SETMASKBB(sq+8)))?15:0;
+        score-=(GETRANK(sq)<RANK_8&&(board[BLACK]&SETMASKBB(sq+8)))?15:0;
           /* chain */
         score+=(GETFILE(sq)<FILE_H&&(bbPawns&board[WHITE]&SETMASKBB(sq-7)))?10:0;
         score+=(GETFILE(sq)>FILE_A&&(bbPawns&board[WHITE]&SETMASKBB(sq-9)))?10:0;
@@ -125,7 +125,7 @@ Score eval(Bitboard *board)
       if (GETPTYPE(piece)==PAWN&&side==BLACK)
       {
         /* blocked */
-        score+=(GETRANK(sq)>RANK_1&&((bbPawns|board[WHITE])&SETMASKBB(sq-8)))?15:0;
+        score+=(GETRANK(sq)>RANK_1&&(board[WHITE]&SETMASKBB(sq-8)))?15:0;
           /* chain */
         score-=(GETFILE(sq)>FILE_A&&(bbPawns&board[BLACK]&SETMASKBB(sq+7)))?10:0;
         score-=(GETFILE(sq)<FILE_H&&(bbPawns&board[BLACK]&SETMASKBB(sq+9)))?10:0;
