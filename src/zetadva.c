@@ -901,7 +901,8 @@ void printboard(Bitboard *board)
 
   createfen (fenstring, BOARD, STM, GAMEPLY);
   fprintf(stdout,"#fen: %s\n",fenstring);
-  fprintf(stdout,"# score: %d\n",(Score)BOARD[QBBSCORE]);
+  fprintf(stdout,"# incremental score: %d\n",(Score)BOARD[QBBSCORE]);
+  fprintf(stdout,"# eval score: %d\n",eval(BOARD));
 
   if (LogFile)
   {
@@ -929,7 +930,8 @@ void printboard(Bitboard *board)
     fprinttime(LogFile);
     fprintf(LogFile, "###ABCDEFGH###\n");
     fprinttime(LogFile);
-    fprintf(LogFile, "# score: %d\n",(Score)BOARD[QBBSCORE]);
+    fprintf(LogFile, "# incremental score: %d\n",(Score)BOARD[QBBSCORE]);
+    fprintf(LogFile,"# eval score: %d\n",eval(BOARD));
 
     fflush (LogFile);
   }
