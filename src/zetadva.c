@@ -194,7 +194,7 @@ static void initTT(void)
   if (Counters)
     free(Counters);
   Counters = (Move*)calloc(64*64,sizeof(Killers));
-  if (!Killers)
+  if (!Counters)
     fprintf(stdout,"Error (Counters table memory allocation failed)");
 }
 void save_to_tt(Hash hash, Move move, Score score, u8 flag, s32 ply, s32 depth)
