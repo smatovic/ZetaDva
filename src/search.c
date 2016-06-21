@@ -184,7 +184,7 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
   s32 hmc = (s32)GETHMC(board[QBBLAST]);
   Score boardscore = (Score)board[QBBSCORE];
   s32 i = 0;
-  s32 rdepth = depth;
+  s32 rdepth;
   s32 movecounter = 0;
   s32 movesplayed = 0;
   s32 legalmovecounter = 0;
@@ -214,9 +214,12 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
     return DRAWSCORE;
 
   /* check for repetition */
+  rdepth = 1;
   for (i=PLY+ply-2;i>=0&&i>=PLY+ply-hmc;i-=2)
   {
     if (HashHistory[i]==hash) 
+      rdepth++;
+    if (rdepth>=3) 
       return DRAWSCORE;
   }
 
