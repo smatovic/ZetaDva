@@ -134,8 +134,9 @@ Score eval(Bitboard *board)
           score+=(bbPawns&bbBoth[BLACK]&SETMASKBB(i))?30:0;
       }
     }
-    /* duble bishop */
+    /* duble bishop 
     score+= (popcount(bbBoth[side]&(~board[QBBP1]&~board[QBBP2]&board[QBBP3]))==2)?(side)?-25:25:0;
+    */
   }
   return score;
 }
