@@ -237,7 +237,7 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
   alpha = MAX((-INF+ply), alpha);
   beta  = MIN(-(-INF+ply+1), beta);
   if (alpha >= beta)
-    return alpha;
+    return beta;
 
   /* search extension, checks and pawn promo */
   if(kic||
