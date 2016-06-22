@@ -62,8 +62,8 @@ Score evalstatic(Bitboard *board)
 
     while (bbWork) 
     {
-      sq      = popfirst1(&bbWork);
-      piecetype  = GETPTYPE(GETPIECE(board,sq));
+      sq = popfirst1(&bbWork);
+      piecetype = GETPTYPE(GETPIECE(board,sq));
 
       /* wodd count */
       score+= (side)? -EvalPieceValues[piecetype]:EvalPieceValues[piecetype];
@@ -82,7 +82,7 @@ Score eval(Bitboard *board)
   s32 side;
   Square i;
   Square sq;
-  Piece piece;
+  PieceType piecetype;
   Bitboard bbWork;
   Bitboard bbPawns;
   Bitboard bbBoth[2];
@@ -98,19 +98,19 @@ Score eval(Bitboard *board)
 
     while (bbWork) 
     {
-      sq     = popfirst1(&bbWork);
-      piece  = GETPIECE(board,sq);
+      sq = popfirst1(&bbWork);
+      piecetype = GETPTYPE(GETPIECE(board,sq));
 
       /* piece bonus */
       score+= (side)?-10 : 10;
       /* wodd count */
-      score+= (side)?-EvalPieceValues[GETPTYPE(piece)]:EvalPieceValues[GETPTYPE(piece)];
+      score+= (side)?-EvalPieceValues[piecetype]:EvalPieceValues[piecetype];
       /* piece square tables */
-      score+= (side)?-EvalTable[GETPTYPE(piece)*64+sq]:EvalTable[GETPTYPE(piece)*64+FLIPFLOP(sq)];
+      score+= (side)?-EvalTable[piecetype*64+sq]:EvalTable[piecetype*64+FLIPFLOP(sq)];
       /* square control table */
       score+= (side)?-EvalControl[sq]:EvalControl[FLIPFLOP(sq)];
       /* simple pawn structure white */
-      if (GETPTYPE(piece)==PAWN&&side==WHITE)
+      if (piecetype==PAWN&&side==WHITE)
       {
         /* blocked */
         score-=(GETRANK(sq)<RANK_8&&(board[BLACK]&SETMASKBB(sq+8)))?15:0;
@@ -119,10 +119,10 @@ Score eval(Bitboard *board)
         score+=(GETFILE(sq)>FILE_A&&(bbPawns&board[WHITE]&SETMASKBB(sq-9)))?10:0;
         /* column */
         for(i=sq-8;i>7;i-=8)
-          score-=(bbPawns&bbBoth[WHITE]&SETMASKBB(i))?30:0;
+          score-=(bbPawns&bbBoth[WHITE]&SETMASKBB(i))?15:0;
       }
       /* simple pawn structure black */
-      if (GETPTYPE(piece)==PAWN&&side==BLACK)
+      if (piecetype==PAWN&&side==BLACK)
       {
         /* blocked */
         score+=(GETRANK(sq)>RANK_1&&(board[WHITE]&SETMASKBB(sq-8)))?15:0;
@@ -131,7 +131,7 @@ Score eval(Bitboard *board)
         score-=(GETFILE(sq)<FILE_H&&(bbPawns&board[BLACK]&SETMASKBB(sq+9)))?10:0;
         /* column */
         for(i=sq+8;i<56;i+=8)
-          score+=(bbPawns&bbBoth[BLACK]&SETMASKBB(i))?30:0;
+          score+=(bbPawns&bbBoth[BLACK]&SETMASKBB(i))?15:0;
       }
     }
     /* duble bishop */
