@@ -240,32 +240,32 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
     return beta;
 
   /* search extension, checks and pawn promo */
-  if(kic||
-    (GETPTYPE(GETPFROM(lastmove))==PAWN&&GETPTYPE(GETPTO(lastmove))==QUEEN)
+  if(kic
+    || (GETPTYPE(GETPFROM(lastmove))==PAWN&&GETPTYPE(GETPTO(lastmove))==QUEEN)
 /*
-    ||(GETPTYPE(GETPFROM(lastmove))==PAWN&&GETRRANK(GETSQTO(lastmove),GETCOLOR(GETPTO(lastmove)))>=RANK_7)
+    || (GETPTYPE(GETPFROM(lastmove))==PAWN&&GETRRANK(GETSQTO(lastmove),GETCOLOR(GETPTO(lastmove)))>=RANK_7)
 */
     )
   {
     depth++;
     ext = true;
   }
+  
+  /* call quiescence search */
+  if (depth <= 0)
+    return qsearch(board, stm, alpha, beta, depth, ply);
 
   /* razoring */
   if (!kic&&!ext&&depth<=2)
   {
     score = (stm)? -boardscore : boardscore;
-    if (score+EvalPieceValues[QUEEN]<=alpha)
+    if (score+EvalPieceValues[QUEEN]<alpha)
     {
       score =  qsearch(board, stm, alpha, beta, 0, ply);
       if (score<=alpha)
         return alpha;
     }
   }
-  
-  /* call quiescence search */
-  if (depth <= 0)
-    return qsearch(board, stm, alpha, beta, depth, ply);
 
   NODECOUNT++;
 
@@ -405,7 +405,7 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
     /* futility pruning */
     childkic = kingincheck(board,!stm);
     score = (stm)? -boardscore : boardscore;
-    if (depth==1&&!kic&&!childkic&&!ext&&movesplayed>0&&popcount(board[QBBP1]|board[QBBP2]|board[QBBP3])>=4&&boardscore+EvalPieceValues[BISHOP]<alpha)
+    if (depth==1&&!kic&&!childkic&&!ext&&movesplayed>0&&boardscore+EvalPieceValues[QUEEN]<alpha&&popcount(board[QBBP1]|board[QBBP2]|board[QBBP3])>=4)
     {
       undomove(board, moves[i], lastmove, cr, boardscore, hash);
       continue;
@@ -414,7 +414,7 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
 
     rdepth = depth;
     /* late move reductions */
-    if (!kic&&!ext&&movesplayed>0&&popcount(board[QBBP1]|board[QBBP2]|board[QBBP3])>=4&&!kingincheck(board,!stm))
+    if (!kic&&!ext&&movesplayed>0&&popcount(board[QBBP1]|board[QBBP2]|board[QBBP3])>=4&&!childkic)
       rdepth = depth-1;
 
     score = -negamax(board, !stm, -beta, -alpha, rdepth-1, ply+1, prune);
@@ -562,7 +562,7 @@ Move rootsearch(Bitboard *board, bool stm, s32 depth)
     /* gui output */
     if (!TIMEOUT&&(xboard_post||!xboard_mode)&&!epd_mode)
     {
-      pvcount = collect_pv_from_hash(board, hash, pvmoves);
+      pvcount = collect_pv_from_hash(board, hash, pvmoves, idf);
       /* xboard mate scores */
       xboard_score = (s32)alpha;
       xboard_score = (alpha<=-MATESCORE)?-100000-(INF+alpha):xboard_score;
