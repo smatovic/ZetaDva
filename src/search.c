@@ -174,6 +174,7 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
 {
   bool kic = false;
   bool ext = false;
+  bool childkic;
   u8 type = FAILLOW;
   Score score = 0;
   Score boardscore = (Score)board[QBBSCORE];
@@ -209,9 +210,12 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
     return DRAWSCORE;
 
   /* check for repetition */
+  rdepth = 1;
   for (i=PLY+ply-2;i>=0&&i>=PLY+ply-hmc;i-=2)
   {
     if (HashHistory[i]==hash) 
+      rdepth++;;
+    if (rdepth==3) 
       return DRAWSCORE;
   }
 
@@ -231,6 +235,19 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
   /* call quiescence search */
   if (depth<=0)
     return qsearch(board, stm, alpha, beta, depth, ply);
+
+  /* razoring */
+  if (!kic&&!ext&&depth<=2)
+  {
+    score = (stm)? -boardscore : boardscore;
+    if (score+EvalPieceValues[QUEEN]<alpha)
+    {
+      score = qsearch(board, stm, alpha, beta, 0, ply);
+      if (score<=alpha)
+        return score;
+    }
+  }
+  
 
   NODECOUNT++;
 
@@ -354,12 +371,34 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
 
     domove(board, moves[i]);
 
+    /* futility pruning */
+    childkic = kingincheck(board,!stm);
+    score = (stm)? -boardscore : boardscore;
+    if (depth==1&&!kic&&!childkic&&!ext&&movesplayed>0&&score+EvalPieceValues[BISHOP]<alpha&&popcount(board[QBBP1]|board[QBBP2]|board[QBBP3])>=4)
+    {
+      undomove(board, moves[i], lastmove, cr, boardscore, hash);
+      continue;
+    }
+    
     rdepth = depth;
     /* late move reductions */
-    if (!kic&&!ext&&movesplayed>0&&popcount(board[QBBP1]|board[QBBP2]|board[QBBP3])>=4&&!kingincheck(board,!stm))
+    if (!kic&&!ext&&movesplayed>0&&popcount(board[QBBP1]|board[QBBP2]|board[QBBP3])>=4&&!childkic)
       rdepth = depth-1;
 
     score = -negamax(board, !stm, -beta, -alpha, rdepth-1, ply+1, prune);
+
+    /* principal variation search 
+    if (pvnode||kic||ext)
+      score = -negamax(board, !stm, -beta, -alpha, rdepth-1, ply+1, prune);
+    else
+    {
+      score = -negamax(board, !stm, -alpha-1, -alpha, rdepth-1, ply+1, prune);
+      if (score>alpha&&score<beta)
+      {
+        score = -negamax(board, !stm, -beta, -alpha, rdepth-1, ply+1, prune);
+      }
+    }    
+    */
 
     /* late move reductions, research */
     if (rdepth!=depth&&score>alpha&&score<beta)
