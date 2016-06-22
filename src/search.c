@@ -222,23 +222,21 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
     return alpha;
 
   /* search extension, checks and pawn promo */
-  if( kic||
-      (GETPTYPE(GETPFROM(lastmove))==PAWN&&GETPTYPE(GETPTO(lastmove))==QUEEN)
-    )
+  if(kic||(GETPTYPE(GETPFROM(lastmove))==PAWN&&GETPTYPE(GETPTO(lastmove))==QUEEN))
   {
     depth++;
     ext = true;
   }
   
   /* call quiescence search */
-  if (depth <= 0)
+  if (depth<=0)
     return qsearch(board, stm, alpha, beta, depth, ply);
 
   NODECOUNT++;
 
   /* null move pruning, Bruce Moreland style */
   rdepth = depth-2;
-  if (!kic&&!ext&&JUSTMOVE(lastmove)!=MOVENONE)
+  if (prune&&!kic&&!ext&&JUSTMOVE(lastmove)!=MOVENONE)
   {
     donullmove(board);
     score = -negamax(board, !stm, -beta, -beta+1, rdepth-1, ply+1, false);
@@ -364,7 +362,7 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
     score = -negamax(board, !stm, -beta, -alpha, rdepth-1, ply+1, prune);
 
     /* late move reductions, research */
-    if (rdepth!=depth&&score>alpha)
+    if (rdepth!=depth&&score>alpha&&score<beta)
       score = -negamax(board, !stm, -beta, -alpha, depth-1, ply+1, prune);
 
     undomove(board, moves[i], lastmove, cr, boardscore, hash);
