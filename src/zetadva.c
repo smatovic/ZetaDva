@@ -604,7 +604,7 @@ void undomovequick(Bitboard *board, Move move)
   board[QBBP2]    |= ((pfrom>>2)&0x1)<<sqfrom;
   board[QBBP3]    |= ((pfrom>>3)&0x1)<<sqfrom;
 }
-s32 collect_pv_from_hash(Bitboard *board, Hash hash, Move *moves)
+s32 collect_pv_from_hash(Bitboard *board, Hash hash, Move *moves, s32 ply)
 {
   s32 i = 0;
   s32 count = 0;
@@ -616,7 +616,7 @@ s32 collect_pv_from_hash(Bitboard *board, Hash hash, Move *moves)
   Hash lastmoves[MAXMOVES];
 
   tt = load_from_tt(hash);
-  while (tt&&tt->hash==hash&&JUSTMOVE(tt->bestmove)!=MOVENONE&&i<MAXMOVES)
+  while (tt&&tt->hash==hash&&JUSTMOVE(tt->bestmove)!=MOVENONE&&i<MAXMOVES&&i<=ply)
   {
     hashes[i] = hash;
     scores[i] = board[QBBSCORE];
@@ -637,6 +637,7 @@ s32 collect_pv_from_hash(Bitboard *board, Hash hash, Move *moves)
     if (repcount>2)
       break;
   }
+
   count = i;
   while(i-->0)
   {
