@@ -88,14 +88,14 @@ Score qsearch(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
   kic = kingincheck(board, stm);
   /* get static, incremental board score 
   score = (stm)? -boardscore : boardscore;
-  */
+*/
   /* get full eval score */
   score = (stm)? -eval(board): eval(board);
 
   /* when king in check, all evasion moves 
   if (kic)
     return negamax(board, stm, alpha, beta, 0, ply, true);
-  */
+  */  
   
   /* stand pat */
   if(!kic&&score>=beta)
@@ -229,7 +229,7 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
   {
     if (HashHistory[i]==hash) 
       rdepth++;
-    if (rdepth>=3) 
+    if (rdepth>=2) 
       return DRAWSCORE;
   }
 
@@ -241,15 +241,17 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
 
   /* search extension, checks and pawn promo */
   if(kic||
-    (GETPTYPE(GETPFROM(lastmove))==PAWN&&GETPTYPE(GETPTO(lastmove))==QUEEN)||
-    (GETPTYPE(GETPFROM(lastmove))==PAWN&&GETRRANK(GETSQTO(lastmove),GETCOLOR(GETPTO(lastmove)))>=RANK_7)
+    (GETPTYPE(GETPFROM(lastmove))==PAWN&&GETPTYPE(GETPTO(lastmove))==QUEEN)
+/*
+    ||(GETPTYPE(GETPFROM(lastmove))==PAWN&&GETRRANK(GETSQTO(lastmove),GETCOLOR(GETPTO(lastmove)))>=RANK_7)
+*/
     )
   {
     depth++;
     ext = true;
   }
 
-  /* razoring 
+  /* razoring */
   if (!kic&&!ext&&depth<=2)
   {
     score = (stm)? -boardscore : boardscore;
@@ -260,14 +262,14 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
         return alpha;
     }
   }
-  */
+  
   /* call quiescence search */
   if (depth <= 0)
     return qsearch(board, stm, alpha, beta, depth, ply);
 
   NODECOUNT++;
 
-  /* null move pruning, Bruce Moreland style 
+  /* null move pruning, Bruce Moreland style */
   rdepth = (depth>6)?depth-3:depth-2;
   if (!kic&&!ext&&JUSTMOVE(lastmove)!=MOVENONE&&depth>2)
   {
@@ -277,7 +279,7 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
     if (score>=beta)
       return score;
   }
-*/
+
   /* load transposition table */
   tt = load_from_tt(hash);
 
@@ -400,7 +402,7 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
 
     domove(board, moves[i]);
 
-    /* futility pruning 
+    /* futility pruning */
     childkic = kingincheck(board,!stm);
     score = (stm)? -boardscore : boardscore;
     if (depth==1&&!kic&&!childkic&&!ext&&movesplayed>0&&popcount(board[QBBP1]|board[QBBP2]|board[QBBP3])>=4&&boardscore+EvalPieceValues[BISHOP]<alpha)
@@ -408,13 +410,12 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
       undomove(board, moves[i], lastmove, cr, boardscore, hash);
       continue;
     }
-    */
+    
 
     rdepth = depth;
-    /* late move reductions 
+    /* late move reductions */
     if (!kic&&!ext&&movesplayed>0&&popcount(board[QBBP1]|board[QBBP2]|board[QBBP3])>=4&&!kingincheck(board,!stm))
       rdepth = depth-1;
-    */    
 
     score = -negamax(board, !stm, -beta, -alpha, rdepth-1, ply+1, prune);
 
