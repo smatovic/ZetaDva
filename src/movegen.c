@@ -575,7 +575,7 @@ int genmoves_noncaptures(Bitboard *board, Move *moves, int movecounter, bool stm
       {
         score = INF-20;
       }
-      else if (JUSTMOVE(move)==JUSTMOVE(Counters[GETSQFROM(move)*64+GETSQTO(move)]))
+      else if (JUSTMOVE(move)==JUSTMOVE(Counters[GETSQFROM(lastmove)*64+GETSQTO(lastmove)]))
       {
         score = INF-30;
       }
