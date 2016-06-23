@@ -227,7 +227,7 @@ void save_killer(Move move, Score score, s32 ply)
 {
   if(score>(Score)GETSCORE(Killers[ply*2+0]))
     Killers[ply*2+0] = SETSCORE(move, (Move)score);
-  else if(score>(Score)GETSCORE(Killers[ply*2+1]))
+  else
     Killers[ply*2+1] = SETSCORE(move, (Move)score);
 }
 
