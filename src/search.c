@@ -274,9 +274,9 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
   /* check transposition table score bounds */
   if (tt&&tt->hash==hash&&tt->depth>depth&&!ISINF(tt->score)&&!ISMATE(tt->score)) 
   {
-    if ((tt->flag==EXACTSCORE||tt->flag==FAILHIGH)&&!ISINF(alpha)&&!ISMATE(alpha))
+    if ((tt->flag==EXACTSCORE||tt->flag==FAILHIGH)&&!ISMATE(alpha))
       alpha = MAX(alpha, tt->score);
-    if ((tt->flag==EXACTSCORE||tt->flag==FAILLOW)&&!ISINF(beta)&&!ISMATE(beta))
+    if ((tt->flag==EXACTSCORE||tt->flag==FAILLOW)&&!ISMATE(beta))
       beta  = MIN(beta, tt->score);
     if (alpha >= beta) return alpha;
   }
