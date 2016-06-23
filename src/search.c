@@ -539,7 +539,7 @@ Move rootsearch(Bitboard *board, bool stm, s32 depth)
     /* gui output */
     if (!TIMEOUT&&(xboard_post||!xboard_mode)&&!epd_mode)
     {
-      pvcount = collect_pv_from_hash(board, hash, pvmoves, idf);
+      pvcount = collect_pv_from_hash(board, hash, pvmoves, idf-1);
       /* xboard mate scores */
       xboard_score = (s32)alpha;
       xboard_score = (alpha<=-MATESCORE)?-100000-(INF+alpha):xboard_score;
