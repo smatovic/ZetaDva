@@ -109,30 +109,27 @@ Score eval(Bitboard *board)
       score+= (side)?-EvalTable[piecetype*64+sq]:EvalTable[piecetype*64+FLIPFLOP(sq)];
       /* square control table */
       score+= (side)?-EvalControl[sq]:EvalControl[FLIPFLOP(sq)];
+
       /* simple pawn structure white */
-      if (piecetype==PAWN&&side==WHITE)
-      {
-        /* blocked */
-        score-=(GETRANK(sq)<RANK_8&&(board[BLACK]&SETMASKBB(sq+8)))?15:0;
-          /* chain */
-        score+=(GETFILE(sq)<FILE_H&&(bbPawns&board[WHITE]&SETMASKBB(sq-7)))?10:0;
-        score+=(GETFILE(sq)>FILE_A&&(bbPawns&board[WHITE]&SETMASKBB(sq-9)))?10:0;
-        /* column */
-        for(i=sq-8;i>7;i-=8)
-          score-=(bbPawns&bbBoth[WHITE]&SETMASKBB(i))?30:0;
-      }
+      /* blocked */
+      score-=(piecetype==PAWN&&side==WHITE&&GETRANK(sq)<RANK_8&&(bbBoth[BLACK]&SETMASKBB(sq+8)))?15:0;
+        /* chain */
+      score+=(piecetype==PAWN&&side==WHITE&&GETFILE(sq)<FILE_H&&(bbPawns&bbBoth[WHITE]&SETMASKBB(sq-7)))?10:0;
+      score+=(piecetype==PAWN&&side==WHITE&&GETFILE(sq)>FILE_A&&(bbPawns&bbBoth[WHITE]&SETMASKBB(sq-9)))?10:0;
+      /* column */
+      for(i=sq-8;i>7&&piecetype==PAWN&&side==WHITE;i-=8)
+        score-=(bbPawns&bbBoth[WHITE]&SETMASKBB(i))?30:0;
+
       /* simple pawn structure black */
-      if (piecetype==PAWN&&side==BLACK)
-      {
-        /* blocked */
-        score+=(GETRANK(sq)>RANK_1&&(board[WHITE]&SETMASKBB(sq-8)))?15:0;
-          /* chain */
-        score-=(GETFILE(sq)>FILE_A&&(bbPawns&board[BLACK]&SETMASKBB(sq+7)))?10:0;
-        score-=(GETFILE(sq)<FILE_H&&(bbPawns&board[BLACK]&SETMASKBB(sq+9)))?10:0;
-        /* column */
-        for(i=sq+8;i<56;i+=8)
-          score+=(bbPawns&bbBoth[BLACK]&SETMASKBB(i))?30:0;
-      }
+      /* blocked */
+      score+=(piecetype==PAWN&&side==BLACK&&GETRANK(sq)>RANK_1&&(bbBoth[WHITE]&SETMASKBB(sq-8)))?15:0;
+        /* chain */
+      score-=(piecetype==PAWN&&side==BLACK&&GETFILE(sq)>FILE_A&&(bbPawns&bbBoth[BLACK]&SETMASKBB(sq+7)))?10:0;
+      score-=(piecetype==PAWN&&side==BLACK&&GETFILE(sq)<FILE_H&&(bbPawns&bbBoth[BLACK]&SETMASKBB(sq+9)))?10:0;
+      /* column */
+      for(i=sq+8;i<56&&piecetype==PAWN&&side==BLACK;i+=8)
+        score+=(bbPawns&bbBoth[BLACK]&SETMASKBB(i))?30:0;
+
     }
     /* duble bishop */
     score+= (popcount(bbBoth[side]&(~board[QBBP1]&~board[QBBP2]&board[QBBP3]))==2)?(side)?-25:25:0;
