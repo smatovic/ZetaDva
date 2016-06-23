@@ -7,7 +7,7 @@ A) Root-Structure
     - internal selftest, perft with nodecount           DONE
     - external test suite, node count                   DONE
     - external test suite, bestomve                     DONE
-    - external test suite, bestomves from STS                   TODO
+    - external test suite, bestomves from STS                   WIP
     - internal draw by repetition                       DONE
     - fifty moves rule                                  DONE
     - polyglot opening book support                     DONE
@@ -42,7 +42,7 @@ D) DoMove, UnDoMove
     - incremental hash                                  DONE
 
 E) Evaluation
-    - move score, stati eval + MVV-LVA                  DONE
+    - move score, static eval and MVV-LVA               DONE
     - simple piece values                               DONE
     - piece square tables                               DONE
     - simple pawn structure                             DONE
@@ -56,12 +56,15 @@ F) Search Algorithm
     - Quiscence-Search                                  DONE
     - search extension, king in check                   DONE
     - PV-Search, Nullwindows                            DONE
-    - Transposition/Hash-Tables                                       WIP
-    - TT score bounds                                                 WIP
+    - Transposition/Hash-Tables                         DONE
+    - TT score bounds                                   DONE
     - Iterative Deepening Framwork                      DONE
     - Aspiration Windows                                DEP
     - Killer and Countermove heuristics                 DONE
     - IID                                               DONE
-    - Null Move Pruning                                         TODO
-    - Late Move Reductions                                      TODO
+    - Null Move Pruning                                 DONE
+    - Late Move Reductions                              DONE
+    - Razoring                                          DONE
+    - Futility Pruning                                  DONE
+
 
