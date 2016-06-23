@@ -119,7 +119,7 @@ Score eval(Bitboard *board)
         score+=(GETFILE(sq)>FILE_A&&(bbPawns&board[WHITE]&SETMASKBB(sq-9)))?10:0;
         /* column */
         for(i=sq-8;i>7;i-=8)
-          score-=(bbPawns&bbBoth[WHITE]&SETMASKBB(i))?15:0;
+          score-=(bbPawns&bbBoth[WHITE]&SETMASKBB(i))?30:0;
       }
       /* simple pawn structure black */
       if (piecetype==PAWN&&side==BLACK)
@@ -131,7 +131,7 @@ Score eval(Bitboard *board)
         score-=(GETFILE(sq)<FILE_H&&(bbPawns&board[BLACK]&SETMASKBB(sq+9)))?10:0;
         /* column */
         for(i=sq+8;i<56;i+=8)
-          score+=(bbPawns&bbBoth[BLACK]&SETMASKBB(i))?15:0;
+          score+=(bbPawns&bbBoth[BLACK]&SETMASKBB(i))?30:0;
       }
     }
     /* duble bishop */
