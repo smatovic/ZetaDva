@@ -1,9 +1,10 @@
 ZetaDva (0301) alpha; urgency=low
 
   * mainly code cleanup and fixes
-  * fixes in xboard (CECP) protocol handling
-  * fixes in evaluation
-  * fixes in time control
+    - fixes in xboard (CECP) protocol handling
+    - fixes in evaluation
+    - fixes in time control
+    - fixes in search and pruning
   * switch to ANSI C89 style
   * switch to GPL >=v2
   * switch to Kogge-Stone based move generator
