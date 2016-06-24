@@ -257,7 +257,7 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
   NODECOUNT++;
 
   /* null move pruning, Bruce Moreland style */
-  rdepth = depth-3;
+  rdepth = depth-2;
   if (prune&&!kic&&!ext&&JUSTMOVE(lastmove)!=MOVENONE)
   {
     donullmove(board);
