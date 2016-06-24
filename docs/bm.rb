@@ -38,12 +38,14 @@ File.open(argepd, 'r') do |f1|
     fen = "";
     id = line.scan(/id \"[0-9a-zA-Z ]+\";/)[0].to_s;
     epd = Array;
-    epdbm = "";
-    bm = "";
+    epdmove = "";
+    enginemove = "";
     depth = 0;
     nodecount = 0;
     nc = 0;
     epd = line.scan(/[0-9a-zA-Z\/-]+/).to_a;
+    mode = "";
+  
     # add fen position to string
     epd.each_with_index do |e, i|
       case e
@@ -67,7 +69,13 @@ File.open(argepd, 'r') do |f1|
           fen+= " " + e
         # get bestmove
         when ("bm")
-          epdbm = epd[i+1].to_s.chomp(';')
+          mode = "bm"
+          epdmove = epd[i+1].to_s.chomp(';').strip
+          break;
+        # get bestmove
+        when ("am")
+          mode = "am"
+          epdmove = epd[i+1].to_s.chomp(';').strip
           break;
       end
     end
@@ -80,8 +88,8 @@ File.open(argepd, 'r') do |f1|
     # init engine
 #    engineIO.puts("log")
 #    sleep(0.1)
-    engineIO.puts("epd")
-    sleep(0.1)
+#    engineIO.puts("epd")
+#    sleep(0.1)
     engineIO.puts("new")
     sleep(0.1)
     engineIO.puts("setboard "+fen)
@@ -95,24 +103,42 @@ File.open(argepd, 'r') do |f1|
     engineIO.puts("go")
     j = 0;
     # wait until result comes up in file
-    while (j<=i)
-      sleep(0.001)
-      j = IO.readlines(argfile).count
+    check = 1;
+    while (check==1)
+      sleep(0.01)
+      tmparr = IO.readlines(argfile)
+      j = tmparr.count
+
+      for k in i..j
+        tmpstring = String.new
+        tmpstring = tmparr[k].to_s
+        if (tmpstring.include? "move")
+          enginemove = tmpstring.slice(5,5).chomp
+          check = 0;
+        end
+      end      
     end
     end_time = Time.now
     elapsed_time = end_time.to_ms - start_time.to_ms
     totalelapsed_time = totalelapsed_time + elapsed_time
     # time measurement
-    # check for correct bestove
-    bm = IO.readlines(argfile).last.chomp.to_s
-    bm = bm.chomp(" ").to_s
-    epdbm = epdbm.chomp(" ").to_s
+    # check for correct bestove or avaid move
     tested+=1
-    if bm == epdbm
-      passed+=1
-      puts id + bm + "==" + epdbm
-    else
-      puts id + bm + "!=" + epdbm
+    if (mode == "bm")
+      if enginemove == epdmove
+        passed+=1
+        puts id + "bm:" + enginemove + "==" + epdmove
+      else
+        puts id + "bm:" + enginemove + "!=" + epdmove
+      end
+    end
+    if (mode == "am")
+      if enginemove != epdmove
+        passed+=1
+        puts id + "am:" + enginemove + "!=" + epdmove
+      else
+        puts id + "am:" + enginemove + "==" + epdmove
+      end
     end
   end
 p "passed " + passed.to_s + " from " + tested.to_s + " in roughly " + (totalelapsed_time/1000).to_s.slice(0,4) + " seconds" 
