@@ -487,7 +487,7 @@ Move rootsearch(Bitboard *board, bool stm, s32 depth)
   qsort(moves, movecounter, sizeof(Move), cmp_move_desc);
 
   /* gui output */
-  if (!xboard_mode&&!epd_mode)
+  if (!xboard_mode)
       fprintf(stdout, "ply score time nodes pv\n");
   /* iterative deepening framework */
   do {
@@ -536,7 +536,7 @@ Move rootsearch(Bitboard *board, bool stm, s32 depth)
       qsort(moves, movecounter, sizeof(Move), cmp_move_desc);
     }
     /* gui output */
-    if (!TIMEOUT&&(xboard_post||!xboard_mode)&&!epd_mode)
+    if (!TIMEOUT&&(xboard_post||!xboard_mode))
     {
       pvcount = collect_pv_from_hash(board, hash, pvmoves, idf-1);
       /* xboard mate scores */

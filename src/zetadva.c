@@ -43,7 +43,6 @@ u64 COUNTERS1       = 0;
 u64 COUNTERS2       = 0;
 /* xboard flags */
 bool xboard_mode    = false;  /* chess GUI sets to true */
-bool epd_mode       = false;  /* process epd mode, no fancy print */
 bool xboard_force   = false;  /* if true aplly only moves, do not think */
 bool xboard_post    = false;  /* post search thinking output */
 bool xboard_san     = false;  /* use san move notation instead of can */
@@ -1723,7 +1722,7 @@ int main(int argc, char* argv[])
   for (;;)
   {
     /* console mode */
-    if (!xboard_mode&&!epd_mode)
+    if (!xboard_mode)
       fprintf(stdout,"> ");
     /* just to be sure, flush the output...*/
     fflush (stdout);
@@ -1755,7 +1754,6 @@ int main(int argc, char* argv[])
     {
       fprintf(stdout,"\n");
       xboard_mode = false;
-      epd_mode = true;
       continue;
     }
     /* get xboard protocoll version */
@@ -1854,7 +1852,7 @@ int main(int argc, char* argv[])
         }
       }
       initTT();
-      if (!xboard_mode&&!epd_mode)
+      if (!xboard_mode)
         printboard(BOARD);
       xboard_force  = false;
 			continue;
@@ -1873,7 +1871,7 @@ int main(int argc, char* argv[])
         }
       }
       initTT();
-      if (!xboard_mode&&!epd_mode)
+      if (!xboard_mode)
         printboard(BOARD);
       continue;
 		}
@@ -1910,18 +1908,15 @@ int main(int argc, char* argv[])
         {
           if (STM)
           {
-            if (!epd_mode)
-              printf("result 1-0 { checkmate }\n");
+            printf("result 1-0 { checkmate }\n");
           }
           else if (!STM)
           {
-            if (!epd_mode)
-              printf("result 0-1 { checkmate }\n");
+            printf("result 0-1 { checkmate }\n");
           }
         }
         else if (!kic&&movecounter==0) 
         {
-          if (!epd_mode)
             printf("result 1/2-1/2 { stalemate }\n");
         }
         else 
@@ -1934,11 +1929,10 @@ int main(int argc, char* argv[])
           elapsed /= 1000;
           MoveHistory[PLY] = move;
           domove(BOARD, move);
-          if (!epd_mode)
-            fprintf(stdout,"move ");
+          fprintf(stdout,"move ");
           printmovecan(move);
           fprintf(stdout,"\n");
-          if ((!xboard_mode&&!epd_mode)||xboard_debug)
+          if ((!xboard_mode)||xboard_debug)
           {
             printboard(BOARD);
             fprintf(stdout,"#%llu searched nodes in %lf seconds, nps: %llu \n", NODECOUNT, elapsed, (u64)(NODECOUNT/elapsed));
@@ -2064,7 +2058,7 @@ int main(int argc, char* argv[])
       PLY++;
       STM = !STM;
       HashHistory[PLY] = BOARD[QBBHASH];
-      if ((!xboard_mode&&!epd_mode)||xboard_debug)
+      if (!xboard_mode||xboard_debug)
           printboard(BOARD);
       /* start thinking */
       if (!xboard_force)
@@ -2076,19 +2070,16 @@ int main(int argc, char* argv[])
         {
           if (STM)
           {
-            if (!epd_mode)
-              printf("result 1-0 { checkmate }\n");
+            printf("result 1-0 { checkmate }\n");
           }
           else if (!STM)
           {
-            if (!epd_mode)
-              printf("result 0-1 { checkmate }\n");
+            printf("result 0-1 { checkmate }\n");
           }
         }
         else if (!kic&&movecounter==0) 
         {
-          if (!epd_mode)
-            printf("result 1/2-1/2 { stalemate }\n");
+          printf("result 1/2-1/2 { stalemate }\n");
         }
         else 
         {
@@ -2100,11 +2091,10 @@ int main(int argc, char* argv[])
           elapsed /= 1000;
           MoveHistory[PLY] = move;
           domove(BOARD, move);
-          if (!epd_mode)
-            fprintf(stdout,"move ");
+          fprintf(stdout,"move ");
           printmovecan(move);
           fprintf(stdout,"\n");
-          if ((!xboard_mode&&!epd_mode)||xboard_debug)
+          if (!xboard_mode||xboard_debug)
           {
             printboard(BOARD);
             fprintf(stdout,"#%llu searched nodes in %lf seconds, nps: %llu \n", NODECOUNT, elapsed, (u64)(NODECOUNT/elapsed));
@@ -2210,8 +2200,7 @@ int main(int argc, char* argv[])
       NODECOUNT = 0;
       MOVECOUNT = 0;
 
-      if (!epd_mode)
-        fprintf(stdout,"### doing perft depth %d: ###\n", SD);  
+      fprintf(stdout,"### doing perft depth %d: ###\n", SD);  
 
       start = get_time();
 
@@ -2221,11 +2210,8 @@ int main(int argc, char* argv[])
       elapsed = end-start;
       elapsed /= 1000;
 
-      if (epd_mode)
-        fprintf(stdout,"%llu\n", NODECOUNT);
-      else
-        fprintf(stdout,"%llu nodes, seconds: %lf, nps: %llu \n", 
-                NODECOUNT, elapsed, (u64)(NODECOUNT/elapsed));
+      fprintf(stdout,"%llu nodes, seconds: %lf, nps: %llu \n", 
+              NODECOUNT, elapsed, (u64)(NODECOUNT/elapsed));
 
       fflush(stdout);
   

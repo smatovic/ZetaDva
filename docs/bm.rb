@@ -112,7 +112,7 @@ File.open(argepd, 'r') do |f1|
       for k in i..j
         tmpstring = String.new
         tmpstring = tmparr[k].to_s
-        if (tmpstring.include? "move")
+        if (tmpstring.include? "move" or tmpstring.include? "result")
           enginemove = tmpstring.slice(5,5).chomp
           check = 0;
         end
