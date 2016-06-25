@@ -380,16 +380,15 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
     childkic = kingincheck(board,!stm);
     /* futility pruning */
     score = (stm)? -boardscore : boardscore;
-    if (depth<=2&&!kic&&!childkic&&!ext&&movesplayed>0&&score+EvalPieceValues[BISHOP]<alpha&&popcount(board[QBBP1]|board[QBBP2]|board[QBBP3])>=4)
+    if (depth==1&&!kic&&!childkic&&!ext&&movesplayed>0&&score+EvalPieceValues[BISHOP]<alpha)
     {
       undomove(board, moves[i], lastmove, cr, boardscore, hash);
       continue;
     }
     
-    
     rdepth = depth;
     /* late move reductions */
-    if (depth>4&&!kic&&!ext&&movesplayed>0&&popcount(board[QBBP1]|board[QBBP2]|board[QBBP3])>=4&&!childkic)
+    if (depth>3&&!kic&&!ext&&movesplayed>0&&popcount(board[QBBP1]|board[QBBP2]|board[QBBP3])>=4&&!childkic)
       rdepth = depth-2;
     else if (!kic&&!ext&&movesplayed>0)
       rdepth = depth-1;
