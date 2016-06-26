@@ -33,7 +33,7 @@ File.open(argepd, 'r') do |f1|
   # read fen string, depth, and nodecount from epd file
   while line = f1.gets  
     fen = "";
-    id = line.scan(/id \"[0-9a-zA-Z ]+\";/)[0].to_s;
+    id = line.scan(/id "([0-9a-zA-Z .()]+)";/).first.last.to_s;
     epd = Array;
     depth = 0;
     nodecount = 0;
@@ -48,21 +48,15 @@ File.open(argepd, 'r') do |f1|
         # add color
         when "w" || "b" 
           fen+= " " + e
-        # add no castle rights or no en passant
-        when "-"
-          fen+= " " + e
-        # add present castle rights
-        when (/[KQkq]/)
-          fen+= " " + e
-        # add present en passant target
-        when (/[a-h][3-7]/)
-          fen+= " " + e
+          fen+= " " + epd[i+1].to_s # add castling
+          fen+= " " + epd[i+2].to_s # add en passant square
         # get depth
         when ("c0")
           depth = epd[i+1].to_i
         # get correct nodecount
         when ("c1")
           nodecount = epd[i+1].to_i
+          break
       end
     end
     # wait for engine greetings 
@@ -72,7 +66,11 @@ File.open(argepd, 'r') do |f1|
       i = IO.readlines(argfile).count
     end
     # init engine
-    engineIO.puts("epd")
+#    engineIO.puts("log")
+#    sleep(0.1)
+    # init engine
+    engineIO.puts("new")
+    sleep(0.1)
     sleep(0.1)
     engineIO.puts("setboard "+fen)
     sleep(0.1)
@@ -83,9 +81,21 @@ File.open(argepd, 'r') do |f1|
     engineIO.puts("perft")
     j = 0;
     # wait until result comes up in file
-    while (j<=i)
-      sleep(0.001)
-      j = IO.readlines(argfile).count
+    check = 1;
+    while (check==1)
+      tmparr = IO.readlines(argfile)
+      j = tmparr.count
+
+      for k in i..j
+        tmpstring = String.new
+        tmpstring = tmparr[k].to_s
+        # check for correct node count
+        if (tmpstring.include? "nodecount:")
+          nc = tmpstring.scan(/nodecount:([0-9]*),/).first.last.to_i;
+          check = 0;
+        end
+      end
+      sleep(0.01)
     end
     # time measurement
     end_time = Time.now
@@ -95,17 +105,15 @@ File.open(argepd, 'r') do |f1|
     else
       nps = "inf"
     end
-    # check for correct node count
-    nc = IO.readlines(argfile).last.chomp.to_i
     tested+=1
     if nc == nodecount
       passed+=1
-      puts id + " depth " + depth.to_s + "; nodecount " + nc.to_s + " == " + nodecount.to_s + "; ca. seconds " + (elapsed_time/1000).to_s.slice(0,4) + "; ca nps " + nps + ";" 
+      puts id + ", depth: " + depth.to_s + ", enginenodecount: " + nc.to_s + "==" + nodecount.to_s + ", ca. seconds: " + (elapsed_time/1000).to_s.slice(0,4) + ", ca. nps: " + nps 
     else
-      puts id + " depth " + depth.to_s + "; nodecount " + nc.to_s + " != " + nodecount.to_s + "; ca. seconds " + (elapsed_time/1000).to_s.slice(0,4) + "; ca nps " + nps + ";"
+      puts id + ", depth: " + depth.to_s + ", enginenodecount: " + nc.to_s + "!=" + nodecount.to_s + ", ca. seconds: " + (elapsed_time/1000).to_s.slice(0,4) + ", ca. nps: " + nps
     end
   end
-p "passed " + passed.to_s + " from " + tested.to_s
+puts "passed " + passed.to_s + " from " + tested.to_s
 end
 
 File.delete(argfile)
