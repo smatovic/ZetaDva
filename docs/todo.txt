@@ -7,12 +7,14 @@ A) Root-Structure
     - internal selftest, perft with nodecount           DONE
     - external test suite, node count                   DONE
     - external test suite, bestomve                     DONE
-    - external test suite, bestomves from STS                   WIP
+    - external test suite, bestomves from STS           DONE
     - internal draw by repetition                       DONE
     - fifty moves rule                                  DONE
     - polyglot opening book support                     DONE
     - pondering                                         DEP
     - SMP, mutlicore                                    DEP
+    - test on linux with xboard and cutechess                   TODO
+    - test on windows with winboard and arena                   TODO
 
 B) Board-Presentation
   4*8 Bytes Quat-Bitbaord board presentation            DONE
@@ -66,5 +68,4 @@ F) Search Algorithm
     - Late Move Reductions                              DONE
     - Razoring                                          DONE
     - Futility Pruning                                  DONE
-
 
