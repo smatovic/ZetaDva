@@ -1,0 +1,18 @@
+### Thanks To ###
+- All CCC members, http://www.talkchess.com/
+- CPW Team, http://chessprogramming.wikispaces.com/
+- Dann Corbit, for the opening book and his support in many cases.
+- Harm Gert Muller, for publishing such a detailed documentation of MicroMax.
+- Jim Ablett, for commpiling all the Zeta versions and the neat engine logo.
+- Marcel van Kervinck, for his smart Chess Programm MSCP.
+
+### Thanks for concrete code or implemented ideas ###
+- Gerd Isenberg, for the Quad-Bitboard idea,
+  http://chessprogramming.wikispaces.com/search/view/Quad-Bitboard
+- Michel Van den Bergh, fpr the Polyglot probing code,
+  http://hardy.uhasselt.be/Toga/book_format.html
+- Steffan Westcott, for his work on a Kogge-Stone move generator,
+  http://chessprogramming.wikispaces.com/Kogge-Stone+Algorithm
+- Tomasz Michniewski, for the Simplified Evaluation Function ,
+  https://chessprogramming.wikispaces.com/Simplified+evaluation+function
+
