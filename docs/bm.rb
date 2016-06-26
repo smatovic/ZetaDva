@@ -36,7 +36,7 @@ File.open(argepd, 'r') do |f1|
   # read fen string, depth, and nodecount from epd file
   while line = f1.gets  
     fen = "";
-    id = line.scan(/id \"[0-9a-zA-Z ]+\";/)[0].to_s;
+    id = line.scan(/id "([0-9a-zA-Z .()]+)";/).first.last.to_s;
     epd = Array;
     epdmove = "";
     enginemove = "";
@@ -105,7 +105,6 @@ File.open(argepd, 'r') do |f1|
     # wait until result comes up in file
     check = 1;
     while (check==1)
-      sleep(0.01)
       tmparr = IO.readlines(argfile)
       j = tmparr.count
 
@@ -116,7 +115,8 @@ File.open(argepd, 'r') do |f1|
           enginemove = tmpstring.slice(5,5).chomp
           check = 0;
         end
-      end      
+      end
+      sleep(0.01)
     end
     end_time = Time.now
     elapsed_time = end_time.to_ms - start_time.to_ms
@@ -127,21 +127,21 @@ File.open(argepd, 'r') do |f1|
     if (mode == "bm")
       if enginemove == epdmove
         passed+=1
-        puts id + "bm:" + enginemove + "==" + epdmove
+        puts id + ", enginemove:" + enginemove + "==" + "bm:" + epdmove
       else
-        puts id + "bm:" + enginemove + "!=" + epdmove
+        puts id + ", enginemove:" + enginemove + "!=" + "bm:" + epdmove
       end
     end
     if (mode == "am")
       if enginemove != epdmove
         passed+=1
-        puts id + "am:" + enginemove + "!=" + epdmove
+        puts id + ", enginemove:" + enginemove + "!=" + "am:" + epdmove
       else
-        puts id + "am:" + enginemove + "==" + epdmove
+        puts id + ", enginemove:" + enginemove + "==" + "am:" + epdmove
       end
     end
   end
-p "passed " + passed.to_s + " from " + tested.to_s + " in roughly " + (totalelapsed_time/1000).to_s.slice(0,4) + " seconds" 
+puts "passed " + passed.to_s + " from " + tested.to_s + " in roughly " + (totalelapsed_time/1000).to_s.slice(0,4) + " seconds" 
 end
 
 File.delete(argfile)
