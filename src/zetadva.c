@@ -2214,7 +2214,7 @@ int main(int argc, char* argv[])
       elapsed = end-start;
       elapsed /= 1000;
 
-      fprintf(stdout,"%llu nodes, seconds: %lf, nps: %llu \n", 
+      fprintf(stdout,"nodecount:%llu, seconds: %lf, nps: %llu \n", 
               NODECOUNT, elapsed, (u64)(NODECOUNT/elapsed));
 
       fflush(stdout);
