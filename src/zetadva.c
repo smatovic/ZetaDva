@@ -1609,7 +1609,7 @@ static void print_help(void)
   fprintf(stdout," -s, --selftest     Run an internal test, usefull after compile.\n");
   fprintf(stdout,"\n");
   fprintf(stdout,"To play against the engine use an CECP v2 protocol capable chess GUI\n");
-  fprintf(stdout,"like Arena, Winboard or Xboard.\n");
+  fprintf(stdout,"like Arena, Cutechess, Winboard or Xboard.\n");
   fprintf(stdout,"\n");
   fprintf(stdout,"Alternatively you can use Xboard commmands directly on commmand Line,\n"); 
   fprintf(stdout,"e.g.:\n");
@@ -1619,21 +1619,19 @@ static void print_help(void)
   fprintf(stdout,"usermove d7d5  // let engine apply usermove in coordinate algebraic\n");
   fprintf(stdout,"               // notation and optionally start thinking\n");
   fprintf(stdout,"\n");
-  fprintf(stdout,"Non-Xboard commands:\n");
-  fprintf(stdout,"perft          // perform a performance test, depth set by sd command\n");
-  fprintf(stdout,"selftest       // run an internal test\n");
-  fprintf(stdout,"help           // print usage info\n");
-  fprintf(stdout,"log            // turn log on\n");
-  fprintf(stdout,"\n");
   fprintf(stdout,"Not supported Xboard commands:\n");
   fprintf(stdout,"analyze        // enter analyze mode\n");
-  fprintf(stdout,"undo/remove    // take back last moves\n");
   fprintf(stdout,"?              // move now\n");
   fprintf(stdout,"draw           // handle draw offers\n");
   fprintf(stdout,"hard/easy      // turn on/off pondering\n");
   fprintf(stdout,"hint           // give user a hint move\n");
   fprintf(stdout,"bk             // book Lines\n");
-  fprintf(stdout,"pause/resume   // pause/resume the engine\n");
+  fprintf(stdout,"\n");
+  fprintf(stdout,"Non-Xboard commands:\n");
+  fprintf(stdout,"perft          // perform a performance test, depth set by sd command\n");
+  fprintf(stdout,"selftest       // run an internal test\n");
+  fprintf(stdout,"help           // print usage info\n");
+  fprintf(stdout,"log            // turn log on\n");
   fprintf(stdout,"\n");
 }
 /* Zeta Dva, amateur level chess engine  */
