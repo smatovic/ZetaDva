@@ -1725,9 +1725,6 @@ int main(int argc, char* argv[])
   /* xboard command loop */
   for (;;)
   {
-    /* console mode */
-    if (!xboard_mode)
-      fprintf(stdout,"> ");
     /* just to be sure, flush the output...*/
     fflush (stdout);
     if (LogFile)
