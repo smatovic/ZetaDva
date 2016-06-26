@@ -9,6 +9,8 @@ ZetaDva (0301) alpha; urgency=low
   * switch to GPL >=v2
   * switch to Kogge-Stone based move generator
   * switch to QuadBitboard board presentation
+  * STS1-STS15, 2s per move, score: 
+  * STS Elo est:
 
  -- Srdja Matovic <s.matovic@app26.de>  Wed, 13 Jul 2013 13:07:16 +0200
 

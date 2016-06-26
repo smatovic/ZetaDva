@@ -49,8 +49,18 @@ selftest       // run an internal test
 help           // print usage info
 log            // turn log on
 
-### Compile from source ###
+### Compile from Source ###
 The source code and a GNU/Linux Makefile are placed in src folder.
+
+### Code Origins ###
+- Kogge-Stone move generator based on work by Steffan Westcott,
+  http://chessprogramming.wikispaces.com/Kogge-Stone+Algorithm
+- Polyglot probing code by Michel Van den Bergh,
+  http://hardy.uhasselt.be/Toga/book_format.html
+- Quad-Bitboard idea by Gerd Isenberg,
+  http://chessprogramming.wikispaces.com/search/view/Quad-Bitboard
+- Simplified Evaluation function by Tomasz Michniewski,
+  https://chessprogramming.wikispaces.com/Simplified+evaluation+function
 
 ### Opening Book ###
 The delivered opening book is by Dann Corbit and is placed in the doc folder.
@@ -66,22 +76,4 @@ Kaufmann Test by Larry Kaufmann:
 http://chessprogramming.wikispaces.com/Kaufman+Test
 Perft positions and results from Chess Programming Wiki:
 http://chessprogramming.wikispaces.com/Perft+Results
-
-### Code Origins ###
-- Kogge-Stone move generator idea by Steffan Westcott,
-  http://chessprogramming.wikispaces.com/Kogge-Stone+Algorithm
-- Polyglot probing code by Michel Van den Bergh,
-  http://hardy.uhasselt.be/Toga/book_format.html
-- Quad-Bitboard idea by Gerd Isenberg,
-  http://chessprogramming.wikispaces.com/search/view/Quad-Bitboard
-- Simplified Evaluation function by Tomasz Michniewski,
-  https://chessprogramming.wikispaces.com/Simplified+evaluation+function
-
-### Thanks To ###
-- All CCC members, http://www.talkchess.com/
-- CPW Team, http://chessprogramming.wikispaces.com/
-- Dann Corbit, for his help in many cases.
-- Harm Gert Muller, for publishing such a detailed documentation of MicroMax.
-- Jim Ablett, for commpiling all the Zeta versions.
-- Marcel van Kervinck, for his smart Chess Programm MSCP.
 
