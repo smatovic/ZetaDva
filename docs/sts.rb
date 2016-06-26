@@ -75,7 +75,6 @@ File.open(argepd, 'r') do |f1|
           break;
       end
     end
-puts fen
     # wait for engine greetings 
     i=0
     while(i==0)
