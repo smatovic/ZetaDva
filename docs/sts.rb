@@ -1,4 +1,4 @@
-# process epd file with node count for perft, opcode "acn"
+# process sts lan epd file with best move list and scores
 # call:
 # ruby ./sts.rb /home/srdja/Projects/ZetaDva/src/zetadva /home/srdja/Projects/ZetaDva/src/tmp.log /home/srdja/Projects/ZetaDva/docs/STS1-STS15_LAN.EPD 2 128
 
@@ -131,8 +131,11 @@ File.open(argepd, 'r') do |f1|
     end
     puts outputstring
   end
-puts "found " + found.to_s + " from " + tested.to_s + " in roughly " + (totalelapsed_time/1000).to_s.slice(0,4) + " seconds" 
-puts "score: " + score.to_s 
+puts "found " + found.to_s + " from " + tested.to_s + " in roughly " + (totalelapsed_time/1000).to_s.slice(0,4) + " seconds"
+puts "score: " + score.to_s
+# Elo formula by Ferdinand Mosca
+# src http://talkchess.com/forum/viewtopic.php?t=56653&highlight=sts+test+suite+engine+analysis+interface
+puts "est Elo:" +  (44.523 * ((score.to_f/1000).to_f*100).to_f - 242.85).to_i.to_s
 end
 
 File.delete(argfile)
