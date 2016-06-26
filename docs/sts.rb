@@ -126,7 +126,7 @@ File.open(argepd, 'r') do |f1|
       if (move == enginemove)
         score+= epdscores[index].to_i
         found+=1
-        outputstring+= "==" + move + ", score+:" + epdscores[index].to_s
+        outputstring+= "==" + "bm:" + move + ", score+:" + epdscores[index].to_s
       end
     end
     puts outputstring
