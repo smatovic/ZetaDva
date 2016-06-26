@@ -1,4 +1,4 @@
-# process epd file with node count for perft, opcode "acn"
+# process epd file with opcodes avoid move and best move
 # call:
 # ruby ./bm.rb /home/srdja/Projects/ZetaDva/src/zetadva /home/srdja/Projects/ZetaDva/src/tmp.log /home/srdja/Projects/ZetaDva/docs/kaufmann.epd 10 99
 
