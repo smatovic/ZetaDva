@@ -2,6 +2,8 @@
 # call:
 # ruby ./sts.rb /home/srdja/Projects/ZetaDva/src/zetadva /home/srdja/Projects/ZetaDva/src/tmp.log /home/srdja/Projects/ZetaDva/docs/STS1-STS15_LAN.EPD 2 128
 
+require 'scanf'
+
 argengine=ARGV[0]
 argfile=ARGV[1]
 argepd=ARGV[2]
@@ -53,20 +55,10 @@ File.open(argepd, 'r') do |f1|
         when (/\//)
           fen+= " " + e
         # add color
-        when "w" 
+        when "w" || "b"
           fen+= " " + e
-        # add color
-        when "b" 
-          fen+= " " + e
-        # add no castle rights or no en passant
-        when "-"
-          fen+= " " + e
-        # add present castle rights
-        when (/[KQkq]/)
-          fen+= " " + e
-        # add present en passant target
-        when (/[a-h][3-7]/)
-          fen+= " " + e
+          fen+= " " + epd[i+1].to_s # add castling
+          fen+= " " + epd[i+2].to_s # add en passant square
         # get epd scores 
         when ("c8")
           c8arr = line.scan( /c8 "([0-9 ]+)"/).first.last
@@ -78,6 +70,7 @@ File.open(argepd, 'r') do |f1|
           break;
       end
     end
+puts fen
     # wait for engine greetings 
     i=0
     while(i==0)
