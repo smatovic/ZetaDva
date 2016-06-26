@@ -55,7 +55,12 @@ File.open(argepd, 'r') do |f1|
         when (/\//)
           fen+= " " + e
         # add color
-        when "w" || "b"
+        when "w"
+          fen+= " " + e
+          fen+= " " + epd[i+1].to_s # add castling
+          fen+= " " + epd[i+2].to_s # add en passant square
+        # add color
+        when "b"
           fen+= " " + e
           fen+= " " + epd[i+1].to_s # add castling
           fen+= " " + epd[i+2].to_s # add en passant square

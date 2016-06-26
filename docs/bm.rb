@@ -53,20 +53,15 @@ File.open(argepd, 'r') do |f1|
         when (/\//)
           fen+= " " + e
         # add color
-        when "w" 
+        when "w"
           fen+= " " + e
+          fen+= " " + epd[i+1].to_s # add castling
+          fen+= " " + epd[i+2].to_s # add en passant square
         # add color
-        when "b" 
+        when "b"
           fen+= " " + e
-        # add no castle rights or no en passant
-        when "-"
-          fen+= " " + e
-        # add present castle rights
-        when (/[KQkq]/)
-          fen+= " " + e
-        # add present en passant target
-        when (/[a-h][3-7]/)
-          fen+= " " + e
+          fen+= " " + epd[i+1].to_s # add castling
+          fen+= " " + epd[i+2].to_s # add en passant square
         # get bestmove
         when ("bm")
           mode = "bm"
@@ -105,6 +100,7 @@ File.open(argepd, 'r') do |f1|
     # wait until result comes up in file
     check = 1;
     while (check==1)
+      sleep(0.01)
       tmparr = IO.readlines(argfile)
       j = tmparr.count
 
@@ -116,7 +112,6 @@ File.open(argepd, 'r') do |f1|
           check = 0;
         end
       end
-      sleep(0.01)
     end
     end_time = Time.now
     elapsed_time = end_time.to_ms - start_time.to_ms
