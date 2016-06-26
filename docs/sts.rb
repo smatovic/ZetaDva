@@ -39,7 +39,7 @@ File.open(argepd, 'r') do |f1|
   # read fen string from epd file
   while line = f1.gets  
     fen = "";
-    id = line.scan(/id "([0-9a-zA-Z .()]+)";/).first.last.to_s;
+    id = line.scan(/id "([0-9a-zA-Z .()\/]+)";/).first.last.to_s;
     epd = Array;
     enginemove = "";
     epd = line.scan(/[0-9a-zA-Z\/-]+/).to_a;
@@ -52,7 +52,7 @@ File.open(argepd, 'r') do |f1|
     epd.each_with_index do |e, i|
       case e
         # add position
-        when (/\//)
+        when (/[0-9a-zA-Z]*\//)
           fen+= " " + e
         # add color
         when "w"

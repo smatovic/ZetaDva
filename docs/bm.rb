@@ -50,7 +50,7 @@ File.open(argepd, 'r') do |f1|
     epd.each_with_index do |e, i|
       case e
         # add position
-        when (/\//)
+        when (/[0-9a-zA-Z]*\//)
           fen+= " " + e
         # add color
         when "w"
