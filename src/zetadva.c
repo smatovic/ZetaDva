@@ -123,6 +123,10 @@ static bool release_inits(void)
     free(HashHistory);
   if (TT) 
     free(TT);
+  if (Counters) 
+    free(Counters);
+  if (Killers) 
+    free(Killers);
 
   bookclose();
 
