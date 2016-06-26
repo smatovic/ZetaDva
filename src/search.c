@@ -242,7 +242,7 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
   if (depth<=0)
     return qsearch(board, stm, alpha, beta, depth, ply);
 
-  /* razoring */
+  /* razoring
   if (!kic&&!ext&&depth<=2)
   {
     score = (stm)? -boardscore : boardscore;
@@ -253,6 +253,7 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
         return score;
     }
   }
+  */  
 
   NODECOUNT++;
 
@@ -388,9 +389,7 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
     
     rdepth = depth;
     /* late move reductions */
-    if (depth>3&&!kic&&!ext&&movesplayed>0&&popcount(board[QBBP1]|board[QBBP2]|board[QBBP3])>=4&&!childkic)
-      rdepth = depth-2;
-    else if (!kic&&!ext&&movesplayed>0)
+    if (!kic&&!ext&&movesplayed>0&&popcount(board[QBBP1]|board[QBBP2]|board[QBBP3])>=4&&!childkic)
       rdepth = depth-1;
 
     score = -negamax(board, !stm, -beta, -alpha, rdepth-1, ply+1, prune);
