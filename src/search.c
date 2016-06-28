@@ -78,12 +78,10 @@ Score qsearch(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
   Score boardscore = (Score)board[QBBSCORE];
   s32 i = 0;
   s32 movecounter = 0;
-  s32 movecounter_noncaps = 0;
   Cr cr = board[QBBPMVD];
   Move lastmove = board[QBBLAST];
   Hash hash = board[QBBHASH];
   Move moves[MAXMOVES];
-  Move moves_noncaps[MAXMOVES];
 
   NODECOUNT++;
 
@@ -98,16 +96,11 @@ Score qsearch(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
   if(!kic&&score>alpha)
       alpha = score;
 
-/*
-  if (kic)
-    return negamax(board, stm, alpha, beta, depth, ply, true);
-*/
-
   if (kic)
   {
-    movecounter_noncaps = genmoves_noncaptures(board, moves_noncaps, 0, stm, ply);
+    movecounter = genmoves_noncaptures(board, moves, 0, stm, ply);
     if (cr&SMCRALL)
-      movecounter_noncaps = genmoves_castles(board, moves_noncaps, movecounter_noncaps, stm);
+      movecounter = genmoves_castles(board, moves, movecounter, stm);
   }
 
   movecounter = genmoves_promo(board, moves, 0, stm);
@@ -116,10 +109,10 @@ Score qsearch(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
     movecounter = genmoves_enpassant(board, moves, movecounter, stm);
 
   /* checkmate */
-  if (kic&&movecounter==0&&movecounter_noncaps==0)
+  if (kic&&movecounter==0)
     return -INF+ply;
   /* quiet leaf node, return  evaluation board score */
-  if (!kic&&movecounter==0&&movecounter_noncaps==0)
+  if (!kic&&movecounter==0)
     return score;
 
   /* sort moves */
@@ -226,8 +219,8 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
   }
 
  	/* mate distance pruning */
-  alpha = MAX((-INF+ply), alpha);
-  beta  = MIN(-(-INF+ply+1), beta);
+  alpha = (ISMATE(alpha))?MAX((-INF+ply), alpha):alpha;
+  beta  = (ISMATE(beta))?MIN(-(-INF+ply), beta):beta;
   if (alpha >= beta)
     return alpha;
 
