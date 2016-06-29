@@ -205,8 +205,8 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
 
   HashHistory[PLY+ply] = hash;
 
-  /* check for fifty move rule */
-  if (hmc>=100)
+  /* check for 75 move rule */
+  if (hmc>150)
     return DRAWSCORE;
 
   /* check for repetition */
