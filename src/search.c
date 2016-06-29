@@ -504,8 +504,10 @@ Move rootsearch(Bitboard *board, bool stm, s32 depth)
       if (TIMEOUT)
         break;
     }
+
     end = get_time(); /* stop timer */
     elapsed = end-start;
+
     if (!TIMEOUT)
     {
       rootmove = bestmove;
@@ -513,6 +515,7 @@ Move rootsearch(Bitboard *board, bool stm, s32 depth)
       /* sort moves */
       qsort(moves, movecounter, sizeof(Move), cmp_move_desc);
     }
+
     /* gui output */
     if (!TIMEOUT&&(xboard_post||!xboard_mode))
     {
