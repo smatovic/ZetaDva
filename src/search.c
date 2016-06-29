@@ -211,12 +211,9 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
     return DRAWSCORE;
 
   /* check for repetition */
-  rdepth = 1;
   for (i=PLY+ply-2;i>=0&&i>=PLY+ply-hmc;i-=2)
-  {
     if (HashHistory[i]==hash) 
       return DRAWSCORE;
-  }
 
  	/* mate distance pruning */
   alpha = (ISMATE(alpha))?MAX((-INF+ply), alpha):alpha;
@@ -297,6 +294,7 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
       score = -negamax(board, !stm, -beta, -alpha, depth-1, ply+1, prune);
 
       undomove(board, ttmove, lastmove, cr, boardscore, hash);
+
       if(score>=beta)
       {
         if (GETPCPT(ttmove)==PNONE)
@@ -374,7 +372,7 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
     childkic = kingincheck(board,!stm);
     /* futility pruning */
     score = (stm)? -boardscore : boardscore;
-    if (depth==1&&!kic&&!childkic&&!ext&&movesplayed>0&&score+EvalPieceValues[BISHOP]<alpha)
+    if (depth==1&&!kic&&!ext&&movesplayed>0&&!childkic&&score+EvalPieceValues[BISHOP]<alpha)
     {
       undomove(board, moves[i], lastmove, cr, boardscore, hash);
       continue;
@@ -382,7 +380,7 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
     
     rdepth = depth;
     /* late move reductions */
-    if (!kic&&!ext&&movesplayed>0&&popcount(board[QBBP1]|board[QBBP2]|board[QBBP3])>=4&&!childkic)
+    if (!kic&&!ext&&movesplayed>0&&!childkic&&popcount(board[QBBP1]|board[QBBP2]|board[QBBP3])>=4)
       rdepth = depth-1;
 
     score = -negamax(board, !stm, -beta, -alpha, rdepth-1, ply+1, prune);
