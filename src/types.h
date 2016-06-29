@@ -224,7 +224,6 @@ struct TTE {
         Score score;
         u8 flag;
         s32 depth;
-        bool pv;
 };
 #define ISMATE(val)           ((((val)>MATESCORE&&(val)<INF)||((val)<-MATESCORE&&(val)>-INF))?true:false)
 #define ISINF(val)            (((val)==INF||(val)==-INF)?true:false)

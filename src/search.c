@@ -175,7 +175,6 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
   bool kic = false;
   bool ext = false;
   bool childkic;
-  bool pvnode = (beta-alpha>1)?true:false;
   u8 type = FAILLOW;
   Score score = 0;
   Score boardscore = (Score)board[QBBSCORE];
@@ -259,10 +258,10 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
   }
 
   /* load transposition table */
-  tt = load_from_tt(hash, pvnode);
+  tt = load_from_tt(hash);
 
   /* check transposition table score bounds */
-  if (tt&&tt->pv==pvnode&&tt->hash==hash&&tt->depth>depth&&!ISINF(tt->score)&&!ISMATE(tt->score)) 
+  if (tt&&tt->hash==hash&&tt->depth>depth&&!ISINF(tt->score)&&!ISMATE(tt->score)) 
   {
     if ((tt->flag==EXACTSCORE||tt->flag==FAILHIGH)&&!ISMATE(alpha))
       alpha = MAX(alpha, tt->score);
@@ -273,7 +272,7 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
   
   
   /* get tt move */
-  if (tt&&tt->pv==pvnode&&tt->hash==hash&&tt->flag>FAILLOW&&JUSTMOVE(tt->bestmove)!=MOVENONE) 
+  if (tt&&tt->hash==hash&&tt->flag>FAILLOW&&JUSTMOVE(tt->bestmove)!=MOVENONE) 
     ttmove = tt->bestmove;
 
   /* internal iterative deepening, get a bestmove anyway */
@@ -302,7 +301,7 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
           Counters[GETSQFROM(lastmove)*64+GETSQTO(lastmove)] = JUSTMOVE(ttmove);
           save_killer(JUSTMOVE(ttmove), score, ply);
         }
-        save_to_tt(hash, ttmove, score, FAILHIGH, depth, pvnode);
+        save_to_tt(hash, ttmove, score, FAILHIGH, depth);
         return score;
       }
       if(score>alpha)
@@ -340,7 +339,7 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
     undomove(board, moves[i], lastmove, cr, boardscore, hash);
     if(score>=beta)
     {
-      save_to_tt(hash, moves[i], score, FAILHIGH, depth, pvnode);
+      save_to_tt(hash, moves[i], score, FAILHIGH, depth);
       return score;
     }
     if(score>alpha)
@@ -395,7 +394,7 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
     {
       Counters[GETSQFROM(lastmove)*64+GETSQTO(lastmove)] = JUSTMOVE(moves[i]);
       save_killer(JUSTMOVE(moves[i]), score, ply);
-      save_to_tt(hash, moves[i], score, FAILHIGH, depth, pvnode);
+      save_to_tt(hash, moves[i], score, FAILHIGH, depth);
       return score;
     }
     if(score>alpha)
@@ -413,7 +412,7 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
   if (legalmovecounter==0&&!kic) 
     return STALEMATESCORE;
 
-  save_to_tt(hash, bestmove, alpha, type, depth, pvnode);
+  save_to_tt(hash, bestmove, alpha, type, depth);
   return alpha;
 }
 Move rootsearch(Bitboard *board, bool stm, s32 depth)
@@ -463,7 +462,7 @@ Move rootsearch(Bitboard *board, bool stm, s32 depth)
       return moves[i];
   }
   /* check transposition table */
-  tt = load_from_tt(hash, true);
+  tt = load_from_tt(hash);
   if (tt&&tt->hash==hash&&tt->flag>FAILLOW) 
   {
     for(i=0;i<movecounter;i++)
@@ -484,22 +483,12 @@ Move rootsearch(Bitboard *board, bool stm, s32 depth)
     alpha = -INF;
     beta  =  INF;
 
-    domove(board, moves[0]);
-    score = -negamax(board, !stm, -beta, -alpha, idf-1, 1, true);
-    undomove(board, moves[0], lastmove, cr, boardscore, hash);
-
-    alpha=score;
-    bestmove = moves[0];
-    moves[0] = SETSCORE(moves[0],(Move)score);
-
     /* iterate through moves */
-    for (i=1;i<movecounter;i++)
+    for (i=0;i<movecounter;i++)
     {
       domove(board, moves[i]);
 
-      score = -negamax(board, !stm, -alpha-1, -alpha, idf-1, 1, true);
-      if (score>alpha)
-        score = -negamax(board, !stm, -beta, -alpha, idf-1, 1, true);
+      score = -negamax(board, !stm, -beta, -alpha, idf-1, 1, true);
 
       undomove(board, moves[i], lastmove, cr, boardscore, hash);
 
@@ -520,7 +509,7 @@ Move rootsearch(Bitboard *board, bool stm, s32 depth)
     if (!TIMEOUT)
     {
       rootmove = bestmove;
-      save_to_tt(hash, rootmove, alpha, EXACTSCORE, idf, true);
+      save_to_tt(hash, rootmove, alpha, EXACTSCORE, idf);
       /* sort moves */
       qsort(moves, movecounter, sizeof(Move), cmp_move_desc);
     }

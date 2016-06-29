@@ -200,7 +200,7 @@ static void initTT(void)
   if (!Counters)
     fprintf(stdout,"Error (Counters table memory allocation failed)");
 }
-void save_to_tt(Hash hash, Move move, Score score, u8 flag, s32 depth, bool pv)
+void save_to_tt(Hash hash, Move move, Score score, u8 flag, s32 depth)
 {
   struct TTE *tete;
 
@@ -208,27 +208,34 @@ void save_to_tt(Hash hash, Move move, Score score, u8 flag, s32 depth, bool pv)
   if (TIMEOUT)
     return;
 
-  if (pv)
+  /* bucket one, always replace */
   tete = &TT[(hash&(ttbits-1))^0];
-  else
-    tete = &TT[(hash&(ttbits-1))^1];
-
   tete->hash      = hash;
   tete->bestmove  = move;
   tete->score     = score;
   tete->flag      = flag;
   tete->depth     = depth;
-  tete->pv        = pv;
+
+  /* bucket two, depth based */
+  tete = &TT[(hash&(ttbits-1))^1];
+  if (depth>tete->depth)
+  {
+    tete->hash      = hash;
+    tete->bestmove  = move;
+    tete->score     = score;
+    tete->flag      = flag;
+    tete->depth     = depth;
+  }
 }
-struct TTE *load_from_tt(Hash hash, bool pvnode)
+struct TTE *load_from_tt(Hash hash)
 {
   struct TTE *tete;
 
-  if (pvnode)
-    tete = &TT[(hash&(ttbits-1))^0];
-  else
-    tete = &TT[(hash&(ttbits-1))^1];
+  tete = &TT[(hash&(ttbits-1))^1];
+  if (tete->hash==hash)
+    return tete;
 
+  tete = &TT[(hash&(ttbits-1))^0];
   if (tete->hash==hash)
     return tete;
 
@@ -626,7 +633,7 @@ s32 collect_pv_from_hash(Bitboard *board, Hash hash, Move *moves, s32 ply)
   Hash hashes[MAXMOVES];
   Hash lastmoves[MAXMOVES];
 
-  tt = load_from_tt(hash, true);
+  tt = load_from_tt(hash);
   while (tt&&tt->hash==hash&&JUSTMOVE(tt->bestmove)!=MOVENONE&&i<MAXMOVES&&i<=ply)
   {
     hashes[i] = hash;
@@ -637,7 +644,7 @@ s32 collect_pv_from_hash(Bitboard *board, Hash hash, Move *moves, s32 ply)
     moves[i++] = tt->bestmove;
     domove(board, tt->bestmove);
     hash = board[QBBHASH];
-    tt = load_from_tt(hash, true);
+    tt = load_from_tt(hash);
     /* check for repetition loop */
     count = i-1;
     for (count=i;count>=0;count--)
