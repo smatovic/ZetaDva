@@ -95,9 +95,7 @@ static void selftest(void);
 static bool setboard(Bitboard *board, char *fenstring);
 static void createfen(char *fenstring, Bitboard *board, bool stm, s32 gameply);
 static void move2can(Move move, char *movec);
-static void move2san(Bitboard *board, Move move, char *movec);
 static Move can2move(char *usermove, Bitboard *board, bool stm);
-static void print_move(Move move);
 void printboard(Bitboard *board);
 void printbitboard(Bitboard board);
 /* transposition hash table */
@@ -132,6 +130,7 @@ static bool release_inits(void)
 
   return true;
 }
+/* compute zobrist hash from position */
 Hash computehash(Bitboard *board, bool stm)
 {
   Piece piece;
@@ -174,7 +173,7 @@ Hash computehash(Bitboard *board, bool stm)
 
   return hash;
 }
-
+/* initialize transposition and furter tables */
 static void initTT(void) 
 {
   u64 mem = (xboardmb*1024*1024)/(sizeof(struct TTE));
@@ -200,6 +199,7 @@ static void initTT(void)
   if (!Counters)
     fprintf(stdout,"Error (Counters table memory allocation failed)");
 }
+/* save entry to hash transposition table */
 void save_to_tt(Hash hash, Move move, Score score, u8 flag, s32 depth)
 {
   struct TTE *tete;
@@ -227,6 +227,7 @@ void save_to_tt(Hash hash, Move move, Score score, u8 flag, s32 depth)
     tete->depth     = depth;
   }
 }
+/* load entry from via zobrist hash from transposition table */
 struct TTE *load_from_tt(Hash hash)
 {
   struct TTE *tete;
@@ -248,7 +249,6 @@ void save_killer(Move move, Score score, s32 ply)
   else
     Killers[ply*2+1] = SETSCORE(move, (Move)score);
 }
-
 /* innitialize memory, files and tables */
 static bool inits(void)
 {
@@ -328,6 +328,82 @@ int cmp_move_desc(const void *ap, const void *bp)
 
     return (Score)GETSCORE(*b) - (Score)GETSCORE(*a);
 }
+/* apply null-move on board */
+void donullmove(Bitboard *board)
+{
+  /* consider color */
+  board[QBBHASH] ^=RandomTurn[0];
+  /* clear en passant */
+  if (GETSQEP(board[QBBLAST]))
+    board[QBBHASH] ^= RandomEnPassant[GETFILE(GETSQEP(board[QBBLAST]))]; 
+
+  board[QBBLAST] = MOVENONE|(CMMOVE&board[QBBLAST]);
+}
+/* restore board again after nullmove */
+void undonullmove(Bitboard *board, Move lastmove, Hash hash)
+{
+  board[QBBHASH] = hash;
+  board[QBBLAST] = lastmove;
+}
+/* apply move on board, quick during move generation */
+void domovequick(Bitboard *board, Move move)
+{
+  Square sqfrom   = GETSQFROM(move);
+  Square sqto     = GETSQTO(move);
+  Square sqcpt    = GETSQCPT(move);
+  Piece pto       = GETPTO(move);
+  Bitboard bbTemp = BBEMPTY;
+
+  /* check for edges */
+  if (move==MOVENONE)
+    return;
+
+  /* unset square from, square capture and square to */
+  bbTemp = CLRMASKBB(sqfrom)&CLRMASKBB(sqcpt)&CLRMASKBB(sqto);
+  board[QBBBLACK] &= bbTemp;
+  board[QBBP1]    &= bbTemp;
+  board[QBBP2]    &= bbTemp;
+  board[QBBP3]    &= bbTemp;
+
+  /* set piece to */
+  board[QBBBLACK] |= (pto&0x1)<<sqto;
+  board[QBBP1]    |= ((pto>>1)&0x1)<<sqto;
+  board[QBBP2]    |= ((pto>>2)&0x1)<<sqto;
+  board[QBBP3]    |= ((pto>>3)&0x1)<<sqto;
+}
+/* restore board again, quick during move generation */
+void undomovequick(Bitboard *board, Move move)
+{
+  Square sqfrom   = GETSQFROM(move);
+  Square sqto     = GETSQTO(move);
+  Square sqcpt    = GETSQCPT(move);
+  Piece pfrom     = GETPFROM(move);
+  Piece pcpt      = GETPCPT(move);
+  Bitboard bbTemp = BBEMPTY;
+
+  /* check for edges */
+  if (move==MOVENONE)
+    return;
+
+  /* unset square capture, square to */
+  bbTemp = CLRMASKBB(sqcpt)&CLRMASKBB(sqto);
+  board[QBBBLACK] &= bbTemp;
+  board[QBBP1]    &= bbTemp;
+  board[QBBP2]    &= bbTemp;
+  board[QBBP3]    &= bbTemp;
+
+  /* restore piece capture */
+  board[QBBBLACK] |= (pcpt&0x1)<<sqcpt;
+  board[QBBP1]    |= ((pcpt>>1)&0x1)<<sqcpt;
+  board[QBBP2]    |= ((pcpt>>2)&0x1)<<sqcpt;
+  board[QBBP3]    |= ((pcpt>>3)&0x1)<<sqcpt;
+
+  /* restore piece from */
+  board[QBBBLACK] |= (pfrom&0x1)<<sqfrom;
+  board[QBBP1]    |= ((pfrom>>1)&0x1)<<sqfrom;
+  board[QBBP2]    |= ((pfrom>>2)&0x1)<<sqfrom;
+  board[QBBP3]    |= ((pfrom>>3)&0x1)<<sqfrom;
+}
 /* apply move on board */
 void domove(Bitboard *board, Move move)
 {
@@ -365,7 +441,6 @@ void domove(Bitboard *board, Move move)
     board[QBBHASH] ^= RandomEnPassant[GETFILE(GETSQEP(board[QBBLAST]))]; 
   if (GETCOLOR(pfrom)==WHITE)
       board[QBBHASH] ^=RandomTurn[0];
-
 
   /* unset square from, square capture and square to */
   bbTemp = CLRMASKBB(sqfrom)&CLRMASKBB(sqcpt)&CLRMASKBB(sqto);
@@ -477,48 +552,6 @@ void domove(Bitboard *board, Move move)
   /* store lastmove in board */
   board[QBBLAST] = move;
 }
-/* apply move on board, quick during move generation */
-void domovequick(Bitboard *board, Move move)
-{
-  Square sqfrom   = GETSQFROM(move);
-  Square sqto     = GETSQTO(move);
-  Square sqcpt    = GETSQCPT(move);
-  Piece pto       = GETPTO(move);
-  Bitboard bbTemp = BBEMPTY;
-
-  /* check for edges */
-  if (move==MOVENONE)
-    return;
-
-  /* unset square from, square capture and square to */
-  bbTemp = CLRMASKBB(sqfrom)&CLRMASKBB(sqcpt)&CLRMASKBB(sqto);
-  board[QBBBLACK] &= bbTemp;
-  board[QBBP1]    &= bbTemp;
-  board[QBBP2]    &= bbTemp;
-  board[QBBP3]    &= bbTemp;
-
-  /* set piece to */
-  board[QBBBLACK] |= (pto&0x1)<<sqto;
-  board[QBBP1]    |= ((pto>>1)&0x1)<<sqto;
-  board[QBBP2]    |= ((pto>>2)&0x1)<<sqto;
-  board[QBBP3]    |= ((pto>>3)&0x1)<<sqto;
-}
-void donullmove(Bitboard *board)
-{
-  /* consider color */
-  board[QBBHASH] ^=RandomTurn[0];
-  /* clear en passant */
-  if (GETSQEP(board[QBBLAST]))
-    board[QBBHASH] ^= RandomEnPassant[GETFILE(GETSQEP(board[QBBLAST]))]; 
-
-  board[QBBLAST] = MOVENONE|(CMMOVE&board[QBBLAST]);
-}
-void undonullmove(Bitboard *board, Move lastmove, Hash hash)
-{
-  board[QBBHASH] = hash;
-  board[QBBLAST] = lastmove;
-}
-
 /* restore board again */
 void undomove(Bitboard *board, Move move, Move lastmove, Cr cr, Score score, Hash hash)
 {
@@ -589,39 +622,7 @@ void undomove(Bitboard *board, Move move, Move lastmove, Cr cr, Score score, Has
   board[QBBP2]    |= ((pcastle>>2)&0x1)<<(sqfrom+3);
   board[QBBP3]    |= ((pcastle>>3)&0x1)<<(sqfrom+3);
 }
-/* restore board again, quick during move generation */
-void undomovequick(Bitboard *board, Move move)
-{
-  Square sqfrom   = GETSQFROM(move);
-  Square sqto     = GETSQTO(move);
-  Square sqcpt    = GETSQCPT(move);
-  Piece pfrom     = GETPFROM(move);
-  Piece pcpt      = GETPCPT(move);
-  Bitboard bbTemp = BBEMPTY;
-
-  /* check for edges */
-  if (move==MOVENONE)
-    return;
-
-  /* unset square capture, square to */
-  bbTemp = CLRMASKBB(sqcpt)&CLRMASKBB(sqto);
-  board[QBBBLACK] &= bbTemp;
-  board[QBBP1]    &= bbTemp;
-  board[QBBP2]    &= bbTemp;
-  board[QBBP3]    &= bbTemp;
-
-  /* restore piece capture */
-  board[QBBBLACK] |= (pcpt&0x1)<<sqcpt;
-  board[QBBP1]    |= ((pcpt>>1)&0x1)<<sqcpt;
-  board[QBBP2]    |= ((pcpt>>2)&0x1)<<sqcpt;
-  board[QBBP3]    |= ((pcpt>>3)&0x1)<<sqcpt;
-
-  /* restore piece from */
-  board[QBBBLACK] |= (pfrom&0x1)<<sqfrom;
-  board[QBBP1]    |= ((pfrom>>1)&0x1)<<sqfrom;
-  board[QBBP2]    |= ((pfrom>>2)&0x1)<<sqfrom;
-  board[QBBP3]    |= ((pfrom>>3)&0x1)<<sqfrom;
-}
+/* collect principal variaton from hash table for xboard output */
 s32 collect_pv_from_hash(Bitboard *board, Hash hash, Move *moves, s32 ply)
 {
   s32 i = 0;

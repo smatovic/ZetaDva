@@ -225,10 +225,11 @@ struct TTE {
         u8 flag;
         s32 depth;
 };
+/* is score a mate in n */
 #define ISMATE(val)           ((((val)>MATESCORE&&(val)<INF)||((val)<-MATESCORE&&(val)>-INF))?true:false)
+/* is score default inf */
 #define ISINF(val)            (((val)==INF||(val)==-INF)?true:false)
-
-/* node flags */
+/* node type flags */
 #define EXACTSCORE      2
 #define FAILHIGH        1
 #define FAILLOW         0
