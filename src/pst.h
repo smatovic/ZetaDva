@@ -29,11 +29,10 @@
   https://chessprogramming.wikispaces.com/Simplified+evaluation+function
 */
 
-/* static piece values */
-/* pawn, knight, king, bishop, rook, queen */
-/* const Score EvalPieceValues[6] = {100, 300, 0, 300, 500, 900}; */
+/* piece values */
+/* pnone, pawn, knight, king, bishop, rook, queen */
+/* const Score EvalPieceValues[7] = {0, 100, 300, 0, 300, 500, 900}; */
 const Score EvalPieceValues[7] = {0, 100, 400, 0, 400, 600, 1200};
-
 /* square control bonus, black view */
 /* flop square for white-index: sq^56*/
 const Score EvalControl[64] =
