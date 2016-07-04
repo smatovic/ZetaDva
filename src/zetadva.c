@@ -47,7 +47,7 @@ bool xboard_force   = false;  /* if true aplly only moves, do not think */
 bool xboard_post    = false;  /* post search thinking output */
 bool xboard_san     = false;  /* use san move notation instead of can */
 bool xboard_time    = false;  /* use xboards time command for time management */
-bool xboard_debug   = false;  /* use xboards time command for time management */
+bool xboard_debug   = false;  /* print debug information */
 s32 xboardmb        = 64;     /* mega bytes for hash table */
 /* timers */
 double start        = 0;
@@ -68,6 +68,8 @@ s32 GAMEPLY         = 0;     /* total ply, considering depth via fen string */
 s32 PLY             = 0;     /* engine specifix ply counter */
 Move *MoveHistory;           /* last game moves indexed by ply */
 Hash *HashHistory;           /* last game hashes indexed by ply */
+Score *ScoreHistory;          /* last board scores indexed by ply */
+Cr *CRHistory;             /* last board castle rights indexed by ply */
 Move *Killers;               /* killer move heuristic */
 Move *Counters;              /* counter move heuristic */
 /* Quad Bitboard */
@@ -119,6 +121,10 @@ static bool release_inits(void)
     free(MoveHistory);
   if (HashHistory) 
     free(HashHistory);
+  if (ScoreHistory) 
+    free(ScoreHistory);
+  if (CRHistory) 
+    free(CRHistory);
   if (TT) 
     free(TT);
   if (Counters) 
@@ -258,6 +264,8 @@ static bool inits(void)
   Fen          = (char *)calloc(1024       , sizeof (char));
   MoveHistory = (Move *)calloc(MAXGAMEPLY , sizeof (Move));
   HashHistory = (Hash *)calloc(MAXGAMEPLY , sizeof (Hash));
+  ScoreHistory = (Score *)calloc(MAXGAMEPLY , sizeof (Score));
+  CRHistory = (Cr *)calloc(MAXGAMEPLY , sizeof (Cr));
 
   if (!Line) 
   {
@@ -283,6 +291,18 @@ static bool inits(void)
   if (!HashHistory) 
   {
     fprintf(stdout,"Error (memory allocation failed): u64 HashHistory[%d]",
+            MAXGAMEPLY);
+    return false;
+  }
+  if (!ScoreHistory) 
+  {
+    fprintf(stdout,"Error (memory allocation failed): Score ScoreHistory[%d]",
+            MAXGAMEPLY);
+    return false;
+  }
+  if (!CRHistory) 
+  {
+    fprintf(stdout,"Error (memory allocation failed): Cr CrHistory[%d]",
             MAXGAMEPLY);
     return false;
   }
@@ -1237,6 +1257,8 @@ static bool setboard(Bitboard *board, char *fenstring)
 
   /* store lastmove+ in board */
   board[QBBLAST] = lastmove;
+  /* store lastmove+ in history */
+  MoveHistory[PLY] = lastmove;
 
   /* release memory */
   if (position) 
@@ -1250,8 +1272,10 @@ static bool setboard(Bitboard *board, char *fenstring)
 
   /* static eval for inceremental eval scores during do/undo */
   score = evalstatic(board);
-  /* store lastmove+ in board */
+  /* store incremental score in board */
   board[QBBSCORE] = (u64)score;
+  /* store incremental score in history */
+  ScoreHistory[PLY] = score;
 
   /* board valid check */
   if (!isvalid(board))
@@ -1934,7 +1958,6 @@ int main(int argc, char* argv[])
           end = get_time();   
           elapsed = end-start;
           elapsed /= 1000;
-          MoveHistory[PLY] = move;
           domove(BOARD, move);
           fprintf(stdout,"move ");
           printmovecan(move);
@@ -1947,6 +1970,9 @@ int main(int argc, char* argv[])
           PLY++;
           STM = !STM;
           HashHistory[PLY] = BOARD[QBBHASH];
+          MoveHistory[PLY] = move;
+          ScoreHistory[PLY] = BOARD[QBBSCORE];
+          CRHistory[PLY] = BOARD[QBBPMVD];
         }
       }
       continue;
@@ -2060,11 +2086,13 @@ int main(int argc, char* argv[])
       /* apply given move */
       sscanf (Line, "usermove %s", movec);
       move = can2move(movec, BOARD,STM);
-      MoveHistory[PLY] = move;
       domove(BOARD, move);
       PLY++;
       STM = !STM;
       HashHistory[PLY] = BOARD[QBBHASH];
+      MoveHistory[PLY] = move;
+      ScoreHistory[PLY] = BOARD[QBBSCORE];
+      CRHistory[PLY] = BOARD[QBBPMVD];
       if (!xboard_mode||xboard_debug)
           printboard(BOARD);
       /* start thinking */
@@ -2096,7 +2124,6 @@ int main(int argc, char* argv[])
           end = get_time();   
           elapsed = end-start;
           elapsed /= 1000;
-          MoveHistory[PLY] = move;
           domove(BOARD, move);
           fprintf(stdout,"move ");
           printmovecan(move);
@@ -2109,7 +2136,35 @@ int main(int argc, char* argv[])
           PLY++;
           STM = !STM;
           HashHistory[PLY] = BOARD[QBBHASH];
+          MoveHistory[PLY] = move;
+          ScoreHistory[PLY] = BOARD[QBBSCORE];
+          CRHistory[PLY] = BOARD[QBBPMVD];
         }
+      }
+      continue;
+    }
+    /* back up one ply */
+		if (!strcmp(Command, "undo"))
+    {
+      if (PLY>0)
+      {
+        undomove(BOARD, MoveHistory[PLY], MoveHistory[PLY-1], CRHistory[PLY], ScoreHistory[PLY], HashHistory[PLY]);
+        PLY--;
+        STM = !STM;
+      }
+      continue;
+    }
+    /* back up two plies */
+		if (!strcmp(Command, "remove"))
+    {
+      if (PLY>=2)
+      {
+        undomove(BOARD, MoveHistory[PLY], MoveHistory[PLY-1], CRHistory[PLY], ScoreHistory[PLY], HashHistory[PLY]);
+        PLY--;
+        STM = !STM;
+        undomove(BOARD, MoveHistory[PLY], MoveHistory[PLY-1], CRHistory[PLY], ScoreHistory[PLY], HashHistory[PLY]);
+        PLY--;
+        STM = !STM;
       }
       continue;
     }
@@ -2195,11 +2250,6 @@ int main(int argc, char* argv[])
     {
       continue;
     }
-		if (!strcmp(Command, "undo"))
-    {
-      continue;
-    }
-
     /* non xboard commands */
     /* do an node count to depth defined via sd  */
     if (!xboard_mode && !strcmp(Command, "perft"))
@@ -2264,7 +2314,6 @@ int main(int argc, char* argv[])
       continue;
     }
 		if (
-        !strcmp(Command, "remove")||
         !strcmp(Command, "analyze")||
         !strcmp(Command, "pause")||
         !strcmp(Command, "resume")
