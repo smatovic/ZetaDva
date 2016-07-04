@@ -59,6 +59,7 @@ s32 timemode    = 0;  /* 0 = single move, 1 = conventional clock, 2 = ics clock 
 s32 MovesLeft   = 1;  /* moves left unit nex time increase */
 s32 MaxMoves    = 1;  /* moves to play in time frame */
 double TimeInc  = 0;  /* time increase */
+double TimeBase = 5*1000;  /* time base for conventional inc, 5s default */
 double TimeLeft = 5*1000;  /* overall time on clock, 5s default */
 double MaxTime  = 5*1000;  /* max time per move */
 /* game state */
@@ -1957,22 +1958,39 @@ int main(int argc, char* argv[])
 
           end = get_time();   
           elapsed = end-start;
-          elapsed /= 1000;
+
           domove(BOARD, move);
+
           fprintf(stdout,"move ");
           printmovecan(move);
           fprintf(stdout,"\n");
           if ((!xboard_mode)||xboard_debug)
           {
             printboard(BOARD);
-            fprintf(stdout,"#%llu searched nodes in %lf seconds, nps: %llu \n", NODECOUNT, elapsed, (u64)(NODECOUNT/elapsed));
+            fprintf(stdout,"#%llu searched nodes in %lf seconds, nps: %llu \n", NODECOUNT, elapsed/1000, (u64)(NODECOUNT/elapsed));
           }
+
           PLY++;
           STM = !STM;
+
           HashHistory[PLY] = BOARD[QBBHASH];
           MoveHistory[PLY] = move;
           ScoreHistory[PLY] = BOARD[QBBSCORE];
           CRHistory[PLY] = BOARD[QBBPMVD];
+
+          /* time mngmt */
+          TimeLeft-=elapsed;
+          /* get moves left, one move as time spare */
+          if (timemode==1)
+            MovesLeft = (MaxMoves-(((PLY+1)/2)%MaxMoves))+1;
+          /* get new time inc */
+          if (timemode==0)
+            TimeLeft = TimeBase;
+          /* set max time per move */
+          MaxTime = TimeLeft/MovesLeft+TimeInc;
+          /* get new time inc */
+          if (timemode==1&&MovesLeft==2)
+            TimeLeft+= TimeBase;
         }
       }
       continue;
@@ -1988,6 +2006,7 @@ int main(int argc, char* argv[])
     {
       s32 sec   = 0;
       s32 min   = 0;
+      TimeBase  = 0;
       TimeLeft  = 0;
       TimeInc   = 0;
       MovesLeft = 0;
@@ -1999,39 +2018,42 @@ int main(int argc, char* argv[])
                &MaxMoves, &min, &sec, &TimeInc)!=4)
            continue;
 
+      /* from seconds to milli seconds */
+      TimeBase  = 60*min + sec;
+      TimeBase *= 1000;
+      TimeInc  *= 1000;
+      TimeLeft  = TimeBase;
+
       if (MaxMoves==0)
         timemode = 2; /* ics clocks */
       else
-        timemode = 1; /* conventional clocks */
+        timemode = 1; /* conventional clock mode */
+
       /* set moves left to 40 in sudden death or ics time control */
       if (timemode==2)
         MovesLeft = 40;
-      MovesLeft = MaxMoves;
-      TimeLeft  = 60*min + sec;
-      TimeLeft *= 1000;
-      TimeInc  *= 1000;
-      /* set max time per move */
-      if (timemode==2)
-      {
-        MovesLeft = MaxMoves;
-        MaxTime   = TimeInc+TimeLeft/MaxMoves;
-      }
+
+      /* get moves left */
       if (timemode==1)
-      {
         MovesLeft = (MaxMoves-(((PLY+1)/2)%MaxMoves))+1;
-        MaxTime   = TimeLeft/MovesLeft;
-      }
+
+      /* set max time per move */
+      MaxTime = TimeLeft/MovesLeft+TimeInc;
+
+
       continue;
     }
     /* set time control to n seconds per move */
 		if (!strcmp(Command, "st"))
     {
-      sscanf(Line, "st %lf", &TimeLeft);
-      TimeLeft *= 1000; 
-      timemode  = 0;
+      sscanf(Line, "st %lf", &TimeBase);
+      TimeBase *= 1000; 
+      TimeLeft  = TimeBase; 
       TimeInc   = 0;
-      MovesLeft = MaxMoves = 1; /* jsut one move*/
-      MaxTime   = TimeLeft/MaxMoves; /* set max time per move */
+      MovesLeft = MaxMoves = 1; /* just one move*/
+      timemode  = 0;
+      /* set max time per move */
+      MaxTime   = TimeLeft/MovesLeft+TimeInc;
       continue;
     }
     /* time left on clock */
@@ -2041,17 +2063,11 @@ int main(int argc, char* argv[])
       {
         sscanf(Line, "time %lf", &TimeLeft);
         TimeLeft *= 10;  /* centi-seconds to milliseconds */
-        /* set max time per move */
-        if (timemode==2)
-        {
-          MovesLeft = MaxMoves;
-          MaxTime   = TimeInc+TimeLeft/MaxMoves;
-        }
+        /* get moves left, one move time spare */
         if (timemode==1)
-        {
           MovesLeft = (MaxMoves-(((PLY+1)/2)%MaxMoves))+1;
-          MaxTime   = TimeLeft/MovesLeft;
-        }
+        /* set max time per move */
+        MaxTime = TimeLeft/MovesLeft+TimeInc;
       }
       continue;
     }
@@ -2086,13 +2102,17 @@ int main(int argc, char* argv[])
       /* apply given move */
       sscanf (Line, "usermove %s", movec);
       move = can2move(movec, BOARD,STM);
+
       domove(BOARD, move);
+
       PLY++;
       STM = !STM;
+
       HashHistory[PLY] = BOARD[QBBHASH];
       MoveHistory[PLY] = move;
       ScoreHistory[PLY] = BOARD[QBBSCORE];
       CRHistory[PLY] = BOARD[QBBPMVD];
+
       if (!xboard_mode||xboard_debug)
           printboard(BOARD);
       /* start thinking */
@@ -2123,22 +2143,40 @@ int main(int argc, char* argv[])
 
           end = get_time();   
           elapsed = end-start;
-          elapsed /= 1000;
+
           domove(BOARD, move);
+
           fprintf(stdout,"move ");
           printmovecan(move);
           fprintf(stdout,"\n");
+
           if (!xboard_mode||xboard_debug)
           {
             printboard(BOARD);
-            fprintf(stdout,"#%llu searched nodes in %lf seconds, nps: %llu \n", NODECOUNT, elapsed, (u64)(NODECOUNT/elapsed));
+            fprintf(stdout,"#%llu searched nodes in %lf seconds, nps: %llu \n", NODECOUNT, elapsed/1000, (u64)(NODECOUNT/elapsed));
           }
+
           PLY++;
           STM = !STM;
+
           HashHistory[PLY] = BOARD[QBBHASH];
           MoveHistory[PLY] = move;
           ScoreHistory[PLY] = BOARD[QBBSCORE];
           CRHistory[PLY] = BOARD[QBBPMVD];
+
+          /* time mngmt */
+          TimeLeft-=elapsed;
+          /* get moves left, one move as time spare */
+          if (timemode==1)
+            MovesLeft = (MaxMoves-(((PLY+1)/2)%MaxMoves))+1;
+          /* get new time inc */
+          if (timemode==0)
+            TimeLeft = TimeBase;
+          /* set max time per move */
+          MaxTime = TimeLeft/MovesLeft+TimeInc;
+          /* get new time inc */
+          if (timemode==1&&MovesLeft==2)
+            TimeLeft+= TimeBase;
         }
       }
       continue;
