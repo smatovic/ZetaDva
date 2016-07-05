@@ -2061,16 +2061,14 @@ int main(int argc, char* argv[])
     /* time left on clock */
 		if (!strcmp(Command, "time"))
     {
-      if (xboard_time)
-      {
-        sscanf(Line, "time %lf", &TimeLeft);
-        TimeLeft *= 10;  /* centi-seconds to milliseconds */
-        /* get moves left, one move time spare */
-        if (timemode==1)
-          MovesLeft = (MaxMoves-(((PLY+1)/2)%MaxMoves))+1;
-        /* set max time per move */
-        MaxTime = TimeLeft/MovesLeft+TimeInc;
-      }
+      sscanf(Line, "time %lf", &TimeLeft);
+      TimeLeft *= 10;  /* centi-seconds to milliseconds */
+      /* get moves left, one move time spare */
+      if (timemode==1)
+        MovesLeft = (MaxMoves-(((PLY+1)/2)%MaxMoves))+1;
+      /* set max time per move */
+      MaxTime = TimeLeft/MovesLeft+TimeInc;
+
       continue;
     }
     /* opp time left, ignore */
