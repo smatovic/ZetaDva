@@ -1418,7 +1418,6 @@ static void selftest(void)
     /* time measurement */
     end = get_time();   
     elapsed = end-start;
-    elapsed /= 1000;
 
     if(NODECOUNT==nodecounts[done]&&scorea==scoreb)
       passed++;
@@ -1426,12 +1425,12 @@ static void selftest(void)
     if(NODECOUNT==nodecounts[done])
     {
       fprintf(stdout,"# Nodecount Correct, %llu nodes in %lf seconds with \
-%llu nps.\n", NODECOUNT, elapsed, (u64)(NODECOUNT/elapsed));
+%llu nps.\n", NODECOUNT, (elapsed/1000), (u64)(NODECOUNT/(elapsed/1000)));
       if (LogFile)
       {
         fprinttime(LogFile);
         fprintf(LogFile,"# Nodecount Correct, %llu nodes in %lf seconds with \
-%llu nps.\n", NODECOUNT, elapsed, (u64)(NODECOUNT/elapsed));
+%llu nps.\n", NODECOUNT, (elapsed/1000), (u64)(NODECOUNT/(elapsed/1000)));
       }
     }
     else
@@ -1453,7 +1452,7 @@ nodes for depth %d.\n", NODECOUNT, nodecounts[done], SD);
       {
         fprinttime(LogFile);
         fprintf(LogFile,"# Nodecount Correct, %llu nodes in %lf seconds \
-               with %llu nps.\n", NODECOUNT, elapsed, (u64)(NODECOUNT/elapsed));
+               with %llu nps.\n", NODECOUNT, (elapsed/1000), (u64)(NODECOUNT/(elapsed/1000)));
         fprintf(LogFile,"# IncrementaL evaluation  scores NOT Correct, \
                 %d != %d .\n", scorea, scoreb);
       }
@@ -1968,7 +1967,7 @@ int main(int argc, char* argv[])
           if ((!xboard_mode)||xboard_debug)
           {
             printboard(BOARD);
-            fprintf(stdout,"#%llu searched nodes in %lf seconds, nps: %llu \n", NODECOUNT, elapsed/1000, (u64)(NODECOUNT/elapsed));
+            fprintf(stdout,"#%llu searched nodes in %lf seconds, nps: %llu \n", NODECOUNT, elapsed/1000, (u64)(NODECOUNT/(elapsed/1000)));
           }
 
           PLY++;
@@ -2155,7 +2154,7 @@ int main(int argc, char* argv[])
           if (!xboard_mode||xboard_debug)
           {
             printboard(BOARD);
-            fprintf(stdout,"#%llu searched nodes in %lf seconds, nps: %llu \n", NODECOUNT, elapsed/1000, (u64)(NODECOUNT/elapsed));
+            fprintf(stdout,"#%llu searched nodes in %lf seconds, nps: %llu \n", NODECOUNT, elapsed/1000, (u64)(NODECOUNT/(elapsed/1000)));
           }
 
           PLY++;
@@ -2307,10 +2306,9 @@ int main(int argc, char* argv[])
 
       end = get_time();   
       elapsed = end-start;
-      elapsed /= 1000;
 
       fprintf(stdout,"nodecount:%llu, seconds: %lf, nps: %llu \n", 
-              NODECOUNT, elapsed, (u64)(NODECOUNT/elapsed));
+              NODECOUNT, (elapsed/1000), (u64)(NODECOUNT/(elapsed/1000)));
 
       fflush(stdout);
   
