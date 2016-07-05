@@ -84,6 +84,15 @@ Score qsearch(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
   Hash hash = board[QBBHASH];
   Move moves[MAXMOVES];
 
+  /* time out? */  
+  end = get_time();
+  elapsed = end-start;
+  if (elapsed>=MaxTime-TIMESPARE)
+  {
+    TIMEOUT=true;
+    return 0;
+  }
+
   NODECOUNT++;
 
   kic = kingincheck(board, stm);
@@ -201,7 +210,7 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
   /* time out? */  
   end = get_time();
   elapsed = end-start;
-  if (elapsed>=MaxTime)
+  if (elapsed>=MaxTime-TIMESPARE)
   {
     TIMEOUT=true;
     return 0;
@@ -542,12 +551,6 @@ Move rootsearch(Bitboard *board, bool stm, s32 depth)
       fprintf(stdout, "\n");
     }
   } while (++idf<=depth&&elapsed*2<MaxTime&&!TIMEOUT);
-
-  if (xboard_debug)
-  {
-    fprintf(stdout, "#COUNTERS1:%llu\n",COUNTERS1);
-    fprintf(stdout, "#COUNTERS2:%llu\n",COUNTERS2);
-  }
 
   return rootmove;
 }

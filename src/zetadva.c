@@ -1955,14 +1955,16 @@ int main(int argc, char* argv[])
           /* start thinking */
           move = rootsearch(BOARD,STM, SD);
 
-          end = get_time();   
-          elapsed = end-start;
-
-          domove(BOARD, move);
-
           fprintf(stdout,"move ");
           printmovecan(move);
           fprintf(stdout,"\n");
+          fflush(stdout);
+
+          domove(BOARD, move);
+
+          end = get_time();   
+          elapsed = end-start;
+
           if ((!xboard_mode)||xboard_debug)
           {
             printboard(BOARD);
@@ -2140,14 +2142,15 @@ int main(int argc, char* argv[])
           /* start thinking */
           move = rootsearch(BOARD,STM, SD);
 
-          end = get_time();   
-          elapsed = end-start;
-
-          domove(BOARD, move);
-
           fprintf(stdout,"move ");
           printmovecan(move);
           fprintf(stdout,"\n");
+          fflush(stdout);
+
+          domove(BOARD, move);
+
+          end = get_time();   
+          elapsed = end-start;
 
           if (!xboard_mode||xboard_debug)
           {
