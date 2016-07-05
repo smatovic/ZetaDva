@@ -2041,8 +2041,6 @@ int main(int argc, char* argv[])
 
       /* set max time per move */
       MaxTime = TimeLeft/MovesLeft+TimeInc;
-
-
       continue;
     }
     /* set time control to n seconds per move */
