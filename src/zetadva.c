@@ -1986,6 +1986,8 @@ int main(int argc, char* argv[])
           /* get new time inc */
           if (timemode==0)
             TimeLeft = TimeBase;
+          if (timemode==2)
+            TimeLeft+= TimeInc;
           /* set max time per move */
           MaxTime = TimeLeft/MovesLeft+TimeInc;
           /* get new time inc */
@@ -2172,6 +2174,8 @@ int main(int argc, char* argv[])
           /* get new time inc */
           if (timemode==0)
             TimeLeft = TimeBase;
+          if (timemode==2)
+            TimeLeft+= TimeInc;
           /* set max time per move */
           MaxTime = TimeLeft/MovesLeft+TimeInc;
           /* get new time inc */
