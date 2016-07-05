@@ -13,7 +13,7 @@ A) Root-Structure
     - polyglot opening book support                     DONE
     - pondering                                         DEP
     - SMP, mutlicore                                    DEP
-    - test on linux with xboard and cutechess                   TODO
+    - test on linux with xboard and cutechess           DONE
     - test on windows with winboard and arena                   TODO
 
 B) Board-Presentation
