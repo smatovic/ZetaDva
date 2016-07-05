@@ -1694,8 +1694,7 @@ int main(int argc, char* argv[])
     release_inits ();
     exit (EXIT_FAILURE);
   }
-  /* init transposition hash table with 64 mb*/
-  initTT();
+
   /* init starting position */
   setboard(BOARD,"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
 
