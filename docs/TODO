@@ -9,12 +9,13 @@ A) Root-Structure
     - external test suite, bestomve                     DONE
     - external test suite, bestomves from STS           DONE
     - internal draw by repetition                       DONE
-    - fifty moves rule                                  DONE
+    - 50 moves rule                                     DEP
+    - 75 moves rule                                     DONE
     - polyglot opening book support                     DONE
     - pondering                                         DEP
     - SMP, mutlicore                                    DEP
     - test on linux with xboard and cutechess           DONE
-    - test on windows with winboard and arena                   TODO
+    - test on windows with winboard and arena           DONE
 
 B) Board-Presentation
   4*8 Bytes Quat-Bitbaord board presentation            DONE
@@ -34,7 +35,6 @@ C) MovGenerator
     - debug with test positions                         DONE
     - tighten attacktbales                              DONE
     - first cleanup & performance tuning                DONE
-    - second cleanup & performance tuning               DONE
 
 D) DoMove, UnDoMove
     - normal moves                                      DONE
@@ -56,8 +56,8 @@ F) Search Algorithm
     - AlphaBeta w. move ordering via MVV-LVA            DONE
     - Move Ordering SEE                                 DEP
     - Quiscence-Search                                  DONE
-    - search extension, king in check                   DONE
-    - PV-Search, Nullwindows                            DONE
+    - search extension, king in check, pawn promo       DONE
+    - PV-Search, Nullwindows                            DEP
     - Transposition/Hash-Tables                         DONE
     - TT score bounds                                   DONE
     - Iterative Deepening Framwork                      DONE
@@ -66,6 +66,6 @@ F) Search Algorithm
     - IID                                               DONE
     - Null Move Pruning                                 DONE
     - Late Move Reductions                              DONE
-    - Razoring                                          DONE
+    - Razoring                                          DEP
     - Futility Pruning                                  DONE
 
