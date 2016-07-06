@@ -211,8 +211,8 @@ void save_to_tt(Hash hash, Move move, Score score, u8 flag, s32 depth)
 {
   struct TTE *tete;
 
-  /* exit when timeout */
-  if (TIMEOUT)
+  /* exit when timeout or no hash table */
+  if (TIMEOUT||!TT)
     return;
 
   /* bucket one, always replace */
@@ -238,6 +238,10 @@ void save_to_tt(Hash hash, Move move, Score score, u8 flag, s32 depth)
 struct TTE *load_from_tt(Hash hash)
 {
   struct TTE *tete;
+
+  /* exit when no hash table */
+  if (!TT)
+    return NULL;
 
   tete = &TT[(hash&(ttbits-1))^1];
   if (tete->hash==hash)
