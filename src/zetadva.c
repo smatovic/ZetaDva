@@ -913,6 +913,8 @@ void printmovecan(Move move)
   char movec[4];
   move2can(move, movec);
   fprintf(stdout, "%s",movec);
+  if (LogFile)
+    fprintf(LogFile, "%s",movec);
 }
 /* print quadbitbooard */
 void printboard(Bitboard *board)
@@ -976,6 +978,7 @@ void printboard(Bitboard *board)
     fprintf(LogFile, "###ABCDEFGH###\n");
     fprinttime(LogFile);
     fprintf(LogFile, "# incremental score: %d\n",(Score)BOARD[QBBSCORE]);
+    fprinttime(LogFile);
     fprintf(LogFile,"# eval score: %d\n",eval(BOARD));
 
     fflush (LogFile);
@@ -1457,6 +1460,7 @@ nodes for depth %d.\n", NODECOUNT, nodecounts[done], SD);
         fprinttime(LogFile);
         fprintf(LogFile,"# Nodecount Correct, %llu nodes in %lf seconds \
                with %llu nps.\n", NODECOUNT, (elapsed/1000), (u64)(NODECOUNT/(elapsed/1000)));
+        fprinttime(LogFile);
         fprintf(LogFile,"# IncrementaL evaluation  scores NOT Correct, \
                 %d != %d .\n", scorea, scoreb);
       }
@@ -1470,6 +1474,7 @@ nodes for depth %d.\n", NODECOUNT, nodecounts[done], SD);
   {
     fprinttime(LogFile);
     fprintf(LogFile,"#\n");  
+    fprinttime(LogFile);
     fprintf(LogFile,"# doing zobrist hash checks\n");  
   }
   done = 0;
@@ -1483,7 +1488,7 @@ nodes for depth %d.\n", NODECOUNT, nodecounts[done], SD);
       if (LogFile)
       {
         fprinttime(LogFile);
-       fprintf(LogFile,"# Book hash NOT Correct, 0x%016llx != 0x%016llx\n", hash, hashes[done]);
+        fprintf(LogFile,"# Book hash NOT Correct, 0x%016llx != 0x%016llx\n", hash, hashes[done]);
       }
     }
     else
@@ -1493,7 +1498,7 @@ nodes for depth %d.\n", NODECOUNT, nodecounts[done], SD);
       if (LogFile)
       {
         fprinttime(LogFile);
-       fprintf(LogFile,"# Book hash Correct, 0x%016llx == 0x%016llx\n", hash, hashes[done]);
+        fprintf(LogFile,"# Book hash Correct, 0x%016llx == 0x%016llx\n", hash, hashes[done]);
       }
     }
     incrementalhash = BOARD[QBBHASH];
@@ -1504,7 +1509,7 @@ nodes for depth %d.\n", NODECOUNT, nodecounts[done], SD);
       if (LogFile)
       {
         fprinttime(LogFile);
-       fprintf(LogFile,"# incremental hash NOT Correct, 0x%016llx != 0x%016llx\n", incrementalhash, computedhash);
+        fprintf(LogFile,"# incremental hash NOT Correct, 0x%016llx != 0x%016llx\n", incrementalhash, computedhash);
       }
     }
     else
@@ -1514,7 +1519,7 @@ nodes for depth %d.\n", NODECOUNT, nodecounts[done], SD);
       if (LogFile)
       {
         fprinttime(LogFile);
-       fprintf(LogFile,"# incremental hash Correct, 0x%016llx == 0x%016llx\n", incrementalhash, computedhash);
+        fprintf(LogFile,"# incremental hash Correct, 0x%016llx == 0x%016llx\n", incrementalhash, computedhash);
       }
     }
     move = can2move(movesc1[done], BOARD, STM);
@@ -1539,7 +1544,7 @@ nodes for depth %d.\n", NODECOUNT, nodecounts[done], SD);
     if (LogFile)
     {
       fprinttime(LogFile);
-     fprintf(LogFile,"# Book hash NOT Correct, 0x%016llx != 0x3c8123ea7b067637\n", hash);
+      fprintf(LogFile,"# Book hash NOT Correct, 0x%016llx != 0x3c8123ea7b067637\n", hash);
     }
   }
   else
@@ -1549,7 +1554,7 @@ nodes for depth %d.\n", NODECOUNT, nodecounts[done], SD);
     if (LogFile)
     {
       fprinttime(LogFile);
-     fprintf(LogFile,"# Book hash Correct, 0x%016llx == 0x3c8123ea7b067637\n", hash);
+      fprintf(LogFile,"# Book hash Correct, 0x%016llx == 0x3c8123ea7b067637\n", hash);
     }
   }
   incrementalhash = BOARD[QBBHASH];
@@ -1560,7 +1565,7 @@ nodes for depth %d.\n", NODECOUNT, nodecounts[done], SD);
     if (LogFile)
     {
       fprinttime(LogFile);
-     fprintf(LogFile,"# incremental hash NOT Correct, 0x%016llx != 0x%016llx\n", incrementalhash, computedhash);
+      fprintf(LogFile,"# incremental hash NOT Correct, 0x%016llx != 0x%016llx\n", incrementalhash, computedhash);
     }
   }
   else
@@ -1586,7 +1591,7 @@ nodes for depth %d.\n", NODECOUNT, nodecounts[done], SD);
     if (LogFile)
     {
       fprinttime(LogFile);
-     fprintf(LogFile,"# Book hash NOT Correct, 0x%016llx != 0x5c3f9b829b279560\n", hash);
+      fprintf(LogFile,"# Book hash NOT Correct, 0x%016llx != 0x5c3f9b829b279560\n", hash);
     }
   }
   else
@@ -1596,7 +1601,7 @@ nodes for depth %d.\n", NODECOUNT, nodecounts[done], SD);
     if (LogFile)
     {
       fprinttime(LogFile);
-     fprintf(LogFile,"# Book hash Correct, 0x%016llx == 0x5c3f9b829b279560\n", hash);
+      fprintf(LogFile,"# Book hash Correct, 0x%016llx == 0x5c3f9b829b279560\n", hash);
     }
   }  
   incrementalhash = BOARD[QBBHASH];
@@ -1607,7 +1612,7 @@ nodes for depth %d.\n", NODECOUNT, nodecounts[done], SD);
     if (LogFile)
     {
       fprinttime(LogFile);
-     fprintf(LogFile,"# incremental hash NOT Correct, 0x%016llx != 0x%016llx\n", incrementalhash, computedhash);
+      fprintf(LogFile,"# incremental hash NOT Correct, 0x%016llx != 0x%016llx\n", incrementalhash, computedhash);
     }
   }
   else
@@ -1617,7 +1622,7 @@ nodes for depth %d.\n", NODECOUNT, nodecounts[done], SD);
     if (LogFile)
     {
       fprinttime(LogFile);
-     fprintf(LogFile,"# incremental hash Correct, 0x%016llx == 0x%016llx\n", incrementalhash, computedhash);
+      fprintf(LogFile,"# incremental hash Correct, 0x%016llx == 0x%016llx\n", incrementalhash, computedhash);
     }
   }
 
@@ -1959,9 +1964,18 @@ int main(int argc, char* argv[])
           move = rootsearch(BOARD,STM, SD);
 
           fprintf(stdout,"move ");
+          if (LogFile)
+          {
+            fprinttime(LogFile);
+            fprintf(LogFile,"move ");
+          }
           printmovecan(move);
           fprintf(stdout,"\n");
+          if (LogFile)
+            fprintf(LogFile,"\n");
+
           fflush(stdout);
+          fflush(LogFile);
 
           domove(BOARD, move);
 
@@ -2127,16 +2141,31 @@ int main(int argc, char* argv[])
         {
           if (STM)
           {
-            printf("result 1-0 { checkmate }\n");
+            fprintf(stdout, "result 1-0 { checkmate }\n");
+            if (LogFile)
+            {
+              fprinttime(LogFile);
+              fprintf(LogFile, "result 1-0 { checkmate }\n");
+            }
           }
           else if (!STM)
           {
-            printf("result 0-1 { checkmate }\n");
+            fprintf(stdout, "result 0-1 { checkmate }\n");
+            if (LogFile)
+            {
+              fprinttime(LogFile);
+              fprintf(LogFile, "result 0-1 { checkmate }\n");
+            }
           }
         }
         else if (!kic&&movecounter==0) 
         {
-          printf("result 1/2-1/2 { stalemate }\n");
+          fprintf(stdout, "result 1/2-1/2 { stalemate }\n");
+          if (LogFile)
+          {
+            fprinttime(LogFile);
+            fprintf(LogFile, "result 1/2-1/2 { stalemate }\n");
+          }
         }
         else 
         {
@@ -2144,9 +2173,18 @@ int main(int argc, char* argv[])
           move = rootsearch(BOARD,STM, SD);
 
           fprintf(stdout,"move ");
+          if (LogFile)
+          {
+            fprinttime(LogFile);
+            fprintf(LogFile,"move ");
+          }
           printmovecan(move);
           fprintf(stdout,"\n");
+          if (LogFile)
+            fprintf(LogFile,"\n");
+
           fflush(stdout);
+          fflush(LogFile);
 
           domove(BOARD, move);
 
@@ -2301,6 +2339,11 @@ int main(int argc, char* argv[])
       MOVECOUNT = 0;
 
       fprintf(stdout,"### doing perft depth %d: ###\n", SD);  
+      if (LogFile)
+      {
+        fprinttime(LogFile);
+        fprintf(LogFile,"### doing perft depth %d: ###\n", SD);  
+      }
 
       start = get_time();
 
@@ -2311,8 +2354,15 @@ int main(int argc, char* argv[])
 
       fprintf(stdout,"nodecount:%llu, seconds: %lf, nps: %llu \n", 
               NODECOUNT, (elapsed/1000), (u64)(NODECOUNT/(elapsed/1000)));
+      if (LogFile)
+      {
+        fprinttime(LogFile);
+        fprintf(LogFile,"nodecount:%llu, seconds: %lf, nps: %llu \n", 
+              NODECOUNT, (elapsed/1000), (u64)(NODECOUNT/(elapsed/1000)));
+      }
 
       fflush(stdout);
+      fflush(LogFile);
   
       continue;
     }

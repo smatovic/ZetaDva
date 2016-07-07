@@ -544,12 +544,21 @@ Move rootsearch(Bitboard *board, bool stm, s32 depth)
       xboard_score = (alpha<=-MATESCORE)?-100000-(INF+alpha):xboard_score;
       xboard_score = (alpha>=MATESCORE)?100000-(-INF+alpha):xboard_score;
       fprintf(stdout, "%d %d %d %llu ", idf, xboard_score, (s32)(elapsed/10), NODECOUNT);
+      if (LogFile)
+      {
+        fprinttime(LogFile);
+        fprintf(LogFile, "%d %d %d %llu ", idf, xboard_score, (s32)(elapsed/10), NODECOUNT);
+      }
       for (i=0;i<pvcount;i++)
       {
         printmovecan(pvmoves[i]);
         fprintf(stdout, " ");
+        if (LogFile)
+          fprintf(LogFile, " ");
       }
       fprintf(stdout, "\n");
+      if (LogFile)
+        fprintf(LogFile, "\n");
     }
   } while (++idf<=depth&&elapsed*2<MaxTime&&!TIMEOUT);
 
