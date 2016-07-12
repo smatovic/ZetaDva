@@ -36,6 +36,7 @@ typedef unsigned long long u64;
 /* C99 headers */
 #include <stdint.h>
 #include <stdbool.h>
+#include <inttypes.h>
 /* C99 types */
 typedef uint8_t         u8;
 typedef uint16_t        u16;

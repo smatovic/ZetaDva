@@ -543,11 +543,11 @@ Move rootsearch(Bitboard *board, bool stm, s32 depth)
       xboard_score = (s32)alpha;
       xboard_score = (alpha<=-MATESCORE)?-100000-(INF+alpha):xboard_score;
       xboard_score = (alpha>=MATESCORE)?100000-(-INF+alpha):xboard_score;
-      fprintf(stdout, "%d %d %d %llu ", idf, xboard_score, (s32)(elapsed/10), NODECOUNT);
+      fprintf(stdout, "%d %d %d %" PRIu64, idf, xboard_score, (s32)(elapsed/10), NODECOUNT);
       if (LogFile)
       {
         fprinttime(LogFile);
-        fprintf(LogFile, "%d %d %d %llu ", idf, xboard_score, (s32)(elapsed/10), NODECOUNT);
+        fprintf(LogFile, "%d %d %d %" PRIu64, idf, xboard_score, (s32)(elapsed/10), NODECOUNT);
       }
       for (i=0;i<pvcount;i++)
       {

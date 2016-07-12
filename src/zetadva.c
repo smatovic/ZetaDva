@@ -341,7 +341,7 @@ static bool inits(void)
 
   for (sq=0;sq<64;sq++)
   {
-    printf("0x%llx,", attacksb[sq]);
+    printf("0x%" PRIx64 ",", attacksb[sq]);
   }
 */
   return true;
@@ -796,13 +796,14 @@ void printbitboard(Bitboard board)
 }
 void printmove(Move move)
 {
-  fprintf(stdout,"#sqfrom:%llu\n",GETSQFROM(move));
-  fprintf(stdout,"#sqto:%llu\n",GETSQTO(move));
-  fprintf(stdout,"#sqcpt:%llu\n",GETSQCPT(move));
-  fprintf(stdout,"#pfrom:%llu\n",GETPFROM(move));
-  fprintf(stdout,"#pto:%llu\n",GETPTO(move));
-  fprintf(stdout,"#pcpt:%llu\n",GETPCPT(move));
-  fprintf(stdout,"#sqep:%llu\n",GETSQEP(move));
+
+  fprintf(stdout,"#sqfrom:%" PRIu64 "\n",GETSQFROM(move));
+  fprintf(stdout,"#sqto:%" PRIu64 "\n",GETSQTO(move));
+  fprintf(stdout,"#sqcpt:%" PRIu64 "\n",GETSQCPT(move));
+  fprintf(stdout,"#pfrom:%" PRIu64 "\n",GETPFROM(move));
+  fprintf(stdout,"#pto:%" PRIu64 "\n",GETPTO(move));
+  fprintf(stdout,"#pcpt:%" PRIu64 "\n",GETPCPT(move));
+  fprintf(stdout,"#sqep:%" PRIu64 "\n",GETSQEP(move));
   fprintf(stdout,"#hmc:%u\n",(u32)GETHMC(move));
   fprintf(stdout,"#score:%i\n",(Score)GETSCORE(move));
 }
@@ -1084,7 +1085,7 @@ static void createfen(char *fenstring, Bitboard *board, bool stm, s32 gameply)
   stringptr+=sprintf(stringptr," ");
 
   /* add halpfmove clock  */
-  stringptr+=sprintf(stringptr, "%llu",GETHMC(board[QBBLAST]));
+  stringptr+=sprintf(stringptr, "%" PRIu64 "",GETHMC(board[QBBLAST]));
   stringptr+=sprintf(stringptr, " ");
 
   stringptr+=sprintf(stringptr, "%d", ((gameply+PLY)/2));
@@ -1146,7 +1147,7 @@ static bool setboard(Bitboard *board, char *fenstring)
   }
 
   /* get data from fen string */
-	sscanf (fenstring, "%s %s %s %s %llu %llu", 
+	sscanf (fenstring, "%s %s %s %s %" PRIu64 " %" PRIu64 "", 
           position, cstm, castle, cep, &hmc, &fendepth);
 
   /* empty the board */
@@ -1431,23 +1432,23 @@ static void selftest(void)
 
     if(NODECOUNT==nodecounts[done])
     {
-      fprintf(stdout,"# Nodecount Correct, %llu nodes in %lf seconds with \
-%llu nps.\n", NODECOUNT, (elapsed/1000), (u64)(NODECOUNT/(elapsed/1000)));
+      fprintf(stdout,"# Nodecount Correct, %" PRIu64 " nodes in %lf seconds with \
+%" PRIu64 " nps.\n", NODECOUNT, (elapsed/1000), (u64)(NODECOUNT/(elapsed/1000)));
       if (LogFile)
       {
         fprinttime(LogFile);
-        fprintf(LogFile,"# Nodecount Correct, %llu nodes in %lf seconds with \
-%llu nps.\n", NODECOUNT, (elapsed/1000), (u64)(NODECOUNT/(elapsed/1000)));
+        fprintf(LogFile,"# Nodecount Correct, %" PRIu64 " nodes in %lf seconds with \
+%" PRIu64 " nps.\n", NODECOUNT, (elapsed/1000), (u64)(NODECOUNT/(elapsed/1000)));
       }
     }
     else
     {
-      fprintf(stdout,"# Nodecount NOT Correct, %llu computed nodes != %llu \
+      fprintf(stdout,"# Nodecount NOT Correct, %" PRIu64 " computed nodes != %" PRIu64 " \
 nodes for depth %d.\n", NODECOUNT, nodecounts[done], SD);
       if (LogFile)
       {
         fprinttime(LogFile);
-        fprintf(LogFile,"# Nodecount NOT Correct, %llu computed nodes != %llu \
+        fprintf(LogFile,"# Nodecount NOT Correct, %" PRIu64 " computed nodes != %" PRIu64 " \
 nodes for depth %d.\n", NODECOUNT, nodecounts[done], SD);
       }
     }
@@ -1458,8 +1459,8 @@ nodes for depth %d.\n", NODECOUNT, nodecounts[done], SD);
       if (LogFile)
       {
         fprinttime(LogFile);
-        fprintf(LogFile,"# Nodecount Correct, %llu nodes in %lf seconds \
-               with %llu nps.\n", NODECOUNT, (elapsed/1000), (u64)(NODECOUNT/(elapsed/1000)));
+        fprintf(LogFile,"# Nodecount Correct, %" PRIu64 " nodes in %lf seconds \
+               with %" PRIu64 " nps.\n", NODECOUNT, (elapsed/1000), (u64)(NODECOUNT/(elapsed/1000)));
         fprinttime(LogFile);
         fprintf(LogFile,"# IncrementaL evaluation  scores NOT Correct, \
                 %d != %d .\n", scorea, scoreb);
@@ -1484,42 +1485,42 @@ nodes for depth %d.\n", NODECOUNT, nodecounts[done], SD);
     hash = computebookhash(BOARD,STM);
     if(hash!=hashes[done])
     {
-      fprintf(stdout,"# Book hash NOT Correct, 0x%016llx != 0x%016llx\n", hash, hashes[done]);
+      fprintf(stdout,"# Book hash NOT Correct, 0x%016" PRIx64 " != 0x%016" PRIx64 "\n", hash, hashes[done]);
       if (LogFile)
       {
         fprinttime(LogFile);
-        fprintf(LogFile,"# Book hash NOT Correct, 0x%016llx != 0x%016llx\n", hash, hashes[done]);
+        fprintf(LogFile,"# Book hash NOT Correct, 0x%016" PRIx64 " != 0x%016" PRIx64 "\n", hash, hashes[done]);
       }
     }
     else
     {
       passed++;
-      fprintf(stdout,"# Book hash Correct, 0x%016llx == 0x%016llx\n", hash, hashes[done]);
+      fprintf(stdout,"# Book hash Correct, 0x%016" PRIx64 " == 0x%016" PRIx64 "\n", hash, hashes[done]);
       if (LogFile)
       {
         fprinttime(LogFile);
-        fprintf(LogFile,"# Book hash Correct, 0x%016llx == 0x%016llx\n", hash, hashes[done]);
+        fprintf(LogFile,"# Book hash Correct, 0x%016" PRIx64 " == 0x%016" PRIx64 "\n", hash, hashes[done]);
       }
     }
     incrementalhash = BOARD[QBBHASH];
     computedhash = computehash(BOARD,STM);
     if(incrementalhash!=computedhash)
     {
-      fprintf(stdout,"# incremental hash NOT Correct, 0x%016llx != 0x%016llx\n", incrementalhash, computedhash);
+      fprintf(stdout,"# incremental hash NOT Correct, 0x%016" PRIx64 " != 0x%016" PRIx64 "\n", incrementalhash, computedhash);
       if (LogFile)
       {
         fprinttime(LogFile);
-        fprintf(LogFile,"# incremental hash NOT Correct, 0x%016llx != 0x%016llx\n", incrementalhash, computedhash);
+        fprintf(LogFile,"# incremental hash NOT Correct, 0x%016" PRIx64 " != 0x%016" PRIx64 "\n", incrementalhash, computedhash);
       }
     }
     else
     {
       passed++;
-      fprintf(stdout,"# incremental hash Correct, 0x%016llx == 0x%016llx\n", incrementalhash, computedhash);
+      fprintf(stdout,"# incremental hash Correct, 0x%016" PRIx64 " == 0x%016" PRIx64 "\n", incrementalhash, computedhash);
       if (LogFile)
       {
         fprinttime(LogFile);
-        fprintf(LogFile,"# incremental hash Correct, 0x%016llx == 0x%016llx\n", incrementalhash, computedhash);
+        fprintf(LogFile,"# incremental hash Correct, 0x%016" PRIx64 " == 0x%016" PRIx64 "\n", incrementalhash, computedhash);
       }
     }
     move = can2move(movesc1[done], BOARD, STM);
@@ -1540,42 +1541,42 @@ nodes for depth %d.\n", NODECOUNT, nodecounts[done], SD);
   hash = computebookhash(BOARD,STM);
   if(hash!=0x3c8123ea7b067637)
   {
-    fprintf(stdout,"# Book hash NOT Correct, 0x%016llx != 0x3c8123ea7b067637\n", hash);
+    fprintf(stdout,"# Book hash NOT Correct, 0x%016" PRIx64 " != 0x3c8123ea7b067637\n", hash);
     if (LogFile)
     {
       fprinttime(LogFile);
-      fprintf(LogFile,"# Book hash NOT Correct, 0x%016llx != 0x3c8123ea7b067637\n", hash);
+      fprintf(LogFile,"# Book hash NOT Correct, 0x%016" PRIx64 " != 0x3c8123ea7b067637\n", hash);
     }
   }
   else
   {
     passed++;
-    fprintf(stdout,"# Book hash Correct, 0x%016llx == 0x3c8123ea7b067637\n", hash);
+    fprintf(stdout,"# Book hash Correct, 0x%016" PRIx64 " == 0x3c8123ea7b067637\n", hash);
     if (LogFile)
     {
       fprinttime(LogFile);
-      fprintf(LogFile,"# Book hash Correct, 0x%016llx == 0x3c8123ea7b067637\n", hash);
+      fprintf(LogFile,"# Book hash Correct, 0x%016" PRIx64 " == 0x3c8123ea7b067637\n", hash);
     }
   }
   incrementalhash = BOARD[QBBHASH];
   computedhash = computehash(BOARD,STM);
   if(incrementalhash!=computedhash)
   {
-    fprintf(stdout,"# incremental hash NOT Correct, 0x%016llx != 0x%016llx\n", incrementalhash, computedhash);
+    fprintf(stdout,"# incremental hash NOT Correct, 0x%016" PRIx64 " != 0x%016" PRIx64 "\n", incrementalhash, computedhash);
     if (LogFile)
     {
       fprinttime(LogFile);
-      fprintf(LogFile,"# incremental hash NOT Correct, 0x%016llx != 0x%016llx\n", incrementalhash, computedhash);
+      fprintf(LogFile,"# incremental hash NOT Correct, 0x%016" PRIx64 " != 0x%016" PRIx64 "\n", incrementalhash, computedhash);
     }
   }
   else
   {
     passed++;
-    fprintf(stdout,"# incremental hash Correct, 0x%016llx == 0x%016llx\n", incrementalhash, computedhash);
+    fprintf(stdout,"# incremental hash Correct, 0x%016" PRIx64 " == 0x%016" PRIx64 "\n", incrementalhash, computedhash);
     if (LogFile)
     {
       fprinttime(LogFile);
-     fprintf(LogFile,"# incremental hash Correct, 0x%016llx == 0x%016llx\n", incrementalhash, computedhash);
+     fprintf(LogFile,"# incremental hash Correct, 0x%016" PRIx64 " == 0x%016" PRIx64 "\n", incrementalhash, computedhash);
     }
   }  for (done=5;done<7;done++)
   {
@@ -1587,47 +1588,47 @@ nodes for depth %d.\n", NODECOUNT, nodecounts[done], SD);
   hash = computebookhash(BOARD,STM);
   if(hash!=0x5c3f9b829b279560)
   {
-    fprintf(stdout,"# Book hash NOT Correct, 0x%016llx != 0x5c3f9b829b279560\n", hash);
+    fprintf(stdout,"# Book hash NOT Correct, 0x%016" PRIx64 " != 0x5c3f9b829b279560\n", hash);
     if (LogFile)
     {
       fprinttime(LogFile);
-      fprintf(LogFile,"# Book hash NOT Correct, 0x%016llx != 0x5c3f9b829b279560\n", hash);
+      fprintf(LogFile,"# Book hash NOT Correct, 0x%016" PRIx64 " != 0x5c3f9b829b279560\n", hash);
     }
   }
   else
   {
     passed++;
-    fprintf(stdout,"# Book hash Correct, 0x%016llx == 0x5c3f9b829b279560\n", hash);
+    fprintf(stdout,"# Book hash Correct, 0x%016" PRIx64 " == 0x5c3f9b829b279560\n", hash);
     if (LogFile)
     {
       fprinttime(LogFile);
-      fprintf(LogFile,"# Book hash Correct, 0x%016llx == 0x5c3f9b829b279560\n", hash);
+      fprintf(LogFile,"# Book hash Correct, 0x%016" PRIx64 " == 0x5c3f9b829b279560\n", hash);
     }
   }  
   incrementalhash = BOARD[QBBHASH];
   computedhash = computehash(BOARD,STM);
   if(incrementalhash!=computedhash)
   {
-    fprintf(stdout,"# incremental hash NOT Correct, 0x%016llx != 0x%016llx\n", incrementalhash, computedhash);
+    fprintf(stdout,"# incremental hash NOT Correct, 0x%016" PRIx64 " != 0x%016" PRIx64 "\n", incrementalhash, computedhash);
     if (LogFile)
     {
       fprinttime(LogFile);
-      fprintf(LogFile,"# incremental hash NOT Correct, 0x%016llx != 0x%016llx\n", incrementalhash, computedhash);
+      fprintf(LogFile,"# incremental hash NOT Correct, 0x%016" PRIx64 " != 0x%016" PRIx64 "\n", incrementalhash, computedhash);
     }
   }
   else
   {
     passed++;
-    fprintf(stdout,"# incremental hash Correct, 0x%016llx == 0x%016llx\n", incrementalhash, computedhash);
+    fprintf(stdout,"# incremental hash Correct, 0x%016" PRIx64 " == 0x%016" PRIx64 "\n", incrementalhash, computedhash);
     if (LogFile)
     {
       fprinttime(LogFile);
-      fprintf(LogFile,"# incremental hash Correct, 0x%016llx == 0x%016llx\n", incrementalhash, computedhash);
+      fprintf(LogFile,"# incremental hash Correct, 0x%016" PRIx64 " == 0x%016" PRIx64 "\n", incrementalhash, computedhash);
     }
   }
 
   fprintf(stdout,"#\n###############################\n");
-  fprintf(stdout,"### passed %llu from %llu tests ###\n", passed, todo);
+  fprintf(stdout,"### passed %" PRIu64 " from %" PRIu64 " tests ###\n", passed, todo);
   fprintf(stdout,"###############################\n");
 }
 /* print engine info to console */
@@ -1985,7 +1986,7 @@ int main(int argc, char* argv[])
           if ((!xboard_mode)||xboard_debug)
           {
             printboard(BOARD);
-            fprintf(stdout,"#%llu searched nodes in %lf seconds, nps: %llu \n", NODECOUNT, elapsed/1000, (u64)(NODECOUNT/(elapsed/1000)));
+            fprintf(stdout,"#%" PRIu64 " searched nodes in %lf seconds, nps: %" PRIu64 " \n", NODECOUNT, elapsed/1000, (u64)(NODECOUNT/(elapsed/1000)));
           }
 
           PLY++;
@@ -2194,7 +2195,7 @@ int main(int argc, char* argv[])
           if (!xboard_mode||xboard_debug)
           {
             printboard(BOARD);
-            fprintf(stdout,"#%llu searched nodes in %lf seconds, nps: %llu \n", NODECOUNT, elapsed/1000, (u64)(NODECOUNT/(elapsed/1000)));
+            fprintf(stdout,"#%" PRIu64 " searched nodes in %lf seconds, nps: %" PRIu64 " \n", NODECOUNT, elapsed/1000, (u64)(NODECOUNT/(elapsed/1000)));
           }
 
           PLY++;
@@ -2352,12 +2353,12 @@ int main(int argc, char* argv[])
       end = get_time();   
       elapsed = end-start;
 
-      fprintf(stdout,"nodecount:%llu, seconds: %lf, nps: %llu \n", 
+      fprintf(stdout,"nodecount:%" PRIu64 ", seconds: %lf, nps: %" PRIu64 " \n", 
               NODECOUNT, (elapsed/1000), (u64)(NODECOUNT/(elapsed/1000)));
       if (LogFile)
       {
         fprinttime(LogFile);
-        fprintf(LogFile,"nodecount:%llu, seconds: %lf, nps: %llu \n", 
+        fprintf(LogFile,"nodecount:%" PRIu64 ", seconds: %lf, nps: %" PRIu64 " \n", 
               NODECOUNT, (elapsed/1000), (u64)(NODECOUNT/(elapsed/1000)));
       }
 
