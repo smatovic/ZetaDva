@@ -65,7 +65,7 @@ void printbitboard(Bitboard board);
 void printmove(Move move);
 void printmovecan(Move move);
 Hash computehash(Bitboard *board, bool stm);
-void save_to_tt(Hash hash, Move move, Score score, u8 flag, s32 depth);
+void save_to_tt(Hash hash, TTMove move, Score score, u8 flag, u8 depth);
 struct TTE *load_from_tt(Hash hash);
 s32 collect_pv_from_hash(Bitboard *board, Hash hash, Move *moves, s32 ply);
 void save_killer(Move move, Score score, s32 ply);

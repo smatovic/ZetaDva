@@ -46,6 +46,7 @@ typedef uint32_t        u32;
 typedef uint64_t        u64;
 /* custom typedefs */
 typedef s16             Score;
+typedef u32             TTMove;
 typedef u64             Bitboard;
 typedef u64             Hash;
 typedef u64             Cr;
@@ -126,12 +127,14 @@ typedef u64             Rank;
 #define SMHMC               0x0000FF0000000000ULL
 #define SMCRALL             0x8900000000000091ULL
 #define SMSCORE             0xFFFF000000000000ULL
+#define SMTTMOVE            0x000000003FFFFFFFULL
 /* clear masks */
 #define CMMOVE              0xFFFFFFC000000000ULL
 #define CMSQEP              0xFFFFFFF03FFFFFFFULL
 #define CMHMC               0xFFFF00FFFFFFFFFFULL
 #define CMCRALL             0x76FFFFFFFFFFFF6EULL
 #define CMSCORE             0x0000FFFFFFFFFFFFULL
+#define CMTTMOVE            0xFFFFFFFFC0000000ULL
 /* castle right masks */
 #define SMCRWHITE           0x0000000000000091ULL
 #define SMCRWHITEQ          0x0000000000000011ULL
@@ -222,10 +225,10 @@ enum Squares
 /* transposition table entry */
 struct TTE {
         Hash hash;
-        Move bestmove;
+        TTMove bestmove;
         Score score;
         u8 flag;
-        s32 depth;
+        u8 depth;
 };
 /* is score a mate in n */
 #define ISMATE(val)           ((((val)>MATESCORE&&(val)<INF)||((val)<-MATESCORE&&(val)>-INF))?true:false)

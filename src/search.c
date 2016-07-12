@@ -286,12 +286,13 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
   
   /* get tt move */
   if (tt&&tt->hash==hash&&tt->flag>FAILLOW&&JUSTMOVE(tt->bestmove)!=MOVENONE) 
-    ttmove = tt->bestmove;
+    ttmove = ((Move)tt->bestmove)|(lastmove&SMHMC);
 
   /* internal iterative deepening, get a bestmove anyway */
   if (JUSTMOVE(ttmove)==MOVENONE&&depth>5)
   {
       ttmove = iid(board, stm, -INF, INF, depth/5, ply);
+      ttmove = (ttmove&CMHMC)|(lastmove&SMHMC);
   }
 
   /* check tt move first */
@@ -314,7 +315,7 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
           Counters[GETSQFROM(lastmove)*64+GETSQTO(lastmove)] = JUSTMOVE(ttmove);
           save_killer(JUSTMOVE(ttmove), score, ply);
         }
-        save_to_tt(hash, ttmove, score, FAILHIGH, depth);
+        save_to_tt(hash, (TTMove)(ttmove&SMTTMOVE), score, FAILHIGH, depth);
         return score;
       }
 
@@ -355,7 +356,7 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
 
     if(score>=beta)
     {
-      save_to_tt(hash, moves[i], score, FAILHIGH, depth);
+      save_to_tt(hash, (TTMove)(moves[i]&SMTTMOVE), score, FAILHIGH, depth);
       return score;
     }
 
@@ -412,7 +413,7 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
     {
       Counters[GETSQFROM(lastmove)*64+GETSQTO(lastmove)] = JUSTMOVE(moves[i]);
       save_killer(JUSTMOVE(moves[i]), score, ply);
-      save_to_tt(hash, moves[i], score, FAILHIGH, depth);
+      save_to_tt(hash, (TTMove)(moves[i]&SMTTMOVE), score, FAILHIGH, depth);
       return score;
     }
 
@@ -431,7 +432,7 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
   if (!kic&&legalmovecounter==0) 
     return STALEMATESCORE;
 
-  save_to_tt(hash, bestmove, alpha, type, depth);
+  save_to_tt(hash, (TTMove)(bestmove&SMTTMOVE), alpha, type, depth);
   return alpha;
 }
 Move rootsearch(Bitboard *board, bool stm, s32 depth)
@@ -486,8 +487,10 @@ Move rootsearch(Bitboard *board, bool stm, s32 depth)
   {
     for(i=0;i<movecounter;i++)
     {
-      if (JUSTMOVE(tt->bestmove)==JUSTMOVE(moves[i]))
+      if (JUSTMOVE((Move)tt->bestmove)==JUSTMOVE(moves[i]))
+      {
         moves[i] = SETSCORE(moves[i], (Move)(INF));
+      }
     }
   }
   /* sort moves */
@@ -530,7 +533,7 @@ Move rootsearch(Bitboard *board, bool stm, s32 depth)
     if (!TIMEOUT)
     {
       rootmove = bestmove;
-      save_to_tt(hash, rootmove, alpha, EXACTSCORE, idf);
+      save_to_tt(hash, (TTMove)(rootmove&SMTTMOVE), alpha, EXACTSCORE, idf);
       /* sort moves */
       qsort(moves, movecounter, sizeof(Move), cmp_move_desc);
     }

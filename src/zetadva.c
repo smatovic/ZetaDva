@@ -207,7 +207,7 @@ static void initTT(void)
     fprintf(stdout,"Error (Counters table memory allocation failed)");
 }
 /* save entry to hash transposition table */
-void save_to_tt(Hash hash, Move move, Score score, u8 flag, s32 depth)
+void save_to_tt(Hash hash, TTMove move, Score score, u8 flag, u8 depth)
 {
   struct TTE *tete;
 
