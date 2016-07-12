@@ -1891,6 +1891,7 @@ int main(int argc, char* argv[])
           fprintf(LogFile,"Error (in setting start postition): new\n");        
         }
       }
+      SD = MAXPLY;
       initTT();
       if (!xboard_mode)
         printboard(BOARD);
