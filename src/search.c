@@ -228,11 +228,12 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
     if (HashHistory[i]==hash) 
       return DRAWSCORE;
 
- 	/* mate distance pruning */
+ 	/* mate distance pruning
   alpha = (ISMATE(alpha))?MAX((-INF+ply), alpha):alpha;
   beta  = (ISMATE(beta))?MIN(-(-INF+ply), beta):beta;
   if (alpha >= beta)
     return alpha;
+  */
 
   /* search extension, checks and pawn promo */
   if(kic||(GETPTYPE(GETPFROM(lastmove))==PAWN&&GETPTYPE(GETPTO(lastmove))==QUEEN))
