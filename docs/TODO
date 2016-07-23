@@ -1,9 +1,3 @@
-0) Known Bugs
-    - get a bestmove from rootsearch by move ordering,        TODO
-      even if search does not finish
-    - limit qsearch and search by MAXPLY                      TODO
-    - limit movegen to MAXMOVES                               TODO
-
 A) Root-Structure
     - basic Xboard protocol                             DONE
     - setboard with FEN                                 DONE

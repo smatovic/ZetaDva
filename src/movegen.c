@@ -155,6 +155,8 @@ int genmoves_promo(Bitboard *board, Move *moves, int movecounter, bool stm)
       {
         moves[movecounter] = move;
         movecounter++;
+        if (movecounter>=MAXMOVES)
+          return movecounter;
       }
       /* undomove */
       /* unset square capture, square to */
@@ -180,12 +182,16 @@ int genmoves_promo(Bitboard *board, Move *moves, int movecounter, bool stm)
       move = (pto==PNONE)?MOVENONE:MAKEMOVE(sqfrom, sqto, sqcpt, pfrom, pto, pcpt, 0, (u64)GETHMC(lastmove), (u64)score);
       moves[movecounter] = move;
       movecounter+=(pto==PNONE)?0:1;
+      if (movecounter>=MAXMOVES)
+        return movecounter;
 
       pto = (!kic)?MAKEPIECE(BISHOP, GETCOLOR(pfrom)):PNONE;
       score = (pcpt==PNONE)? (evalmove (pto, sqto)-evalmove(pfrom, sqfrom)):(EvalPieceValues[GETPTYPE(pcpt)]*16-EvalPieceValues[GETPTYPE(pto)]);
       move = (pto==PNONE)?MOVENONE:MAKEMOVE(sqfrom, sqto, sqcpt, pfrom, pto, pcpt, 0, (u64)GETHMC(lastmove), (u64)score);
       moves[movecounter] = move;
       movecounter+=(pto==PNONE)?0:1;
+      if (movecounter>=MAXMOVES)
+        return movecounter;
 
       pto = (!kic)?MAKEPIECE(ROOK, GETCOLOR(pfrom)):PNONE;
       score = (pcpt==PNONE)? (evalmove (pto, sqto)-evalmove(pfrom, sqfrom)):(EvalPieceValues[GETPTYPE(pcpt)]*16-EvalPieceValues[GETPTYPE(pto)]);
@@ -238,6 +244,8 @@ int genmoves_castles(Bitboard *board, Move *moves, int movecounter, bool stm)
   /* store move */
   moves[movecounter] = move;
   movecounter+=(bbTempA&&!bbTempB&&!bbTempC)?1:0;
+  if (movecounter>=MAXMOVES)
+    return movecounter;
 
   /* get castle rights kingside */
   bbTempA = (stm)?(((~board[QBBPMVD])&SMCRBLACKK)==SMCRBLACKK)?true:false:(((~board[QBBPMVD])&SMCRWHITEK)==SMCRWHITEK)?true:false;
@@ -306,6 +314,8 @@ int genmoves_enpassant(Bitboard *board, Move *moves, int movecounter, bool stm)
   undomovequick(board, move);
   moves[movecounter] = move;
   movecounter+=(sqfrom&&!kic)?1:0;
+  if (movecounter>=MAXMOVES)
+    return movecounter;
 
   /* check for second en passant pawn */
   sqfrom  = (bbTempA)?popfirst1(&bbTempA):0x0;
@@ -443,6 +453,8 @@ int genmoves_captures(Bitboard *board, Move *moves, int movecounter, bool stm)
       {
         moves[movecounter] = move;
         movecounter++;
+        if (movecounter>=MAXMOVES)
+          return movecounter;
       }
       /* undomove */
       /* unset square capture, square to */
@@ -600,6 +612,8 @@ int genmoves_noncaptures(Bitboard *board, Move *moves, int movecounter, bool stm
       {
         moves[movecounter] = move;
         movecounter++;
+        if (movecounter>=MAXMOVES)
+          return movecounter;
       }
       /* undomove */
       /* unset ssquare to */
@@ -742,6 +756,8 @@ int genmoves_general(Bitboard *board, Move *moves, int movecounter, bool stm, bo
       {
         moves[movecounter] = move;
         movecounter++;
+        if (movecounter>=MAXMOVES)
+          return movecounter;
       }
       /* undomove */
       /* unset square capture, square to */
@@ -770,6 +786,8 @@ int genmoves_general(Bitboard *board, Move *moves, int movecounter, bool stm, bo
       move = (pto==PNONE)?MOVENONE:MAKEMOVE(sqfrom, sqto, sqcpt, pfrom, pto, pcpt, 0, (u64)GETHMC(lastmove), (u64)score);
       moves[movecounter] = move;
       movecounter+=(pto==PNONE)?0:1;
+      if (movecounter>=MAXMOVES)
+        return movecounter;
 
       /* handle pawn promo: rook */
       pto = (!kic&&GETPTYPE(pfrom)==PAWN&&GETRRANK(sqto,stm)==RANK_8)?MAKEPIECE(ROOK, GETCOLOR(pfrom)):PNONE;
@@ -779,6 +797,8 @@ int genmoves_general(Bitboard *board, Move *moves, int movecounter, bool stm, bo
       move = (pto==PNONE)?MOVENONE:MAKEMOVE(sqfrom, sqto, sqcpt, pfrom, pto, pcpt, 0, (u64)GETHMC(lastmove), (u64)score);
       moves[movecounter] = move;
       movecounter+=(pto==PNONE)?0:1;
+      if (movecounter>=MAXMOVES)
+        return movecounter;
 
       /* handle pawn promo: queen */
       pto = (!kic&&GETPTYPE(pfrom)==PAWN&&GETRRANK(sqto,stm)==RANK_8)?MAKEPIECE(QUEEN, GETCOLOR(pfrom)):PNONE;
@@ -788,6 +808,8 @@ int genmoves_general(Bitboard *board, Move *moves, int movecounter, bool stm, bo
       move = (pto==PNONE)?MOVENONE:MAKEMOVE(sqfrom, sqto, sqcpt, pfrom, pto, pcpt, 0, (u64)GETHMC(lastmove), (u64)score);
       moves[movecounter] = move;
       movecounter+=(pto==PNONE)?0:1;
+      if (movecounter>=MAXMOVES)
+        return movecounter;
     }
   }
 
@@ -813,6 +835,8 @@ int genmoves_general(Bitboard *board, Move *moves, int movecounter, bool stm, bo
   undomovequick(board, move);
   moves[movecounter] = move;
   movecounter+=(sqfrom&&!kic)?1:0;
+  if (movecounter>=MAXMOVES)
+    return movecounter;
 
   /* check for second en passant pawn */
   sqfrom  = (bbTemp)?popfirst1(&bbTemp):0x0;
@@ -826,6 +850,8 @@ int genmoves_general(Bitboard *board, Move *moves, int movecounter, bool stm, bo
   undomovequick(board, move);
   moves[movecounter] = move;
   movecounter+=(sqfrom&&!kic)?1:0;
+  if (movecounter>=MAXMOVES)
+    return movecounter;
 
   /* gen castle moves */
   /* get king square */
@@ -845,6 +871,8 @@ int genmoves_general(Bitboard *board, Move *moves, int movecounter, bool stm, bo
   /* store move */
   moves[movecounter] = move;
   movecounter+=(bbTemp&&!bbPro&&!bbGen)?1:0;
+  if (movecounter>=MAXMOVES)
+    return movecounter;
 
   /* get castle rights kingside */
   bbTemp  = (stm)?(((~board[QBBPMVD])&SMCRBLACKK)==SMCRBLACKK)?true:false:(((~board[QBBPMVD])&SMCRWHITEK)==SMCRWHITEK)?true:false;

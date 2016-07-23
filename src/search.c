@@ -93,6 +93,12 @@ Score qsearch(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
     return 0;
   }
   */
+  /* check internal ply limit */
+  if (ply>=MAXPLY)
+  {
+    TIMEOUT=true;
+    return 0;
+  }
 
   NODECOUNT++;
 
@@ -212,6 +218,12 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
   end = get_time();
   elapsed = end-start;
   if (elapsed>=MaxTime-TIMESPARE)
+  {
+    TIMEOUT=true;
+    return 0;
+  }
+  /* check internal ply limit */
+  if (ply>=MAXPLY)
   {
     TIMEOUT=true;
     return 0;
@@ -494,8 +506,12 @@ Move rootsearch(Bitboard *board, bool stm, s32 depth)
       }
     }
   }
+
   /* sort moves */
   qsort(moves, movecounter, sizeof(Move), cmp_move_desc);
+
+  /* get a rootmove anyway*/
+  rootmove = moves[0];
 
   /* gui output */
   if (!xboard_mode)

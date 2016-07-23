@@ -58,7 +58,7 @@ typedef u64             Move;
 typedef u64             File;
 typedef u64             Rank;
 
-#define VERSION         "0301"
+#define VERSION         "0302"
 /* quad bitboard array index definition */
 #define QBBBLACK  0     /* pieces white */
 #define QBBP1     1     /* piece type first bit */
