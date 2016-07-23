@@ -84,7 +84,7 @@ Score qsearch(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
   Hash hash = board[QBBHASH];
   Move moves[MAXMOVES];
 
-  /* time out?
+  /* time out? */
   end = get_time();
   elapsed = end-start;
   if (elapsed>=MaxTime-TIMESPARE)
@@ -92,7 +92,6 @@ Score qsearch(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
     TIMEOUT=true;
     return 0;
   }
-  */
   /* check internal ply limit */
   if (ply>=MAXPLY)
   {
