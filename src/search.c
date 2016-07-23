@@ -3,7 +3,7 @@
   Description:  Amateur level chess engine
   Author:       Srdja Matovic <s.matovic@app26.de>
   Created at:   2011-01-15
-  Updated at:   2016-07-13
+  Updated at:   2016-07-23
   License:      GPL >= v2
 
   Copyright (C) 2011-2016 Srdja Matovic
