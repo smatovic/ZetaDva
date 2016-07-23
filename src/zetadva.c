@@ -1945,6 +1945,17 @@ int main(int argc, char* argv[])
         kic = kingincheck(BOARD, STM);
         movecounter = genmoves(BOARD, moves, movecounter, STM, false, 0);
         /* print checkmate and stalemate result */
+        if (PLY>=MAXGAMEPLY)
+        {
+          if (STM)
+          {
+            printf("result 1-0 { resign }\n");
+          }
+          else if (!STM)
+          {
+            printf("result 0-1 { resign }\n");
+          }
+        }
         if (kic&&movecounter==0)
         {
           if (STM)
@@ -2139,6 +2150,17 @@ int main(int argc, char* argv[])
         kic = kingincheck(BOARD, STM);
         movecounter = genmoves(BOARD, moves, movecounter, STM, false, 0);
         /* print checkmate and stalemate result */
+        if (PLY>=MAXGAMEPLY)
+        {
+          if (STM)
+          {
+            printf("result 1-0 { resign }\n");
+          }
+          else if (!STM)
+          {
+            printf("result 0-1 { resign }\n");
+          }
+        }
         if (kic&&movecounter==0)
         {
           if (STM)
