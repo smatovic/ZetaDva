@@ -1,3 +1,8 @@
+ZetaDva (0302) alpha; urgency=low
+
+  * added internal ply and move bounds
+  * get a move by move ordering anyway, even if search does not finish
+
 ZetaDva (0301) alpha; urgency=low
 
   * mainly code cleanup and fixes
