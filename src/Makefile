@@ -8,7 +8,7 @@ CFLAGS=-Wall -Wextra -std=c99 -O3 --static
 TARGETS=zetadva
 
 zetadva: 
-	$(CC) $(CFLAGS) -o zetadva0301.bin bitboard.c book.c eval.c movegen.c search.c timer.c zetadva.c
+	$(CC) $(CFLAGS) -o zetadva0302.bin bitboard.c book.c eval.c movegen.c search.c timer.c zetadva.c
 
 clean:
 	rm -f ${TARGETS}
