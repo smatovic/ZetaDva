@@ -78,6 +78,7 @@ Score qsearch(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
   Score score;
   Score boardscore = (Score)board[QBBSCORE];
   s32 i = 0;
+  s32 movecounternoncap = 0;
   s32 movecounter = 0;
   Cr cr = board[QBBPMVD];
   Move lastmove = board[QBBLAST];
@@ -114,9 +115,9 @@ Score qsearch(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
 
   if (kic)
   {
-    movecounter = genmoves_noncaptures(board, moves, 0, stm, ply);
+    movecounternoncap = genmoves_noncaptures(board, moves, 0, stm, ply);
     if (cr&SMCRALL)
-      movecounter = genmoves_castles(board, moves, movecounter, stm);
+      movecounternoncap = genmoves_castles(board, moves, movecounternoncap, stm);
   }
 
   movecounter = genmoves_promo(board, moves, 0, stm);
@@ -125,7 +126,7 @@ Score qsearch(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
     movecounter = genmoves_enpassant(board, moves, movecounter, stm);
 
   /* checkmate */
-  if (kic&&movecounter==0)
+  if (kic&&movecounter==0&&movecounternoncap==0)
     return -INF+ply;
   /* quiet leaf node, return  evaluation board score */
   if (!kic&&movecounter==0)
