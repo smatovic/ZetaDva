@@ -113,23 +113,13 @@ Score qsearch(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
   if(!kic&&score>alpha)
       alpha = score;
 
-  if (kic)
-  {
-    movecounternoncap = genmoves_noncaptures(board, moves, 0, stm, ply);
-    if (cr&SMCRALL)
-      movecounternoncap = genmoves_castles(board, moves, movecounternoncap, stm);
-  }
-
   movecounter = genmoves_promo(board, moves, 0, stm);
   movecounter = genmoves_captures(board, moves, movecounter, stm);
   if(GETSQEP(lastmove))
     movecounter = genmoves_enpassant(board, moves, movecounter, stm);
 
-  /* checkmate */
-  if (kic&&movecounter==0&&movecounternoncap==0)
-    return -INF+ply;
   /* quiet leaf node, return  evaluation board score */
-  if (!kic&&movecounter==0)
+  if (movecounter==0)
     return score;
 
   /* sort moves */
