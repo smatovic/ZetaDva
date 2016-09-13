@@ -104,7 +104,7 @@ void printbitboard(Bitboard board);
 /* transposition hash table */
 struct TTE *TT = NULL;
 u64 ttbits = 0;
-
+/* rotate left based zobrist hashing */
 const Hash Zobrist[17]=
 {
   0x9D39247E33776D41, 0x2AF7398005AAA5C7, 0x44DB015024623547, 0x9C15F73E62A76AE2,
