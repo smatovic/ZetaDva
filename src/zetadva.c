@@ -105,6 +105,15 @@ void printbitboard(Bitboard board);
 struct TTE *TT = NULL;
 u64 ttbits = 0;
 
+const Hash Zobrist[17]=
+{
+  0x9D39247E33776D41, 0x2AF7398005AAA5C7, 0x44DB015024623547, 0x9C15F73E62A76AE2,
+  0x75834465489C0C89, 0x3290AC3A203001BF, 0x0FBBAD1F61042279, 0xE83A908FF2FB60CA,
+  0x0D7E765D58755C10, 0x1A083822CEAFE02D, 0x9605D5F0E25EC3B0, 0xD021FF5CD13A2ED5,
+  0x40BDF15D4A672E32, 0x011355146FD56395, 0x5DB4832046F3D9E5, 0x239F8B2D7FF719CC,
+  0x05D1A1AE85B49AA1
+};
+
 /* release memory, files and tables */
 static bool release_inits(void)
 {
@@ -143,7 +152,8 @@ Hash computehash(Bitboard *board, bool stm)
   Piece piece;
   Bitboard bbWork;
   Square sq;
-  u64 hash = HASHNONE;
+  Hash hash = HASHNONE;
+  Hash zobrist;
   u8 side;
 
   /* for each color */
@@ -156,27 +166,12 @@ Hash computehash(Bitboard *board, bool stm)
       sq    = popfirst1(&bbWork);
       piece = GETPIECE(board,sq);
       piece = GETPTYPE(piece)-1;
-      hash ^= Random64[side*6*64+piece*64+sq];
+      zobrist = Zobrist[piece];
+      hash ^= ((zobrist<<sq)|(zobrist>>(64-sq)));; // rotate left 64
     }
   }
-  /* castle rights */
-  if (((~board[QBBPMVD])&SMCRWHITEK)==SMCRWHITEK)
-      hash ^= RandomCastle[0];
-  if (((~board[QBBPMVD])&SMCRWHITEQ)==SMCRWHITEQ)
-      hash ^= RandomCastle[1];
-  if (((~board[QBBPMVD])&SMCRBLACKK)==SMCRBLACKK)
-      hash ^= RandomCastle[2];
-  if (((~board[QBBPMVD])&SMCRBLACKQ)==SMCRBLACKQ)
-      hash ^= RandomCastle[3];
-
-  /* en passant */
-  sq  = GETSQEP(board[QBBLAST]); 
-  if (sq)
-    hash ^= RandomEnPassant[GETFILE(sq)]; 
-
-  /* side to move */
   if (!stm)
-      hash^=RandomTurn[0];
+    hash ^= Zobrist[16];
 
   return hash;
 }
@@ -443,6 +438,7 @@ void domove(Bitboard *board, Move move)
   Bitboard bbTemp = BBEMPTY;
   Piece pcastle   = PNONE;
   u64 hmc         = GETHMC(board[QBBLAST]);
+  Hash zobrist;
 
   /* check for edges */
   if (move==MOVENONE)
@@ -451,21 +447,6 @@ void domove(Bitboard *board, Move move)
   /* increase half move clock */
   hmc++;
 
-  /* do hash increment , clear old */
-  /* castle rights */
-  if(((~board[QBBPMVD])&SMCRWHITEK)==SMCRWHITEK)
-    board[QBBHASH] ^= RandomCastle[0];
-  if(((~board[QBBPMVD])&SMCRWHITEQ)==SMCRWHITEQ)
-    board[QBBHASH] ^= RandomCastle[1];
-  if(((~board[QBBPMVD])&SMCRBLACKK)==SMCRBLACKK)
-    board[QBBHASH] ^= RandomCastle[2];
-  if(((~board[QBBPMVD])&SMCRBLACKQ)==SMCRBLACKQ)
-    board[QBBHASH] ^= RandomCastle[3];
-  /* file en passant */
-  if (GETSQEP(board[QBBLAST]))
-    board[QBBHASH] ^= RandomEnPassant[GETFILE(GETSQEP(board[QBBLAST]))]; 
-  if (GETCOLOR(pfrom)==WHITE)
-      board[QBBHASH] ^=RandomTurn[0];
 
   /* unset square from, square capture and square to */
   bbTemp = CLRMASKBB(sqfrom)&CLRMASKBB(sqcpt)&CLRMASKBB(sqto);
@@ -506,9 +487,10 @@ void domove(Bitboard *board, Move move)
   score-= (pcastle==PNONE)?0:evalmove(pcastle, sqfrom-4);
   score+= (pcastle==PNONE)?0:evalmove(pcastle, sqto+1);
   /* do hash increment, clear old rook */
-  board[QBBHASH] ^= (pcastle)?Random64[GETCOLOR(pfrom)*6*64+(ROOK-1)*64+sqfrom-4]:BBEMPTY;
+  zobrist = Zobrist[ROOK-1];
+  board[QBBHASH] ^= (pcastle)?((zobrist<<(sqfrom-4))|(zobrist>>(64-(sqfrom-4)))):BBEMPTY;
   /* do hash increment, set new rook */
-  board[QBBHASH] ^= (pcastle)?Random64[GETCOLOR(pfrom)*6*64+(ROOK-1)*64+sqto+1]:BBEMPTY;
+  board[QBBHASH] ^= (pcastle)?((zobrist<<(sqto+1))|(zobrist>>(64-(sqto+1)))):BBEMPTY;
 
   /* handle castle rook, kingside */
   pcastle = (move&MOVEISCRK)?MAKEPIECE(ROOK,GETCOLOR(pfrom)):PNONE;
@@ -531,9 +513,9 @@ void domove(Bitboard *board, Move move)
   score-= (pcastle==PNONE)?0:evalmove(pcastle, sqfrom+3);
   score+= (pcastle==PNONE)?0:evalmove(pcastle, sqto-1);
   /* do hash increment, clear old rook */
-  board[QBBHASH] ^= (pcastle)?Random64[GETCOLOR(pfrom)*6*64+(ROOK-1)*64+sqfrom+3]:BBEMPTY;
+  board[QBBHASH] ^= (pcastle)?((zobrist<<(sqfrom+3))|(zobrist>>(64-(sqfrom+3)))):BBEMPTY;
   /* do hash increment, set new rook */
-  board[QBBHASH] ^= (pcastle)?Random64[GETCOLOR(pfrom)*6*64+(ROOK-1)*64+sqto-1]:BBEMPTY;
+  board[QBBHASH] ^= (pcastle)?((zobrist<<(sqto-1))|(zobrist>>(64-(sqto-1)))):BBEMPTY;
 
   /* handle halfmove clock */
   hmc = (GETPTYPE(pfrom)==PAWN)?0:hmc;   /* pawn move */
@@ -550,27 +532,16 @@ void domove(Bitboard *board, Move move)
   board[QBBSCORE] = (u64)boardscore;
 
   /* do hash increment, clear piece from */
-  board[QBBHASH] ^= Random64[GETCOLOR(pfrom)*6*64+(GETPTYPE(pfrom)-1)*64+sqfrom];
+  zobrist = Zobrist[GETPTYPE(pfrom)-1];
+  board[QBBHASH] ^= ((zobrist<<(sqfrom))|(zobrist>>(64-(sqfrom))));
   /* do hash increment, set piece to */
-  board[QBBHASH] ^= Random64[GETCOLOR(pfrom)*6*64+(GETPTYPE(pto)-1)*64+sqto];
+  zobrist = Zobrist[GETPTYPE(pto)-1];
+  board[QBBHASH] ^= ((zobrist<<(sqto))|(zobrist>>(64-(sqto))));
   /* do hash increment, clear piece capture */
-  board[QBBHASH] ^= (pcpt)?Random64[GETCOLOR(pcpt)*6*64+(GETPTYPE(pcpt)-1)*64+sqcpt]:BBEMPTY;
-
-  /* do hash increment , set new */
-  /* castle rights */
-  if(((~board[QBBPMVD])&SMCRWHITEK)==SMCRWHITEK)
-    board[QBBHASH] ^= RandomCastle[0];
-  if(((~board[QBBPMVD])&SMCRWHITEQ)==SMCRWHITEQ)
-    board[QBBHASH] ^= RandomCastle[1];
-  if(((~board[QBBPMVD])&SMCRBLACKK)==SMCRBLACKK)
-    board[QBBHASH] ^= RandomCastle[2];
-  if(((~board[QBBPMVD])&SMCRBLACKQ)==SMCRBLACKQ)
-    board[QBBHASH] ^= RandomCastle[3];
-  /* file en passant */
-  if (GETSQEP(move))
-    board[QBBHASH] ^= RandomEnPassant[GETFILE(GETSQEP(move))]; 
-  if (!GETCOLOR(pfrom)==WHITE)
-      board[QBBHASH] ^=RandomTurn[0];
+  zobrist = Zobrist[GETPTYPE(pcpt)-1];
+  board[QBBHASH] ^= (pcpt)?((zobrist<<(sqcpt))|(zobrist>>(64-(sqcpt)))):BBEMPTY;
+  /* color flipping */
+  board[QBBHASH] ^= Zobrist[16];
 
   /* store hmc  */  
   move = SETHMC(move, hmc);
