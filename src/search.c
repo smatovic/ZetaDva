@@ -78,7 +78,6 @@ Score qsearch(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
   Score score;
   Score boardscore = (Score)board[QBBSCORE];
   s32 i = 0;
-  s32 movecounternoncap = 0;
   s32 movecounter = 0;
   Cr cr = board[QBBPMVD];
   Move lastmove = board[QBBLAST];
