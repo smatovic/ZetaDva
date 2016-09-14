@@ -165,8 +165,7 @@ Hash computehash(Bitboard *board, bool stm)
     {
       sq    = popfirst1(&bbWork);
       piece = GETPIECE(board,sq);
-      piece = GETPTYPE(piece)-1;
-      zobrist = Zobrist[piece];
+      zobrist = Zobrist[piece-1];
       hash ^= ((zobrist<<sq)|(zobrist>>(64-sq)));; // rotate left 64
     }
   }

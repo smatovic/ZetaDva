@@ -89,6 +89,7 @@ typedef u64             Rank;
 #define MAXGAMEPLY  1024    /* max ply a game can reach */
 #define MAXMOVES    256     /* max amount of legal moves per position */
 #define TIMESPARE   100     /* 100 milliseconds spare */
+#define MAXEVASIONS 4       /* max check evaions from qsearch */
 /* colors */
 #define BLACK               1
 #define WHITE               0
@@ -182,7 +183,7 @@ typedef u64             Rank;
                            |  (((board[3]>>(sq))&0x1)<<3) \
                              )
 #define GETPIECETYPE(board,sq) ( \
-                           |  (((board[1]>>(sq))&0x1)) \
+                              (((board[1]>>(sq))&0x1)) \
                            |  (((board[2]>>(sq))&0x1)<<1) \
                            |  (((board[3]>>(sq))&0x1)<<2) \
                              )
