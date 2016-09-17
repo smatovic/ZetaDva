@@ -123,6 +123,7 @@ Score qsearch(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
 
   /* sort moves */
   qsort(moves, movecounter, sizeof(Move), cmp_move_desc);
+
   /* iterate through moves */
   for (i=0;i<movecounter;i++)
   {
