@@ -1,6 +1,7 @@
 ZetaDva (0303) alpha; urgency=low
 
-  * fix in qsearch
+  * fix in qsearch, no check evasions
+  * removed second TT hash bucket
 
  -- Srdja Matovic <s.matovic@app26.de>  Tue, 13 Sep 2016 14:56:01 +0200
 
