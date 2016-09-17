@@ -71,7 +71,7 @@ Score perft(Bitboard *board, bool stm, s32 depth)
   }
   return 0;
 }
-/* quiscence search with evasions when king in check */
+/* quiscence search */
 Score qsearch(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32 ply)
 {
   bool kic = false;
@@ -112,23 +112,10 @@ Score qsearch(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
   if(!kic&&score>alpha)
       alpha = score;
 
-  /* check evasions */
-  if (kic&&depth>-MAXEVASIONS)
-  {
-    movecounter = genmoves_captures(board, moves, movecounter, stm);
-    if(GETSQEP(lastmove))
-      movecounter = genmoves_enpassant(board, moves, movecounter, stm);
-  }
-
   movecounter = genmoves_promo(board, moves, movecounter, stm);
   movecounter = genmoves_captures(board, moves, movecounter, stm);
   if(GETSQEP(lastmove))
     movecounter = genmoves_enpassant(board, moves, movecounter, stm);
-
-  /* checkmate */
-  if (kic&&movecounter==0&&depth>-MAXEVASIONS)
-    return -INF+ply;
-
 
   /* quiet leaf node, return evaluation board score */
   if (movecounter==0)

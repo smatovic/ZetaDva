@@ -89,7 +89,6 @@ typedef u64             Rank;
 #define MAXGAMEPLY  1024    /* max ply a game can reach */
 #define MAXMOVES    256     /* max amount of legal moves per position */
 #define TIMESPARE   100     /* 100 milliseconds spare */
-#define MAXEVASIONS 4       /* max check evaions from qsearch */
 /* colors */
 #define BLACK               1
 #define WHITE               0
