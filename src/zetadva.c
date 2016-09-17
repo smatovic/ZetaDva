@@ -210,23 +210,13 @@ void save_to_tt(Hash hash, TTMove move, Score score, u8 flag, u8 depth)
     return;
 
   /* bucket one, always replace */
-  tete = &TT[(hash&(ttbits-1))^0];
+  tete = &TT[hash&(ttbits-1)];
   tete->hash      = hash;
   tete->bestmove  = move;
   tete->score     = score;
   tete->flag      = flag;
   tete->depth     = depth;
 
-  /* bucket two, depth based */
-  tete = &TT[(hash&(ttbits-1))^1];
-  if (depth>tete->depth)
-  {
-    tete->hash      = hash;
-    tete->bestmove  = move;
-    tete->score     = score;
-    tete->flag      = flag;
-    tete->depth     = depth;
-  }
 }
 /* load entry from via zobrist hash from transposition table */
 struct TTE *load_from_tt(Hash hash)
@@ -236,10 +226,6 @@ struct TTE *load_from_tt(Hash hash)
   /* exit when no hash table */
   if (!TT)
     return NULL;
-
-  tete = &TT[(hash&(ttbits-1))^1];
-  if (tete->hash==hash)
-    return tete;
 
   tete = &TT[(hash&(ttbits-1))^0];
   if (tete->hash==hash)
