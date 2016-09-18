@@ -137,44 +137,17 @@ int genmoves_promo(Bitboard *board, Move *moves, int movecounter, bool stm)
       move = MAKEMOVE(sqfrom, sqto, sqcpt, pfrom, pto, pcpt, 0, (u64)GETHMC(lastmove), (u64)score);
 
       /* legal moves only */
-      /* domove */
-      /* unset square from, square capture and square to */
-      bbTemp = CLRMASKBB(sqfrom)&CLRMASKBB(sqcpt)&CLRMASKBB(sqto);
-      board[QBBBLACK] &= bbTemp;
-      board[QBBP1]    &= bbTemp;
-      board[QBBP2]    &= bbTemp;
-      board[QBBP3]    &= bbTemp;
-      /* set piece to */
-      board[QBBBLACK] |= (pto&0x1)<<sqto;
-      board[QBBP1]    |= ((pto>>1)&0x1)<<sqto;
-      board[QBBP2]    |= ((pto>>2)&0x1)<<sqto;
-      board[QBBP3]    |= ((pto>>3)&0x1)<<sqto;
+      domovequick(board, move);
       /* king in check? */
       kic = kingincheck(board, stm);
       if (!kic)
       {
         moves[movecounter] = move;
         movecounter++;
-        if (movecounter>=MAXMOVES)
-          return movecounter;
       }
-      /* undomove */
-      /* unset square capture, square to */
-      bbTemp = CLRMASKBB(sqcpt)&CLRMASKBB(sqto);
-      board[QBBBLACK] &= bbTemp;
-      board[QBBP1]    &= bbTemp;
-      board[QBBP2]    &= bbTemp;
-      board[QBBP3]    &= bbTemp;
-      /* restore piece capture */
-      board[QBBBLACK] |= (pcpt&0x1)<<sqcpt;
-      board[QBBP1]    |= ((pcpt>>1)&0x1)<<sqcpt;
-      board[QBBP2]    |= ((pcpt>>2)&0x1)<<sqcpt;
-      board[QBBP3]    |= ((pcpt>>3)&0x1)<<sqcpt;
-      /* restore piece from */
-      board[QBBBLACK] |= (pfrom&0x1)<<sqfrom;
-      board[QBBP1]    |= ((pfrom>>1)&0x1)<<sqfrom;
-      board[QBBP2]    |= ((pfrom>>2)&0x1)<<sqfrom;
-      board[QBBP3]    |= ((pfrom>>3)&0x1)<<sqfrom;
+      undomovequick(board, move);
+      if (movecounter>=MAXMOVES)
+        return movecounter;
 
       /* queen promo only
       pto = (!kic)?MAKEPIECE(KNIGHT, GETCOLOR(pfrom)):PNONE;
@@ -435,44 +408,18 @@ int genmoves_captures(Bitboard *board, Move *moves, int movecounter, bool stm)
       move = MAKEMOVE(sqfrom, sqto, sqcpt, pfrom, pto, pcpt, 0, (u64)GETHMC(lastmove), (u64)score);
 
       /* legal moves only */
-      /* domove */
-      /* unset square from, square capture and square to */
-      bbTemp = CLRMASKBB(sqfrom)&CLRMASKBB(sqcpt)&CLRMASKBB(sqto);
-      board[QBBBLACK] &= bbTemp;
-      board[QBBP1]    &= bbTemp;
-      board[QBBP2]    &= bbTemp;
-      board[QBBP3]    &= bbTemp;
-      /* set piece to */
-      board[QBBBLACK] |= (pto&0x1)<<sqto;
-      board[QBBP1]    |= ((pto>>1)&0x1)<<sqto;
-      board[QBBP2]    |= ((pto>>2)&0x1)<<sqto;
-      board[QBBP3]    |= ((pto>>3)&0x1)<<sqto;
+      domovequick(board, move);
       /* king in check? */
       kic = kingincheck(board, stm);
       if (!kic)
       {
         moves[movecounter] = move;
         movecounter++;
-        if (movecounter>=MAXMOVES)
-          return movecounter;
       }
-      /* undomove */
-      /* unset square capture, square to */
-      bbTemp = CLRMASKBB(sqcpt)&CLRMASKBB(sqto);
-      board[QBBBLACK] &= bbTemp;
-      board[QBBP1]    &= bbTemp;
-      board[QBBP2]    &= bbTemp;
-      board[QBBP3]    &= bbTemp;
-      /* restore piece capture */
-      board[QBBBLACK] |= (pcpt&0x1)<<sqcpt;
-      board[QBBP1]    |= ((pcpt>>1)&0x1)<<sqcpt;
-      board[QBBP2]    |= ((pcpt>>2)&0x1)<<sqcpt;
-      board[QBBP3]    |= ((pcpt>>3)&0x1)<<sqcpt;
-      /* restore piece from */
-      board[QBBBLACK] |= (pfrom&0x1)<<sqfrom;
-      board[QBBP1]    |= ((pfrom>>1)&0x1)<<sqfrom;
-      board[QBBP2]    |= ((pfrom>>2)&0x1)<<sqfrom;
-      board[QBBP3]    |= ((pfrom>>3)&0x1)<<sqfrom;    }
+      undomovequick(board, move);
+      if (movecounter>=MAXMOVES)
+        return movecounter;
+    }
   }
   return movecounter;
 }
@@ -594,39 +541,18 @@ int genmoves_noncaptures(Bitboard *board, Move *moves, int movecounter, bool stm
       move = SETSCORE(move,(Move)score);
 
       /* legal moves only */
-      /* domove */
-      /* unset square from, square capture and square to */
-      bbTemp = CLRMASKBB(sqfrom)&CLRMASKBB(sqto);
-      board[QBBBLACK] &= bbTemp;
-      board[QBBP1]    &= bbTemp;
-      board[QBBP2]    &= bbTemp;
-      board[QBBP3]    &= bbTemp;
-      /* set piece to */
-      board[QBBBLACK] |= (pto&0x1)<<sqto;
-      board[QBBP1]    |= ((pto>>1)&0x1)<<sqto;
-      board[QBBP2]    |= ((pto>>2)&0x1)<<sqto;
-      board[QBBP3]    |= ((pto>>3)&0x1)<<sqto;
+      domovequick(board, move);
       /* king in check? */
       kic = kingincheck(board, stm);
       if (!kic)
       {
         moves[movecounter] = move;
         movecounter++;
-        if (movecounter>=MAXMOVES)
-          return movecounter;
       }
-      /* undomove */
-      /* unset ssquare to */
-      bbTemp = CLRMASKBB(sqto);
-      board[QBBBLACK] &= bbTemp;
-      board[QBBP1]    &= bbTemp;
-      board[QBBP2]    &= bbTemp;
-      board[QBBP3]    &= bbTemp;
-      /* restore piece from */
-      board[QBBBLACK] |= (pfrom&0x1)<<sqfrom;
-      board[QBBP1]    |= ((pfrom>>1)&0x1)<<sqfrom;
-      board[QBBP2]    |= ((pfrom>>2)&0x1)<<sqfrom;
-      board[QBBP3]    |= ((pfrom>>3)&0x1)<<sqfrom;    }
+      undomovequick(board, move);
+      if (movecounter>=MAXMOVES)
+        return movecounter;
+    }
   }
   return movecounter;
 }
@@ -738,44 +664,17 @@ int genmoves_general(Bitboard *board, Move *moves, int movecounter, bool stm, bo
       move = MAKEMOVE(sqfrom, sqto, sqcpt, pfrom, pto, pcpt, sqep, (u64)GETHMC(lastmove), (u64)score);
 
       /* legal moves only */
-      /* domove */
-      /* unset square from, square capture and square to */
-      bbTemp = CLRMASKBB(sqfrom)&CLRMASKBB(sqcpt)&CLRMASKBB(sqto);
-      board[QBBBLACK] &= bbTemp;
-      board[QBBP1]    &= bbTemp;
-      board[QBBP2]    &= bbTemp;
-      board[QBBP3]    &= bbTemp;
-      /* set piece to */
-      board[QBBBLACK] |= (pto&0x1)<<sqto;
-      board[QBBP1]    |= ((pto>>1)&0x1)<<sqto;
-      board[QBBP2]    |= ((pto>>2)&0x1)<<sqto;
-      board[QBBP3]    |= ((pto>>3)&0x1)<<sqto;
+      domovequick(board, move);
       /* king in check? */
       kic = kingincheck(board, stm);
       if (!kic)
       {
         moves[movecounter] = move;
         movecounter++;
-        if (movecounter>=MAXMOVES)
-          return movecounter;
       }
-      /* undomove */
-      /* unset square capture, square to */
-      bbTemp = CLRMASKBB(sqcpt)&CLRMASKBB(sqto);
-      board[QBBBLACK] &= bbTemp;
-      board[QBBP1]    &= bbTemp;
-      board[QBBP2]    &= bbTemp;
-      board[QBBP3]    &= bbTemp;
-      /* restore piece capture */
-      board[QBBBLACK] |= (pcpt&0x1)<<sqcpt;
-      board[QBBP1]    |= ((pcpt>>1)&0x1)<<sqcpt;
-      board[QBBP2]    |= ((pcpt>>2)&0x1)<<sqcpt;
-      board[QBBP3]    |= ((pcpt>>3)&0x1)<<sqcpt;
-      /* restore piece from */
-      board[QBBBLACK] |= (pfrom&0x1)<<sqfrom;
-      board[QBBP1]    |= ((pfrom>>1)&0x1)<<sqfrom;
-      board[QBBP2]    |= ((pfrom>>2)&0x1)<<sqfrom;
-      board[QBBP3]    |= ((pfrom>>3)&0x1)<<sqfrom;
+      undomovequick(board, move);
+      if (movecounter>=MAXMOVES)
+        return movecounter;
 
       /* TODO: in non-perft do queen promo only? */
       /* handle pawn promo: bishop */
