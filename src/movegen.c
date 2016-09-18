@@ -299,7 +299,7 @@ int genmoves_enpassant(Bitboard *board, Move *moves, int movecounter, bool stm)
   bbTempA = (sqep)? bbWork&(SETMASKBB(sqep+1)|SETMASKBB(sqep-1)):BBEMPTY;
   pfrom   = MAKEPIECE(PAWN,stm);
   pto     = pfrom; 
-  pcpt    = MAKEPIECE(PAWN,(u64)!stm);
+  pcpt    = MAKEPIECE(PAWN,!stm);
   score   = EvalPieceValues[PAWN]*16-EvalPieceValues[PAWN];
 
   /* check for first en passant pawn */
@@ -820,7 +820,7 @@ int genmoves_general(Bitboard *board, Move *moves, int movecounter, bool stm, bo
   bbTemp  = (sqep)?bbPro&(SETMASKBB(sqep+1)|SETMASKBB(sqep-1)):BBEMPTY;
   pfrom   = MAKEPIECE(PAWN,stm);
   pto     = pfrom; 
-  pcpt    = MAKEPIECE(PAWN,(u64)!stm);
+  pcpt    = MAKEPIECE(PAWN,!stm);
   score   = EvalPieceValues[PAWN]*16-EvalPieceValues[PAWN];
 
   /* check for first en passant pawn */

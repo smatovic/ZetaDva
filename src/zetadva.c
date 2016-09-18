@@ -427,7 +427,6 @@ void domove(Bitboard *board, Move move)
   /* increase half move clock */
   hmc++;
 
-
   /* unset square from, square capture and square to */
   bbTemp = CLRMASKBB(sqfrom)&CLRMASKBB(sqcpt)&CLRMASKBB(sqto);
   board[QBBBLACK] &= bbTemp;
