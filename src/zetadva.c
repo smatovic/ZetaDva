@@ -335,12 +335,8 @@ int cmp_move_desc(const void *ap, const void *bp)
 /* apply null-move on board */
 void donullmove(Bitboard *board)
 {
-  /* consider color */
-  board[QBBHASH] ^=RandomTurn[0];
-  /* clear en passant */
-  if (GETSQEP(board[QBBLAST]))
-    board[QBBHASH] ^= RandomEnPassant[GETFILE(GETSQEP(board[QBBLAST]))]; 
-
+  /* color flipping */
+  board[QBBHASH] ^= 0x1ULL;
   board[QBBLAST] = MOVENONE|(CMMOVE&board[QBBLAST]);
 }
 /* restore board again after nullmove */
@@ -790,10 +786,10 @@ static Move can2move(char *usermove, Bitboard *board, bool stm)
   pcpt = GETPIECE(board, sqcpt);
 
   /* en passant move , set square capture */
-  sqcpt = ((pfrom>>1)==PAWN&&(stm==WHITE)&&GETRANK(sqfrom)==RANK_5  
+  sqcpt = ((pfrom>>1)==PAWN&&(!stm)&&GETRANK(sqfrom)==RANK_5  
             &&sqto-sqfrom!=8&&pcpt==PNONE)?sqto-8:sqcpt;
 
-  sqcpt = ((pfrom>>1)==PAWN&&(stm==BLACK)&&GETRANK(sqfrom)==RANK_4  
+  sqcpt = ((pfrom>>1)==PAWN&&(stm)&&GETRANK(sqfrom)==RANK_4  
             &&sqfrom-sqto!=8 &&pcpt==PNONE)?sqto+8:sqcpt;
 
   pcpt = GETPIECE(board, sqcpt);
