@@ -126,9 +126,7 @@ Score qsearch(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
   for (i=0;i<movecounter;i++)
   {
     domove(board, moves[i]);
-
     score = -qsearch(board, !stm, -beta, -alpha, depth-1, ply+1);
-
     undomove(board, moves[i], lastmove, cr, boardscore, hash);
 
     if(score>=beta)
@@ -216,8 +214,6 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
     TIMEOUT=true;
     return 0;
   }
-  if (TIMEOUT)
-    return 0;
 
   HashHistory[PLY+ply] = hash;
 
@@ -309,8 +305,6 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
     {
       score = -negamax(board, !stm, -beta, -alpha, depth-1, ply+1, prune);
 
-      undomove(board, ttmove, lastmove, cr, boardscore, hash);
-
       if(score>=beta)
       {
         if (GETPCPT(ttmove)==PNONE)
@@ -319,9 +313,9 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
           save_killer(JUSTMOVE(ttmove), score, ply);
         }
         save_to_tt(hash, (TTMove)(ttmove&SMTTMOVE), score, FAILHIGH, depth);
+        undomove(board, ttmove, lastmove, cr, boardscore, hash);
         return score;
       }
-
       if(score>alpha)
       {
         alpha=score;
@@ -331,8 +325,7 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
 
       movesplayed++;
     }
-    else
-      undomove(board, ttmove, lastmove, cr, boardscore, hash);
+    undomove(board, ttmove, lastmove, cr, boardscore, hash);
   }
 
   /* generate capturing moves and pawn promotion */
@@ -391,14 +384,14 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
 
     childkic = kingincheck(board,!stm);
 
-    /* futility pruning */
+    /* futility pruning 
     score = (stm)? -boardscore : boardscore;
     if (depth==1&&!kic&&!ext&&movesplayed>0&&!childkic&&score+EvalPieceValues[BISHOP]<alpha)
     {
       undomove(board, moves[i], lastmove, cr, boardscore, hash);
       continue;
     }
-    
+*/    
     /* late move reductions */
     rdepth = depth;
     if (!kic&&!ext&&movesplayed>0&&!childkic&&popcount(board[QBBP1]|board[QBBP2]|board[QBBP3])>=4)

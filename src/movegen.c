@@ -457,7 +457,7 @@ int genmoves_noncaptures(Bitboard *board, Move *moves, int movecounter, bool stm
   while (bbWork)
   {
     sqfrom   = popfirst1 (&bbWork);
-    pfrom   = GETPIECE(board, sqfrom);
+    pfrom    = GETPIECE(board, sqfrom);
 
     /* no pawn promo */
     if(GETPTYPE(pfrom)==PAWN&&GETRRANK(sqfrom,stm)==RANK_7)
@@ -593,10 +593,10 @@ int genmoves_general(Bitboard *board, Move *moves, int movecounter, bool stm, bo
   /* for each piece of site to move */
   while (bbWork)
   {
-    sqfrom   = popfirst1 (&bbWork);
-    pfrom   = GETPIECE(board, sqfrom);
-    bbTemp  = BBEMPTY;
-    bbMoves = BBEMPTY;
+    sqfrom    = popfirst1(&bbWork);
+    pfrom     = GETPIECE(board, sqfrom);
+    bbTemp    = BBEMPTY;
+    bbMoves   = BBEMPTY;
   
     /* directions left shifting */
     for (i=0;i<4;i++)
