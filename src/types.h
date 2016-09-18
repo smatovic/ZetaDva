@@ -143,7 +143,7 @@ typedef u64             Rank;
 #define SMCRBLACKQ          0x1100000000000000ULL
 #define SMCRBLACKK          0x9000000000000000ULL
 /* move helpers */
-#define MAKEPIECE(p,c)     ((((u64)p)<<1)|(u64)c)
+#define MAKEPIECE(p,c)     ((((Piece)p)<<1)|(Piece)c)
 #define JUSTMOVE(move)     (move&SMMOVE)
 #define GETCOLOR(p)        ((p)&0x1)
 #define GETPTYPE(p)        (((p)>>1)&0x7)      /* 3 bit piece type encoding */

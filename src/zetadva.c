@@ -105,13 +105,12 @@ void printbitboard(Bitboard board);
 struct TTE *TT = NULL;
 u64 ttbits = 0;
 /* rotate left based zobrist hashing */
-const Hash Zobrist[17]=
+const Hash Zobrist[16]=
 {
   0x9D39247E33776D41, 0x2AF7398005AAA5C7, 0x44DB015024623547, 0x9C15F73E62A76AE2,
   0x75834465489C0C89, 0x3290AC3A203001BF, 0x0FBBAD1F61042279, 0xE83A908FF2FB60CA,
   0x0D7E765D58755C10, 0x1A083822CEAFE02D, 0x9605D5F0E25EC3B0, 0xD021FF5CD13A2ED5,
-  0x40BDF15D4A672E32, 0x011355146FD56395, 0x5DB4832046F3D9E5, 0x239F8B2D7FF719CC,
-  0x05D1A1AE85B49AA1
+  0x40BDF15D4A672E32, 0x011355146FD56395, 0x5DB4832046F3D9E5, 0x239F8B2D7FF719CC
 };
 
 /* release memory, files and tables */
@@ -164,13 +163,13 @@ Hash computehash(Bitboard *board, bool stm)
     while(bbWork)
     {
       sq    = popfirst1(&bbWork);
-      piece = GETPIECE(board,sq);
+      piece = GETPIECETYPE(board,sq);
       zobrist = Zobrist[piece-1];
       hash ^= ((zobrist<<sq)|(zobrist>>(64-sq)));; // rotate left 64
     }
   }
   if (!stm)
-    hash ^= Zobrist[16];
+    hash ^= 0x1ULL;
 
   return hash;
 }
@@ -526,7 +525,7 @@ void domove(Bitboard *board, Move move)
   zobrist = Zobrist[GETPTYPE(pcpt)-1];
   board[QBBHASH] ^= (pcpt)?((zobrist<<(sqcpt))|(zobrist>>(64-(sqcpt)))):BBEMPTY;
   /* color flipping */
-  board[QBBHASH] ^= Zobrist[16];
+  board[QBBHASH] ^= 0x1ULL;
 
   /* store hmc  */  
   move = SETHMC(move, hmc);
