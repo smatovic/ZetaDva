@@ -216,6 +216,8 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
     TIMEOUT=true;
     return 0;
   }
+  if (TIMEOUT)
+    return 0;
 
   HashHistory[PLY+ply] = hash;
 
