@@ -105,8 +105,6 @@ typedef u64             Rank;
 #define BISHOP              4
 #define ROOK                5
 #define QUEEN               6
-/* handle u long long*/
-#define C64(val)            (val##ULL)
 /* move is castle flag */
 #define MOVEISCR            0x0000003000000000ULL
 #define MOVEISCRK           0x0000001000000000ULL
@@ -191,25 +189,25 @@ enum Files
 {
   FILE_A, FILE_B, FILE_C, FILE_D, FILE_E, FILE_F, FILE_G, FILE_H, FILE_NONE
 };
-#define BBFILEA             0x0101010101010101
-#define BBFILEB             0x0202020202020202
-#define BBFILEC             0x0404040404040404
-#define BBFILED             0x0808080808080808
-#define BBFILEE             0x1010101010101010
-#define BBFILEF             0x2020202020202020
-#define BBFILEG             0x4040404040404040
-#define BBFILEH             0x8080808080808080
-#define BBNOTHFILE          0x7F7F7F7F7F7F7F7F
-#define BBNOTAFILE          0xFEFEFEFEFEFEFEFE
+#define BBFILEA             0x0101010101010101ULL
+#define BBFILEB             0x0202020202020202ULL
+#define BBFILEC             0x0404040404040404ULL
+#define BBFILED             0x0808080808080808ULL
+#define BBFILEE             0x1010101010101010ULL
+#define BBFILEF             0x2020202020202020ULL
+#define BBFILEG             0x4040404040404040ULL
+#define BBFILEH             0x8080808080808080ULL
+#define BBNOTHFILE          0x7F7F7F7F7F7F7F7FULL
+#define BBNOTAFILE          0xFEFEFEFEFEFEFEFEULL
 /* rank enumeration */
 enum Ranks
 {
   RANK_1, RANK_2, RANK_3, RANK_4, RANK_5, RANK_6, RANK_7, RANK_8, RANK_NONE
 };
-#define BBRANK7             0x00FF000000000000
-#define BBRANK5             0x000000FF00000000
-#define BBRANK4             0x00000000FF000000
-#define BBRANK2             0x000000000000FF00
+#define BBRANK7             0x00FF000000000000ULL
+#define BBRANK5             0x000000FF00000000ULL
+#define BBRANK4             0x00000000FF000000ULL
+#define BBRANK2             0x000000000000FF00ULL
 /* square enumeration */
 enum Squares
 {
