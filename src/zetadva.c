@@ -168,6 +168,17 @@ Hash computehash(Bitboard *board, bool stm)
       hash ^= ((zobrist<<sq)|(zobrist>>(64-sq)));; // rotate left 64
     }
   }
+
+  /* castle rights */
+  if (((~board[QBBPMVD])&SMCRWHITEK)==SMCRWHITEK)
+      hash ^= Zobrist[12];
+  if (((~board[QBBPMVD])&SMCRWHITEQ)==SMCRWHITEQ)
+      hash ^= Zobrist[13];
+  if (((~board[QBBPMVD])&SMCRBLACKK)==SMCRBLACKK)
+      hash ^= Zobrist[14];
+  if (((~board[QBBPMVD])&SMCRBLACKQ)==SMCRBLACKQ)
+      hash ^= Zobrist[15];
+
   if (!stm)
     hash ^= 0x1ULL;
 
@@ -427,6 +438,17 @@ void domove(Bitboard *board, Move move)
   /* increase half move clock */
   hmc++;
 
+  /* do hash increment , clear old */
+  /* castle rights */
+  if(((~board[QBBPMVD])&SMCRWHITEK)==SMCRWHITEK)
+    board[QBBHASH] ^= Zobrist[12];
+  if(((~board[QBBPMVD])&SMCRWHITEQ)==SMCRWHITEQ)
+    board[QBBHASH] ^= Zobrist[13];
+  if(((~board[QBBPMVD])&SMCRBLACKK)==SMCRBLACKK)
+    board[QBBHASH] ^= Zobrist[14];
+  if(((~board[QBBPMVD])&SMCRBLACKQ)==SMCRBLACKQ)
+    board[QBBHASH] ^= Zobrist[15];
+
   /* unset square from, square capture and square to */
   bbTemp = CLRMASKBB(sqfrom)&CLRMASKBB(sqcpt)&CLRMASKBB(sqto);
   board[QBBBLACK] &= bbTemp;
@@ -510,6 +532,7 @@ void domove(Bitboard *board, Move move)
   boardscore+= score;
   board[QBBSCORE] = (u64)boardscore;
 
+  /* do hash increment , set new */
   /* do hash increment, clear piece from */
   zobrist = Zobrist[GETCOLOR(pfrom)*6+GETPTYPE(pfrom)-1];
   board[QBBHASH] ^= ((zobrist<<(sqfrom))|(zobrist>>(64-(sqfrom))));
@@ -521,6 +544,15 @@ void domove(Bitboard *board, Move move)
   board[QBBHASH] ^= (pcpt)?((zobrist<<(sqcpt))|(zobrist>>(64-(sqcpt)))):BBEMPTY;
   /* color flipping */
   board[QBBHASH] ^= 0x1ULL;
+  /* castle rights */
+  if(((~board[QBBPMVD])&SMCRWHITEK)==SMCRWHITEK)
+    board[QBBHASH] ^= Zobrist[12];
+  if(((~board[QBBPMVD])&SMCRWHITEQ)==SMCRWHITEQ)
+    board[QBBHASH] ^= Zobrist[13];
+  if(((~board[QBBPMVD])&SMCRBLACKK)==SMCRBLACKK)
+    board[QBBHASH] ^= Zobrist[14];
+  if(((~board[QBBPMVD])&SMCRBLACKQ)==SMCRBLACKQ)
+    board[QBBHASH] ^= Zobrist[15];
 
   /* store hmc  */  
   move = SETHMC(move, hmc);
