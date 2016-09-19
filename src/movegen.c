@@ -270,15 +270,15 @@ int genmoves_enpassant(Bitboard *board, Move *moves, int movecounter, bool stm)
   bbWork  = bbBoth[stm]&(board[QBBP1]&~board[QBBP2]&~board[QBBP3]);
   bbWork &= (stm)? 0xFF000000 : 0xFF00000000;
   bbTempA = (sqep)? bbWork&(SETMASKBB(sqep+1)|SETMASKBB(sqep-1)):BBEMPTY;
-  pfrom   = MAKEPIECE(PAWN,stm);
-  pto     = pfrom; 
-  pcpt    = MAKEPIECE(PAWN,!stm);
   score   = EvalPieceValues[PAWN]*16-EvalPieceValues[PAWN];
 
   /* check for first en passant pawn */
   sqfrom  = (bbTempA)?popfirst1(&bbTempA):0x0;
+  pfrom   = GETPIECE(board, sqfrom);
+  pto     = pfrom; 
   sqcpt   = sqep;
   sqto    = (stm)? sqep-8:sqep+8;
+  pcpt    = GETPIECE(board, sqcpt);
   /* pack move into 64 bits, considering castle rights and halfmovecounter and score */
   move    = (sqfrom)?MAKEMOVE(sqfrom, sqto, sqcpt, pfrom, pto, pcpt, 0, (u64)GETHMC(lastmove), (u64)score):MOVENONE;
   /* legal moves only */
@@ -717,14 +717,14 @@ int genmoves_general(Bitboard *board, Move *moves, int movecounter, bool stm, bo
   bbPro   = bbBoth[stm]&(board[QBBP1]&~board[QBBP2]&~board[QBBP3]);
   bbPro   &= (stm)? 0xFF000000 : 0xFF00000000;
   bbTemp  = (sqep)?bbPro&(SETMASKBB(sqep+1)|SETMASKBB(sqep-1)):BBEMPTY;
-  pfrom   = MAKEPIECE(PAWN,stm);
-  pto     = pfrom; 
-  pcpt    = MAKEPIECE(PAWN,!stm);
   score   = EvalPieceValues[PAWN]*16-EvalPieceValues[PAWN];
 
   /* check for first en passant pawn */
   sqfrom  = (bbTemp)?popfirst1(&bbTemp):0x0;
+  pfrom   = GETPIECE(board, sqfrom);
+  pto     = pfrom; 
   sqcpt   = sqep;
+  pcpt    = GETPIECE(board, sqcpt);
   sqto    = (stm)? sqep-8:sqep+8;
   /* pack move into 64 bits, considering castle rights and halfmovecounter and score */
   move    = (sqfrom)?MAKEMOVE(sqfrom, sqto, sqcpt, pfrom, pto, pcpt, 0, (u64)GETHMC(lastmove), (u64)score):MOVENONE;
