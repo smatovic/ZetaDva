@@ -163,8 +163,8 @@ Hash computehash(Bitboard *board, bool stm)
     while(bbWork)
     {
       sq    = popfirst1(&bbWork);
-      piece = GETPIECETYPE(board,sq);
-      zobrist = Zobrist[piece-1];
+      piece = GETPIECE(board,sq);
+      zobrist = Zobrist[GETCOLOR(piece)*6+GETPTYPE(piece)-1];
       hash ^= ((zobrist<<sq)|(zobrist>>(64-sq)));; // rotate left 64
     }
   }
@@ -466,7 +466,7 @@ void domove(Bitboard *board, Move move)
   score-= (pcastle==PNONE)?0:evalmove(pcastle, sqfrom-4);
   score+= (pcastle==PNONE)?0:evalmove(pcastle, sqto+1);
   /* do hash increment, clear old rook */
-  zobrist = Zobrist[ROOK-1];
+  zobrist = Zobrist[GETCOLOR(pcastle)*6+ROOK-1];
   board[QBBHASH] ^= (pcastle)?((zobrist<<(sqfrom-4))|(zobrist>>(64-(sqfrom-4)))):BBEMPTY;
   /* do hash increment, set new rook */
   board[QBBHASH] ^= (pcastle)?((zobrist<<(sqto+1))|(zobrist>>(64-(sqto+1)))):BBEMPTY;
@@ -511,13 +511,13 @@ void domove(Bitboard *board, Move move)
   board[QBBSCORE] = (u64)boardscore;
 
   /* do hash increment, clear piece from */
-  zobrist = Zobrist[GETPTYPE(pfrom)-1];
+  zobrist = Zobrist[GETCOLOR(pfrom)*6+GETPTYPE(pfrom)-1];
   board[QBBHASH] ^= ((zobrist<<(sqfrom))|(zobrist>>(64-(sqfrom))));
   /* do hash increment, set piece to */
-  zobrist = Zobrist[GETPTYPE(pto)-1];
+  zobrist = Zobrist[GETCOLOR(pto)*6+GETPTYPE(pto)-1];
   board[QBBHASH] ^= ((zobrist<<(sqto))|(zobrist>>(64-(sqto))));
   /* do hash increment, clear piece capture */
-  zobrist = Zobrist[GETPTYPE(pcpt)-1];
+  zobrist = Zobrist[GETCOLOR(pcpt)*6+GETPTYPE(pcpt)-1];
   board[QBBHASH] ^= (pcpt)?((zobrist<<(sqcpt))|(zobrist>>(64-(sqcpt)))):BBEMPTY;
   /* color flipping */
   board[QBBHASH] ^= 0x1ULL;
