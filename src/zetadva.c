@@ -1765,9 +1765,6 @@ int main(int argc, char* argv[])
   /* xboard command loop */
   for (;;)
   {
-    /* print cli prompt */
-    if (!xboard_mode) 
-      printf("#> ");   
     /* just to be sure, flush the output...*/
     fflush (stdout);
     if (LogFile)
