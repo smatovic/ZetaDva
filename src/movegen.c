@@ -205,6 +205,8 @@ int genmoves_castles(Bitboard *board, Move *moves, int movecounter, bool stm)
   pfrom   = GETPIECE(board, sqfrom);
   /* get castle rights queenside */
   bbTempA = (stm)?(((~board[QBBPMVD])&SMCRBLACKQ)==SMCRBLACKQ)?true:false:(((~board[QBBPMVD])&SMCRWHITEQ)==SMCRWHITEQ)?true:false;
+  /* rook present */
+  bbTempA = (GETPIECE(board, sqfrom-4)==MAKEPIECE(ROOK,stm))?bbTempA:false;
   /* check for empty squares */
   bbTempB = ((bbBlockers&SETMASKBB(sqfrom-1))|(bbBlockers&SETMASKBB(sqfrom-2))|(bbBlockers&SETMASKBB(sqfrom-3)));
   /* check for king and empty squares in check */
@@ -222,6 +224,8 @@ int genmoves_castles(Bitboard *board, Move *moves, int movecounter, bool stm)
 
   /* get castle rights kingside */
   bbTempA = (stm)?(((~board[QBBPMVD])&SMCRBLACKK)==SMCRBLACKK)?true:false:(((~board[QBBPMVD])&SMCRWHITEK)==SMCRWHITEK)?true:false;
+  /* rook present */
+  bbTempA = (GETPIECE(board, sqfrom+3)==MAKEPIECE(ROOK,stm))?bbTempA:false;
   /* check for empty squares */
   bbTempB = ((bbBlockers&SETMASKBB(sqfrom+1))|(bbBlockers&SETMASKBB(sqfrom+2)));
   /* check for king and empty squares in check */
@@ -758,6 +762,8 @@ int genmoves_general(Bitboard *board, Move *moves, int movecounter, bool stm, bo
   pfrom   = GETPIECE(board, sqfrom);
   /* get castle rights queenside */
   bbTemp  = (stm)?(((~board[QBBPMVD])&SMCRBLACKQ)==SMCRBLACKQ)?true:false:(((~board[QBBPMVD])&SMCRWHITEQ)==SMCRWHITEQ)?true:false;
+  /* rook present */
+  bbTemp  = (GETPIECE(board, sqfrom-4)==MAKEPIECE(ROOK,stm))?bbTemp:false;
   /* check for empty squares */
   bbPro   = ((bbBlockers&SETMASKBB(sqfrom-1))|(bbBlockers&SETMASKBB(sqfrom-2))|(bbBlockers&SETMASKBB(sqfrom-3)));
   /* check for king and empty squares in check */
@@ -775,6 +781,8 @@ int genmoves_general(Bitboard *board, Move *moves, int movecounter, bool stm, bo
 
   /* get castle rights kingside */
   bbTemp  = (stm)?(((~board[QBBPMVD])&SMCRBLACKK)==SMCRBLACKK)?true:false:(((~board[QBBPMVD])&SMCRWHITEK)==SMCRWHITEK)?true:false;
+  /* rook present */
+  bbTemp  = (GETPIECE(board, sqfrom+3)==MAKEPIECE(ROOK,stm))?bbTemp:false;
   /* check for empty squares */
   bbPro   = ((bbBlockers&SETMASKBB(sqfrom+1))|(bbBlockers&SETMASKBB(sqfrom+2)));
   /* check for king and empty squares in check */
