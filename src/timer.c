@@ -46,7 +46,7 @@ void get_time_string (char *string)
   memcpy (string, tempstring, sizeof(char)*255);
 }
 
-void fprinttime(FILE *file)
+void fprintdate(FILE *file)
 {
   char timestring[256];
   get_time_string (timestring);

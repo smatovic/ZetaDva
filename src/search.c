@@ -549,7 +549,7 @@ Move rootsearch(Bitboard *board, bool stm, s32 depth)
       fprintf(stdout, "%d %d %d %" PRIu64 " ", idf, xboard_score, (s32)(elapsed/10), NODECOUNT);
       if (LogFile)
       {
-        fprinttime(LogFile);
+        fprintdate(LogFile);
         fprintf(LogFile, "%d %d %d %" PRIu64 " ", idf, xboard_score, (s32)(elapsed/10), NODECOUNT);
       }
       for (i=0;i<pvcount;i++)

@@ -233,7 +233,6 @@ void save_to_tt(Hash hash, TTMove move, Score score, u8 flag, u8 depth)
   tete->score     = score;
   tete->flag      = flag;
   tete->depth     = depth;
-
 }
 /* load entry from via zobrist hash from transposition table */
 struct TTE *load_from_tt(Hash hash)
@@ -244,7 +243,7 @@ struct TTE *load_from_tt(Hash hash)
   if (!TT)
     return NULL;
 
-  tete = &TT[(hash&(ttbits-1))^0];
+  tete = &TT[hash&(ttbits-1)];
   if (tete->hash==hash)
     return tete;
 
@@ -955,13 +954,13 @@ void printboard(Bitboard *board)
 
   if (LogFile)
   {
-    fprinttime(LogFile);
+    fprintdate(LogFile);
     fprintf(LogFile, "#fen: %s\n",fenstring);
-    fprinttime(LogFile);
+    fprintdate(LogFile);
     fprintf(LogFile, "###ABCDEFGH###\n");
     for (rank = RANK_8; rank >= RANK_1; rank--) 
     {
-    fprinttime(LogFile);
+    fprintdate(LogFile);
       fprintf(LogFile, "#%i ",rank+1);
       for (file = FILE_A; file < FILE_NONE; file++)
       {
@@ -976,11 +975,11 @@ void printboard(Bitboard *board)
       }
       fprintf(LogFile, "\n");
     }
-    fprinttime(LogFile);
+    fprintdate(LogFile);
     fprintf(LogFile, "###ABCDEFGH###\n");
-    fprinttime(LogFile);
+    fprintdate(LogFile);
     fprintf(LogFile, "# incremental score: %d\n",(Score)BOARD[QBBSCORE]);
-    fprinttime(LogFile);
+    fprintdate(LogFile);
     fprintf(LogFile,"# eval score: %d\n",eval(BOARD));
 
     fflush (LogFile);
@@ -1293,7 +1292,7 @@ static bool setboard(Bitboard *board, char *fenstring)
     fprintf(stdout,"Error (given fen position is illegal): setboard\n");        
     if (LogFile)
     {
-      fprinttime(LogFile);
+      fprintdate(LogFile);
       fprintf(LogFile,"Error (given fen position is illegal): setboard\n");        
     }
     return false;
@@ -1397,18 +1396,18 @@ static void selftest(void)
 
     SD = depths[done];
     
-    fprintf(stdout,"# doing perft depth: %d for position\n", SD);  
+    fprintf(stdout,"# doing perft depth: %d for position %" PRIu64 " of 23\n", SD, done+1);
     if (LogFile)
     {
-      fprinttime(LogFile);
-      fprintf(LogFile,"# doing perft depth: %d for position\n", SD);  
+      fprintdate(LogFile);
+      fprintf(LogFile,"# doing perft depth: %d for position %" PRIu64 " of 23\n", SD, done+1);  
     }
     if (!setboard(BOARD,  fenpositions[done]))
     {
       fprintf(stdout,"# Error (in setting fen position): setboard\n");        
       if (LogFile)
       {
-        fprinttime(LogFile);
+        fprintdate(LogFile);
         fprintf(LogFile,"# Error (in setting fen position): setboard\n");        
       }
       continue;
@@ -1433,37 +1432,34 @@ static void selftest(void)
 
     if(NODECOUNT==nodecounts[done])
     {
-      fprintf(stdout,"# Nodecount Correct, %" PRIu64 " nodes in %lf seconds with \
+      fprintf(stdout,"#> OK, Nodecount Correct, %" PRIu64 " nodes in %lf seconds with \
 %" PRIu64 " nps.\n", NODECOUNT, (elapsed/1000), (u64)(NODECOUNT/(elapsed/1000)));
       if (LogFile)
       {
-        fprinttime(LogFile);
-        fprintf(LogFile,"# Nodecount Correct, %" PRIu64 " nodes in %lf seconds with \
+        fprintdate(LogFile);
+        fprintf(LogFile,"#> OK, Nodecount Correct, %" PRIu64 " nodes in %lf seconds with \
 %" PRIu64 " nps.\n", NODECOUNT, (elapsed/1000), (u64)(NODECOUNT/(elapsed/1000)));
       }
     }
     else
     {
-      fprintf(stdout,"# Nodecount NOT Correct, %" PRIu64 " computed nodes != %" PRIu64 " \
+      fprintf(stdout,"#> Error, Nodecount NOT Correct, %" PRIu64 " computed nodes != %" PRIu64 " \
 nodes for depth %d.\n", NODECOUNT, nodecounts[done], SD);
       if (LogFile)
       {
-        fprinttime(LogFile);
-        fprintf(LogFile,"# Nodecount NOT Correct, %" PRIu64 " computed nodes != %" PRIu64 " \
+        fprintdate(LogFile);
+        fprintf(LogFile,"#> Error, Nodecount NOT Correct, %" PRIu64 " computed nodes != %" PRIu64 " \
 nodes for depth %d.\n", NODECOUNT, nodecounts[done], SD);
       }
     }
     if(scorea!=scoreb)
     {
-      fprintf(stdout,"# IncrementaL evaluation  scores NOT Correct, \
+      fprintf(stdout,"#> Error, IncrementaL evaluation  scores NOT Correct, \
                %d != %d .\n", scorea, scoreb);
       if (LogFile)
       {
-        fprinttime(LogFile);
-        fprintf(LogFile,"# Nodecount Correct, %" PRIu64 " nodes in %lf seconds \
-               with %" PRIu64 " nps.\n", NODECOUNT, (elapsed/1000), (u64)(NODECOUNT/(elapsed/1000)));
-        fprinttime(LogFile);
-        fprintf(LogFile,"# IncrementaL evaluation  scores NOT Correct, \
+        fprintdate(LogFile);
+        fprintf(LogFile,"#> Error, IncrementaL evaluation  scores NOT Correct, \
                 %d != %d .\n", scorea, scoreb);
       }
     }
@@ -1474,9 +1470,9 @@ nodes for depth %d.\n", NODECOUNT, nodecounts[done], SD);
   fprintf(stdout,"# doing zobrist hash checks\n");  
   if (LogFile)
   {
-    fprinttime(LogFile);
+    fprintdate(LogFile);
     fprintf(LogFile,"#\n");  
-    fprinttime(LogFile);
+    fprintdate(LogFile);
     fprintf(LogFile,"# doing zobrist hash checks\n");  
   }
   done = 0;
@@ -1486,42 +1482,42 @@ nodes for depth %d.\n", NODECOUNT, nodecounts[done], SD);
     hash = computebookhash(BOARD,STM);
     if(hash!=hashes[done])
     {
-      fprintf(stdout,"# Book hash NOT Correct, 0x%016" PRIx64 " != 0x%016" PRIx64 "\n", hash, hashes[done]);
+      fprintf(stdout,"#> Error, Book hash NOT Correct, 0x%016" PRIx64 " != 0x%016" PRIx64 "\n", hash, hashes[done]);
       if (LogFile)
       {
-        fprinttime(LogFile);
-        fprintf(LogFile,"# Book hash NOT Correct, 0x%016" PRIx64 " != 0x%016" PRIx64 "\n", hash, hashes[done]);
+        fprintdate(LogFile);
+        fprintf(LogFile,"#> Error, Book hash NOT Correct, 0x%016" PRIx64 " != 0x%016" PRIx64 "\n", hash, hashes[done]);
       }
     }
     else
     {
       passed++;
-      fprintf(stdout,"# Book hash Correct, 0x%016" PRIx64 " == 0x%016" PRIx64 "\n", hash, hashes[done]);
+      fprintf(stdout,"#> OK, Book hash Correct, 0x%016" PRIx64 " == 0x%016" PRIx64 "\n", hash, hashes[done]);
       if (LogFile)
       {
-        fprinttime(LogFile);
-        fprintf(LogFile,"# Book hash Correct, 0x%016" PRIx64 " == 0x%016" PRIx64 "\n", hash, hashes[done]);
+        fprintdate(LogFile);
+        fprintf(LogFile,"#> OK, Book hash Correct, 0x%016" PRIx64 " == 0x%016" PRIx64 "\n", hash, hashes[done]);
       }
     }
     incrementalhash = BOARD[QBBHASH];
     computedhash = computehash(BOARD,STM);
     if(incrementalhash!=computedhash)
     {
-      fprintf(stdout,"# incremental hash NOT Correct, 0x%016" PRIx64 " != 0x%016" PRIx64 "\n", incrementalhash, computedhash);
+      fprintf(stdout,"#> Error, incremental hash NOT Correct, 0x%016" PRIx64 " != 0x%016" PRIx64 "\n", incrementalhash, computedhash);
       if (LogFile)
       {
-        fprinttime(LogFile);
-        fprintf(LogFile,"# incremental hash NOT Correct, 0x%016" PRIx64 " != 0x%016" PRIx64 "\n", incrementalhash, computedhash);
+        fprintdate(LogFile);
+        fprintf(LogFile,"##> Error, incremental hash NOT Correct, 0x%016" PRIx64 " != 0x%016" PRIx64 "\n", incrementalhash, computedhash);
       }
     }
     else
     {
       passed++;
-      fprintf(stdout,"# incremental hash Correct, 0x%016" PRIx64 " == 0x%016" PRIx64 "\n", incrementalhash, computedhash);
+      fprintf(stdout,"#> OK, incremental hash Correct, 0x%016" PRIx64 " == 0x%016" PRIx64 "\n", incrementalhash, computedhash);
       if (LogFile)
       {
-        fprinttime(LogFile);
-        fprintf(LogFile,"# incremental hash Correct, 0x%016" PRIx64 " == 0x%016" PRIx64 "\n", incrementalhash, computedhash);
+        fprintdate(LogFile);
+        fprintf(LogFile,"#> OK, incremental hash Correct, 0x%016" PRIx64 " == 0x%016" PRIx64 "\n", incrementalhash, computedhash);
       }
     }
     move = can2move(movesc1[done], BOARD, STM);
@@ -1542,42 +1538,42 @@ nodes for depth %d.\n", NODECOUNT, nodecounts[done], SD);
   hash = computebookhash(BOARD,STM);
   if(hash!=0x3c8123ea7b067637)
   {
-    fprintf(stdout,"# Book hash NOT Correct, 0x%016" PRIx64 " != 0x3c8123ea7b067637\n", hash);
+    fprintf(stdout,"#> Error, Book hash NOT Correct, 0x%016" PRIx64 " != 0x3c8123ea7b067637\n", hash);
     if (LogFile)
     {
-      fprinttime(LogFile);
-      fprintf(LogFile,"# Book hash NOT Correct, 0x%016" PRIx64 " != 0x3c8123ea7b067637\n", hash);
+      fprintdate(LogFile);
+      fprintf(LogFile,"#> Error, Book hash NOT Correct, 0x%016" PRIx64 " != 0x3c8123ea7b067637\n", hash);
     }
   }
   else
   {
     passed++;
-    fprintf(stdout,"# Book hash Correct, 0x%016" PRIx64 " == 0x3c8123ea7b067637\n", hash);
+    fprintf(stdout,"#> OK, Book hash Correct, 0x%016" PRIx64 " == 0x3c8123ea7b067637\n", hash);
     if (LogFile)
     {
-      fprinttime(LogFile);
-      fprintf(LogFile,"# Book hash Correct, 0x%016" PRIx64 " == 0x3c8123ea7b067637\n", hash);
+      fprintdate(LogFile);
+      fprintf(LogFile,"#> OK, Book hash Correct, 0x%016" PRIx64 " == 0x3c8123ea7b067637\n", hash);
     }
   }
   incrementalhash = BOARD[QBBHASH];
   computedhash = computehash(BOARD,STM);
   if(incrementalhash!=computedhash)
   {
-    fprintf(stdout,"# incremental hash NOT Correct, 0x%016" PRIx64 " != 0x%016" PRIx64 "\n", incrementalhash, computedhash);
+    fprintf(stdout,"#> Error, incremental hash NOT Correct, 0x%016" PRIx64 " != 0x%016" PRIx64 "\n", incrementalhash, computedhash);
     if (LogFile)
     {
-      fprinttime(LogFile);
-      fprintf(LogFile,"# incremental hash NOT Correct, 0x%016" PRIx64 " != 0x%016" PRIx64 "\n", incrementalhash, computedhash);
+      fprintdate(LogFile);
+      fprintf(LogFile,"#> Error, incremental hash NOT Correct, 0x%016" PRIx64 " != 0x%016" PRIx64 "\n", incrementalhash, computedhash);
     }
   }
   else
   {
     passed++;
-    fprintf(stdout,"# incremental hash Correct, 0x%016" PRIx64 " == 0x%016" PRIx64 "\n", incrementalhash, computedhash);
+    fprintf(stdout,"#> OK, incremental hash Correct, 0x%016" PRIx64 " == 0x%016" PRIx64 "\n", incrementalhash, computedhash);
     if (LogFile)
     {
-      fprinttime(LogFile);
-     fprintf(LogFile,"# incremental hash Correct, 0x%016" PRIx64 " == 0x%016" PRIx64 "\n", incrementalhash, computedhash);
+      fprintdate(LogFile);
+     fprintf(LogFile,"#> OK, incremental hash Correct, 0x%016" PRIx64 " == 0x%016" PRIx64 "\n", incrementalhash, computedhash);
     }
   }  for (done=5;done<7;done++)
   {
@@ -1589,48 +1585,58 @@ nodes for depth %d.\n", NODECOUNT, nodecounts[done], SD);
   hash = computebookhash(BOARD,STM);
   if(hash!=0x5c3f9b829b279560)
   {
-    fprintf(stdout,"# Book hash NOT Correct, 0x%016" PRIx64 " != 0x5c3f9b829b279560\n", hash);
+    fprintf(stdout,"#> Error, Book hash NOT Correct, 0x%016" PRIx64 " != 0x5c3f9b829b279560\n", hash);
     if (LogFile)
     {
-      fprinttime(LogFile);
-      fprintf(LogFile,"# Book hash NOT Correct, 0x%016" PRIx64 " != 0x5c3f9b829b279560\n", hash);
+      fprintdate(LogFile);
+      fprintf(LogFile,"#> Error, Book hash NOT Correct, 0x%016" PRIx64 " != 0x5c3f9b829b279560\n", hash);
     }
   }
   else
   {
     passed++;
-    fprintf(stdout,"# Book hash Correct, 0x%016" PRIx64 " == 0x5c3f9b829b279560\n", hash);
+    fprintf(stdout,"#> OK, Book hash Correct, 0x%016" PRIx64 " == 0x5c3f9b829b279560\n", hash);
     if (LogFile)
     {
-      fprinttime(LogFile);
-      fprintf(LogFile,"# Book hash Correct, 0x%016" PRIx64 " == 0x5c3f9b829b279560\n", hash);
+      fprintdate(LogFile);
+      fprintf(LogFile,"#> OK, Book hash Correct, 0x%016" PRIx64 " == 0x5c3f9b829b279560\n", hash);
     }
   }  
   incrementalhash = BOARD[QBBHASH];
   computedhash = computehash(BOARD,STM);
   if(incrementalhash!=computedhash)
   {
-    fprintf(stdout,"# incremental hash NOT Correct, 0x%016" PRIx64 " != 0x%016" PRIx64 "\n", incrementalhash, computedhash);
+    fprintf(stdout,"#> Error, incremental hash NOT Correct, 0x%016" PRIx64 " != 0x%016" PRIx64 "\n", incrementalhash, computedhash);
     if (LogFile)
     {
-      fprinttime(LogFile);
-      fprintf(LogFile,"# incremental hash NOT Correct, 0x%016" PRIx64 " != 0x%016" PRIx64 "\n", incrementalhash, computedhash);
+      fprintdate(LogFile);
+      fprintf(LogFile,"#> Error, incremental hash NOT Correct, 0x%016" PRIx64 " != 0x%016" PRIx64 "\n", incrementalhash, computedhash);
     }
   }
   else
   {
     passed++;
-    fprintf(stdout,"# incremental hash Correct, 0x%016" PRIx64 " == 0x%016" PRIx64 "\n", incrementalhash, computedhash);
+    fprintf(stdout,"#> OK, incremental hash Correct, 0x%016" PRIx64 " == 0x%016" PRIx64 "\n", incrementalhash, computedhash);
     if (LogFile)
     {
-      fprinttime(LogFile);
-      fprintf(LogFile,"# incremental hash Correct, 0x%016" PRIx64 " == 0x%016" PRIx64 "\n", incrementalhash, computedhash);
+      fprintdate(LogFile);
+      fprintf(LogFile,"#> OK, incremental hash Correct, 0x%016" PRIx64 " == 0x%016" PRIx64 "\n", incrementalhash, computedhash);
     }
   }
 
   fprintf(stdout,"#\n###############################\n");
   fprintf(stdout,"### passed %" PRIu64 " from %" PRIu64 " tests ###\n", passed, todo);
   fprintf(stdout,"###############################\n");
+  if (LogFile)
+  {
+    fprintdate(LogFile);
+    fprintf(LogFile,"#\n###############################\n");
+    fprintdate(LogFile);
+    fprintf(LogFile,"### passed %" PRIu64 " from %" PRIu64 " tests ###\n", passed, todo);
+    fprintdate(LogFile);
+    fprintf(LogFile,"###############################\n");
+  }
+
 }
 /* print engine info to console */
 static void print_version(void)
@@ -1748,7 +1754,7 @@ int main(int argc, char* argv[])
     /* no buffers */
     setbuf(LogFile, NULL);
     /* print binary call to log */
-    fprinttime(LogFile);
+    fprintdate(LogFile);
     for (c=0;c<argc;c++)
     {
       fprintf(LogFile, "%s ",argv[c]);
@@ -1777,7 +1783,7 @@ int main(int argc, char* argv[])
     /* print io to log file */
     if (LogFile)
     {
-      fprinttime(LogFile);
+      fprintdate(LogFile);
       fprintf(LogFile, "%s\n",Line);
     }
     /* get command */
@@ -1788,13 +1794,6 @@ int main(int argc, char* argv[])
     {
       fprintf(stdout,"feature done=0\n");  
       xboard_mode = true;
-      continue;
-    }
-    /* set epd mode */
-    if (!strcmp(Command, "epd"))
-    {
-      fprintf(stdout,"\n");
-      xboard_mode = false;
       continue;
     }
     /* get xboard protocoll version */
@@ -1808,7 +1807,7 @@ int main(int argc, char* argv[])
         fprintf(stdout,"tellusererror (unsupported protocoll version, < v2): protover\n");
         if (LogFile)
         {
-          fprinttime(LogFile);
+          fprintdate(LogFile);
           fprintf(LogFile,"Error (unsupported protocoll version,  < v2): protover\n");
         }
       }
@@ -1837,7 +1836,7 @@ int main(int argc, char* argv[])
           fprintf(stdout,"tellusererror (unsupported feature usermove): rejected\n");
           if (LogFile)
           {
-            fprinttime(LogFile);
+            fprintdate(LogFile);
             fprintf(LogFile,"Error (unsupported feature usermove): rejected\n");
           }
           release_inits();
@@ -1888,7 +1887,7 @@ int main(int argc, char* argv[])
         fprintf(stdout,"Error (in setting start postition): new\n");        
         if (LogFile)
         {
-          fprinttime(LogFile);
+          fprintdate(LogFile);
           fprintf(LogFile,"Error (in setting start postition): new\n");        
         }
       }
@@ -1908,7 +1907,7 @@ int main(int argc, char* argv[])
         fprintf(stdout,"Error (in setting chess psotition via fen string): setboard\n");        
         if (LogFile)
         {
-          fprinttime(LogFile);
+          fprintdate(LogFile);
           fprintf(LogFile,"Error (in setting chess psotition via fen string): setboard\n");        
         }
       }
@@ -1926,7 +1925,7 @@ int main(int argc, char* argv[])
         fprintf(stdout,"tellusererror (unsupported protocoll version. < v2): go\n");
         if (LogFile)
         {
-          fprinttime(LogFile);
+          fprintdate(LogFile);
           fprintf(LogFile,"Error (unsupported protocoll version, < v2): go\n");
         }
       }
@@ -1980,7 +1979,7 @@ int main(int argc, char* argv[])
           fprintf(stdout,"move ");
           if (LogFile)
           {
-            fprinttime(LogFile);
+            fprintdate(LogFile);
             fprintf(LogFile,"move ");
           }
           printmovecan(move);
@@ -2125,7 +2124,7 @@ int main(int argc, char* argv[])
         fprintf(stdout,"tellusererror (unsupported protocoll version, <v2): usermove\n");
         if (LogFile)
         {
-          fprinttime(LogFile);
+          fprintdate(LogFile);
           fprintf(LogFile,"Error (unsupported protocoll version, < v2): usermove\n");
         }
       }
@@ -2169,7 +2168,7 @@ int main(int argc, char* argv[])
             fprintf(stdout, "result 1-0 { checkmate }\n");
             if (LogFile)
             {
-              fprinttime(LogFile);
+              fprintdate(LogFile);
               fprintf(LogFile, "result 1-0 { checkmate }\n");
             }
           }
@@ -2178,7 +2177,7 @@ int main(int argc, char* argv[])
             fprintf(stdout, "result 0-1 { checkmate }\n");
             if (LogFile)
             {
-              fprinttime(LogFile);
+              fprintdate(LogFile);
               fprintf(LogFile, "result 0-1 { checkmate }\n");
             }
           }
@@ -2188,7 +2187,7 @@ int main(int argc, char* argv[])
           fprintf(stdout, "result 1/2-1/2 { stalemate }\n");
           if (LogFile)
           {
-            fprinttime(LogFile);
+            fprintdate(LogFile);
             fprintf(LogFile, "result 1/2-1/2 { stalemate }\n");
           }
         }
@@ -2200,7 +2199,7 @@ int main(int argc, char* argv[])
           fprintf(stdout,"move ");
           if (LogFile)
           {
-            fprinttime(LogFile);
+            fprintdate(LogFile);
             fprintf(LogFile,"move ");
           }
           printmovecan(move);
@@ -2366,7 +2365,7 @@ int main(int argc, char* argv[])
       fprintf(stdout,"### doing perft depth %d: ###\n", SD);  
       if (LogFile)
       {
-        fprinttime(LogFile);
+        fprintdate(LogFile);
         fprintf(LogFile,"### doing perft depth %d: ###\n", SD);  
       }
 
@@ -2381,7 +2380,7 @@ int main(int argc, char* argv[])
               NODECOUNT, (elapsed/1000), (u64)(NODECOUNT/(elapsed/1000)));
       if (LogFile)
       {
-        fprinttime(LogFile);
+        fprintdate(LogFile);
         fprintf(LogFile,"nodecount:%" PRIu64 ", seconds: %lf, nps: %" PRIu64 " \n", 
               NODECOUNT, (elapsed/1000), (u64)(NODECOUNT/(elapsed/1000)));
       }
@@ -2425,7 +2424,7 @@ int main(int argc, char* argv[])
       fprintf(stdout,"tellusererror engine supports only CECP (Xboard) version >=2\n");
       if (LogFile)
       {
-        fprinttime(LogFile);
+        fprintdate(LogFile);
         fprintf(LogFile,"Error (unsupported command): %s\n",Command);
       }
       continue;
@@ -2440,7 +2439,7 @@ int main(int argc, char* argv[])
       fprintf(stdout,"tellusererror (unsupported command): %s\n",Command);
       if (LogFile)
       {
-        fprinttime(LogFile);
+        fprintdate(LogFile);
         fprintf(LogFile,"Error (unsupported command): %s\n",Command);
       }
       continue;
@@ -2449,7 +2448,7 @@ int main(int argc, char* argv[])
     fprintf(stdout,"Error (unsupported command): %s\n",Command);
     if (LogFile)
     {
-      fprinttime(LogFile);
+      fprintdate(LogFile);
       fprintf(LogFile,"Error (unsupported command): %s\n",Command);
     }
   }
