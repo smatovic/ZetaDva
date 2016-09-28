@@ -3,7 +3,7 @@
   Description:  Amateur level chess engine
   Author:       Srdja Matovic <s.matovic@app26.de>
   Created at:   2011-01-15
-  Updated at:   2016-07-23
+  Updated at:   2016-09
   License:      GPL >= v2
 
   Copyright (C) 2011-2016 Srdja Matovic
@@ -116,9 +116,9 @@ int genmoves_promo(Bitboard *board, Move *moves, int movecounter, bool stm)
     /* pawn attacks via attack tables  */
     bbTemp  = AttackTables[stm*64+sqfrom]&bbBoth[!stm];
     /* white pawn push */
-    bbTemp |= (!stm&&((~bbBlockers)&SETMASKBB(sqfrom+8)))? SETMASKBB(sqfrom+8) : bbTemp;
+    bbTemp |= (!stm&&((~bbBlockers)&SETMASKBB(sqfrom+8)))?SETMASKBB(sqfrom+8):bbTemp;
     /* black pawn push */
-    bbTemp |= (stm&&((~bbBlockers)&SETMASKBB(sqfrom-8)))?  SETMASKBB(sqfrom-8) : bbTemp;
+    bbTemp |= (stm&&((~bbBlockers)&SETMASKBB(sqfrom-8)))?SETMASKBB(sqfrom-8):bbTemp;
 
     bbMoves = bbTemp;
 

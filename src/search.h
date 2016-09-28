@@ -3,7 +3,7 @@
   Description:  Amateur level chess engine
   Author:       Srdja Matovic <s.matovic@app26.de>
   Created at:   2011-01-15
-  Updated at:   2016-07-13
+  Updated at:   2016-09
   License:      GPL >= v2
 
   Copyright (C) 2011-2016 Srdja Matovic
@@ -23,8 +23,20 @@
 #define SEARCH_H_INCLUDED
 
 Score perft(Bitboard *board, bool stm, s32 depth);
-Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32 ply, bool prune);
 Move rootsearch(Bitboard *board, bool stm, s32 depth);
+Score negamax(Bitboard *board,
+              bool stm, 
+              Score alpha, 
+              Score beta, 
+              s32 depth, 
+              s32 ply, 
+              bool prune);
+Score qsearch(Bitboard *board, 
+              bool stm, 
+              Score alpha, 
+              Score beta, 
+              s32 depth, 
+              s32 ply);
 
 #endif /* SEARCH_H_INCLUDED */
 

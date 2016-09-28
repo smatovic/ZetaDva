@@ -3,7 +3,7 @@
   Description:  Amateur level chess engine
   Author:       Srdja Matovic <s.matovic@app26.de>
   Created at:   2011-01-15
-  Updated at:   2016-07-23
+  Updated at:   2016-09
   License:      GPL >= v2
 
   Copyright (C) 2011-2016 Srdja Matovic
@@ -31,7 +31,14 @@
 #include "zetadva.h"    /* for global vars */
 
 /* forward declaration */
-Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32 ply, bool prune);
+Score negamax(Bitboard *board,
+              bool stm, 
+              Score alpha, 
+              Score beta, 
+              s32 depth, 
+              s32 ply, 
+              bool prune);
+
 /* perft, just node counting */
 Score perft(Bitboard *board, bool stm, s32 depth)
 {
@@ -72,7 +79,12 @@ Score perft(Bitboard *board, bool stm, s32 depth)
   return 0;
 }
 /* quiscence search */
-Score qsearch(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32 ply)
+Score qsearch(Bitboard *board, 
+              bool stm, 
+              Score alpha, 
+              Score beta, 
+              s32 depth, 
+              s32 ply)
 {
   bool kic = false;
   Score score;
@@ -178,7 +190,13 @@ Move iid(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32 ply)
   return bestmove;
 }
 /* negamax, minimax with alpha-beta pruning and further extensions */
-Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32 ply, bool prune)
+Score negamax(Bitboard *board,
+              bool stm, 
+              Score alpha, 
+              Score beta, 
+              s32 depth, 
+              s32 ply, 
+              bool prune)
 {
   bool kic = false;
   bool ext = false;
@@ -236,7 +254,8 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
   */
 
   /* search extension, checks and pawn promo */
-  if(kic||(GETPTYPE(GETPFROM(lastmove))==PAWN&&GETPTYPE(GETPTO(lastmove))==QUEEN))
+  if(kic||
+     (GETPTYPE(GETPFROM(lastmove))==PAWN&&GETPTYPE(GETPTO(lastmove))==QUEEN))
   {
     depth++;
     ext = true;
@@ -263,7 +282,10 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
 
   /* null move pruning, Bruce Moreland style */
   rdepth = depth-2;
-  if (prune&&!kic&&!ext&&JUSTMOVE(lastmove)!=MOVENONE)
+  if (prune&&
+      !kic&&
+      !ext&&
+      JUSTMOVE(lastmove)!=MOVENONE)
   {
     donullmove(board);
     score = -negamax(board, !stm, -beta, -beta+1, rdepth-1, ply+1, false);
@@ -276,7 +298,11 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
   tt = load_from_tt(hash);
 
   /* check transposition table score bounds */
-  if (tt&&tt->hash==hash&&tt->depth>depth&&!ISINF(tt->score)&&!ISMATE(tt->score)) 
+  if (tt&&
+      tt->hash==hash&&
+      tt->depth>depth&&
+      !ISINF(tt->score)&&
+      !ISMATE(tt->score)) 
   {
     if ((tt->flag==EXACTSCORE||tt->flag==FAILHIGH)&&!ISMATE(alpha))
       alpha = MAX(alpha, tt->score);
@@ -286,9 +312,13 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
   }
   
   /* get tt move */
-  if (tt&&tt->hash==hash&&tt->flag>FAILLOW&&JUSTMOVE(tt->bestmove)!=MOVENONE) 
+  if (tt&&
+      tt->hash==hash&&
+      tt->flag>FAILLOW&&
+      JUSTMOVE(tt->bestmove)!=MOVENONE) 
+  {
     ttmove = ((Move)tt->bestmove)|(lastmove&SMHMC);
-
+  }
   /* internal iterative deepening, get a bestmove anyway */
   if (JUSTMOVE(ttmove)==MOVENONE&&depth>5)
   {
@@ -343,7 +373,8 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
   /* iterate through moves */
   for (i=0;i<movecounter;i++)
   {
-    if (ttmove&&JUSTMOVE(ttmove)==JUSTMOVE(moves[i]))
+    if (ttmove&&
+        JUSTMOVE(ttmove)==JUSTMOVE(moves[i]))
       continue;
 
     domove(board, moves[i]);
@@ -379,7 +410,8 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
   /* iterate through moves, noncaputres */
   for (i=0;i<movecounter;i++)
   {
-    if (ttmove&&JUSTMOVE(ttmove)==JUSTMOVE(moves[i]))
+    if (ttmove&&
+        JUSTMOVE(ttmove)==JUSTMOVE(moves[i]))
       continue;
 
     domove(board, moves[i]);
@@ -388,7 +420,12 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
 
     /* futility pruning */
     score = (stm)? -boardscore : boardscore;
-    if (depth==1&&!kic&&!ext&&movesplayed>0&&!childkic&&score+EvalPieceValues[BISHOP]<alpha)
+    if (depth==1&&
+        !kic&&
+        !ext&&
+        movesplayed>0&&
+        !childkic&&
+        score+EvalPieceValues[BISHOP]<alpha)
     {
       undomove(board, moves[i], lastmove, cr, boardscore, hash);
       continue;
@@ -396,14 +433,22 @@ Score negamax(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
 
     /* late move reductions */
     rdepth = depth;
-    if (!kic&&!ext&&movesplayed>0&&!childkic&&popcount(board[QBBP1]|board[QBBP2]|board[QBBP3])>=4)
+    if (!kic&&
+        !ext&&
+        movesplayed>0&&
+        !childkic&&
+        popcount(board[QBBP1]|board[QBBP2]|board[QBBP3])>=4)
+    {
       rdepth = depth-1;
-
+    }
     score = -negamax(board, !stm, -beta, -alpha, rdepth-1, ply+1, prune);
 
     /* late move reductions, research */
-    if (rdepth!=depth&&score>alpha)
+    if (rdepth!=depth&&
+        score>alpha)
+    {
       score = -negamax(board, !stm, -beta, -alpha, depth-1, ply+1, prune);
+    }
 
     undomove(board, moves[i], lastmove, cr, boardscore, hash);
 
@@ -476,12 +521,15 @@ Move rootsearch(Bitboard *board, bool stm, s32 depth)
   rootmove = bookmove(board, stm);
   for (i=0;i<movecounter;i++)
   {
-    if (rootmove!=MOVENONE&&JUSTMOVE(rootmove)==JUSTMOVE(moves[i]))
+    if (rootmove!=MOVENONE&&
+        JUSTMOVE(rootmove)==JUSTMOVE(moves[i]))
       return moves[i];
   }
   /* check transposition table */
   tt = load_from_tt(hash);
-  if (tt&&tt->hash==hash&&tt->flag>FAILLOW) 
+  if (tt&&
+      tt->hash==hash&&
+      tt->flag>FAILLOW) 
   {
     for(i=0;i<movecounter;i++)
     {
