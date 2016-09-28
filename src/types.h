@@ -3,7 +3,7 @@
   Description:  Amateur level chess engine
   Author:       Srdja Matovic <s.matovic@app26.de>
   Created at:   2011-01-15
-  Updated at:   2016-07-23
+  Updated at:   2016-09
   License:      GPL >= v2
 
   Copyright (C) 2011-2016 Srdja Matovic
@@ -229,9 +229,11 @@ struct TTE {
         u8 depth;
 };
 /* is score a mate in n */
-#define ISMATE(val)           ((((val)>MATESCORE&&(val)<INF)||((val)<-MATESCORE&&(val)>-INF))?true:false)
+#define ISMATE(val) \
+((((val)>MATESCORE&&(val)<INF)||((val)<-MATESCORE&&(val)>-INF))?true:false)
 /* is score default inf */
-#define ISINF(val)            (((val)==INF||(val)==-INF)?true:false)
+#define ISINF(val) \
+(((val)==INF||(val)==-INF)?true:false)
 /* node type flags */
 #define EXACTSCORE      2
 #define FAILHIGH        1
