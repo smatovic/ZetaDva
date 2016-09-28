@@ -3,7 +3,7 @@
   Description:  Amateur level chess engine
   Author:       Srdja Matovic <s.matovic@app26.de>
   Created at:   2011-01-15
-  Updated at:   2016-07-23
+  Updated at:   2016-09
   License:      GPL >= v2
 
   Copyright (C) 2011-2016 Srdja Matovic
@@ -55,7 +55,7 @@ double end          = 0;
 double elapsed      = 0;
 bool TIMEOUT        = false;  /* global value for time control*/
 /* time control in milli-seconds */
-s32 timemode    = 0;  /* 0 = single move, 1 = conventional clock, 2 = ics clock */
+s32 timemode    = 0;  /* 0=single move, 1=conventional clock, 2=ics clock */
 s32 MovesLeft   = 1;  /* moves left unit nex time increase */
 s32 MaxMoves    = 1;  /* moves to play in time frame */
 double TimeInc  = 0;  /* time increase */
@@ -107,10 +107,14 @@ u64 ttbits = 0;
 /* rotate left based zobrist hashing */
 const Hash Zobrist[17]=
 {
-  0x9D39247E33776D41, 0x2AF7398005AAA5C7, 0x44DB015024623547, 0x9C15F73E62A76AE2,
-  0x75834465489C0C89, 0x3290AC3A203001BF, 0x0FBBAD1F61042279, 0xE83A908FF2FB60CA,
-  0x0D7E765D58755C10, 0x1A083822CEAFE02D, 0x9605D5F0E25EC3B0, 0xD021FF5CD13A2ED5,
-  0x40BDF15D4A672E32, 0x011355146FD56395, 0x5DB4832046F3D9E5, 0x239F8B2D7FF719CC,
+  0x9D39247E33776D41, 0x2AF7398005AAA5C7,
+  0x44DB015024623547, 0x9C15F73E62A76AE2,
+  0x75834465489C0C89, 0x3290AC3A203001BF,
+  0x0FBBAD1F61042279, 0xE83A908FF2FB60CA,
+  0x0D7E765D58755C10, 0x1A083822CEAFE02D,
+  0x9605D5F0E25EC3B0, 0xD021FF5CD13A2ED5,
+  0x40BDF15D4A672E32, 0x011355146FD56395, 
+  0x5DB4832046F3D9E5, 0x239F8B2D7FF719CC,
   0x05D1A1AE85B49AA1
 };
 
@@ -159,14 +163,16 @@ Hash computehash(Bitboard *board, bool stm)
   /* for each color */
   for (side=WHITE;side<=BLACK;side++)
   {
-    bbWork = (side==BLACK)?board[QBBBLACK]:(board[QBBBLACK]^(board[QBBP1]|board[QBBP2]|board[QBBP3]));
+    bbWork = (side==BLACK)?
+              board[QBBBLACK]:
+              (board[QBBBLACK]^(board[QBBP1]|board[QBBP2]|board[QBBP3]));
     /* for each piece */
     while(bbWork)
     {
       sq    = popfirst1(&bbWork);
       piece = GETPIECE(board,sq);
       zobrist = Zobrist[GETCOLOR(piece)*6+GETPTYPE(piece)-1];
-      hash ^= ((zobrist<<sq)|(zobrist>>(64-sq)));; // rotate left 64
+      hash ^= ((zobrist<<sq)|(zobrist>>(64-sq))); /* rotate left 64 */
     }
   }
   /* castle rights */
@@ -183,7 +189,7 @@ Hash computehash(Bitboard *board, bool stm)
   {
     sq = GETFILE(GETSQEP(board[QBBLAST]));
     zobrist = Zobrist[16];
-    hash ^= ((zobrist<<sq)|(zobrist>>(64-sq)));; // rotate left 64
+    hash ^= ((zobrist<<sq)|(zobrist>>(64-sq))); /* rotate left 64 */
   }
   /* site to move */
   if (!stm)
@@ -458,7 +464,8 @@ void domove(Bitboard *board, Move move)
   if (GETSQEP(board[QBBLAST]))
   {
     zobrist = Zobrist[16];
-    board[QBBHASH] ^= ((zobrist<<GETFILE(GETSQEP(board[QBBLAST])))|(zobrist>>(64-GETFILE(GETSQEP(board[QBBLAST])))));; // rotate left 64
+    board[QBBHASH] ^= ((zobrist<<GETFILE(GETSQEP(board[QBBLAST])))
+                      |(zobrist>>(64-GETFILE(GETSQEP(board[QBBLAST])))));
   }
 
   /* unset square from, square capture and square to */
@@ -501,9 +508,11 @@ void domove(Bitboard *board, Move move)
   score+= (pcastle==PNONE)?0:evalmove(pcastle, sqto+1);
   /* do hash increment, clear old rook */
   zobrist = Zobrist[GETCOLOR(pcastle)*6+ROOK-1];
-  board[QBBHASH] ^= (pcastle)?((zobrist<<(sqfrom-4))|(zobrist>>(64-(sqfrom-4)))):BBEMPTY;
+  board[QBBHASH] ^= (pcastle)?
+                    ((zobrist<<(sqfrom-4))|(zobrist>>(64-(sqfrom-4)))):BBEMPTY;
   /* do hash increment, set new rook */
-  board[QBBHASH] ^= (pcastle)?((zobrist<<(sqto+1))|(zobrist>>(64-(sqto+1)))):BBEMPTY;
+  board[QBBHASH] ^= (pcastle)?
+                    ((zobrist<<(sqto+1))|(zobrist>>(64-(sqto+1)))):BBEMPTY;
 
   /* handle castle rook, kingside */
   pcastle = (move&MOVEISCRK)?MAKEPIECE(ROOK,GETCOLOR(pfrom)):PNONE;
@@ -526,9 +535,11 @@ void domove(Bitboard *board, Move move)
   score-= (pcastle==PNONE)?0:evalmove(pcastle, sqfrom+3);
   score+= (pcastle==PNONE)?0:evalmove(pcastle, sqto-1);
   /* do hash increment, clear old rook */
-  board[QBBHASH] ^= (pcastle)?((zobrist<<(sqfrom+3))|(zobrist>>(64-(sqfrom+3)))):BBEMPTY;
+  board[QBBHASH] ^= (pcastle)?
+                    ((zobrist<<(sqfrom+3))|(zobrist>>(64-(sqfrom+3)))):BBEMPTY;
   /* do hash increment, set new rook */
-  board[QBBHASH] ^= (pcastle)?((zobrist<<(sqto-1))|(zobrist>>(64-(sqto-1)))):BBEMPTY;
+  board[QBBHASH] ^= (pcastle)?
+                    ((zobrist<<(sqto-1))|(zobrist>>(64-(sqto-1)))):BBEMPTY;
 
   /* handle halfmove clock */
   hmc = (GETPTYPE(pfrom)==PAWN)?0:hmc;   /* pawn move */
@@ -567,7 +578,8 @@ void domove(Bitboard *board, Move move)
   if (GETSQEP(move))
   {
     zobrist = Zobrist[16];
-    board[QBBHASH] ^= ((zobrist<<GETFILE(GETSQEP(move)))|(zobrist>>(64-GETFILE(GETSQEP(move)))));; // rotate left 64
+    board[QBBHASH] ^= ((zobrist<<GETFILE(GETSQEP(move)))|
+                      (zobrist>>(64-GETFILE(GETSQEP(move))))); /* rotl64 */
   }
   /* color flipping */
   board[QBBHASH] ^= 0x1ULL;
@@ -578,7 +590,12 @@ void domove(Bitboard *board, Move move)
   board[QBBLAST] = move;
 }
 /* restore board again */
-void undomove(Bitboard *board, Move move, Move lastmove, Cr cr, Score score, Hash hash)
+void undomove(Bitboard *board, 
+              Move move, 
+              Move lastmove, 
+              Cr cr, 
+              Score score, 
+              Hash hash)
 {
   Square sqfrom   = GETSQFROM(move);
   Square sqto     = GETSQTO(move);
@@ -660,7 +677,8 @@ s32 collect_pv_from_hash(Bitboard *board, Hash hash, Move *moves, s32 ply)
   Hash lastmoves[MAXMOVES];
 
   tt = load_from_tt(hash);
-  while (tt&&tt->hash==hash&&JUSTMOVE(tt->bestmove)!=MOVENONE&&i<MAXMOVES&&i<=ply)
+  while (tt&&tt->hash==hash&&
+         JUSTMOVE(tt->bestmove)!=MOVENONE&&i<MAXMOVES&&i<=ply)
   {
     hashes[i] = hash;
     scores[i] = board[QBBSCORE];
@@ -1763,10 +1781,22 @@ int main(int argc, char* argv[])
   }
 
   /* print engine info to console */
-  fprintf(stdout,"Zeta Dva %s\n",VERSION);
-  fprintf(stdout,"Yet another amateur level chess engine.\n");
-  fprintf(stdout,"Copyright (C) 2011-2016 Srdja Matovic, Montenegro\n");
-  fprintf(stdout,"This is free software, licensed under GPL >= v2\n");
+  fprintf(stdout,"#> Zeta Dva %s\n",VERSION);
+  fprintf(stdout,"#> Yet another amateur level chess engine.\n");
+  fprintf(stdout,"#> Copyright (C) 2011-2016 Srdja Matovic, Montenegro\n");
+  fprintf(stdout,"#> This is free software, licensed under GPL >= v2\n");
+
+  if (LogFile) 
+  {
+    fprintdate(LogFile);
+    fprintf(LogFile,"#> Zeta Dva %s\n",VERSION);
+    fprintdate(LogFile);
+    fprintf(LogFile,"#> Yet another amateur level chess engine.\n");
+    fprintdate(LogFile);
+    fprintf(LogFile,"#> Copyright (C) 2011-2016 Srdja Matovic, Montenegro\n");
+    fprintdate(LogFile);
+    fprintf(LogFile,"#> This is free software, licensed under GPL >= v2\n");
+  }
 
   /* xboard command loop */
   for (;;)
@@ -1784,7 +1814,7 @@ int main(int argc, char* argv[])
     if (LogFile)
     {
       fprintdate(LogFile);
-      fprintf(LogFile, "%s\n",Line);
+      fprintf(LogFile, ">> %s",Line);
     }
     /* get command */
     sscanf (Line, "%s", Command);
@@ -2253,7 +2283,12 @@ int main(int argc, char* argv[])
     {
       if (PLY>0)
       {
-        undomove(BOARD, MoveHistory[PLY], MoveHistory[PLY-1], CRHistory[PLY], ScoreHistory[PLY], HashHistory[PLY]);
+        undomove( BOARD,
+                  MoveHistory[PLY], 
+                  MoveHistory[PLY-1],
+                  CRHistory[PLY],
+                  ScoreHistory[PLY], 
+                  HashHistory[PLY]);
         PLY--;
         STM = !STM;
       }
@@ -2264,10 +2299,20 @@ int main(int argc, char* argv[])
     {
       if (PLY>=2)
       {
-        undomove(BOARD, MoveHistory[PLY], MoveHistory[PLY-1], CRHistory[PLY], ScoreHistory[PLY], HashHistory[PLY]);
+        undomove( BOARD,
+                  MoveHistory[PLY], 
+                  MoveHistory[PLY-1],
+                  CRHistory[PLY],
+                  ScoreHistory[PLY], 
+                  HashHistory[PLY]);
         PLY--;
         STM = !STM;
-        undomove(BOARD, MoveHistory[PLY], MoveHistory[PLY-1], CRHistory[PLY], ScoreHistory[PLY], HashHistory[PLY]);
+        undomove( BOARD,
+                  MoveHistory[PLY], 
+                  MoveHistory[PLY-1],
+                  CRHistory[PLY],
+                  ScoreHistory[PLY], 
+                  HashHistory[PLY]);
         PLY--;
         STM = !STM;
       }
