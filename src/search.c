@@ -114,6 +114,8 @@ Score qsearch(Bitboard *board, bool stm, Score alpha, Score beta, s32 depth, s32
 
   movecounter = genmoves_promo(board, moves, movecounter, stm);
   movecounter = genmoves_captures(board, moves, movecounter, stm);
+  if(GETSQEP(lastmove))
+    movecounter = genmoves_enpassant(board, moves, movecounter, stm);
 
   /* quiet leaf node, return evaluation board score */
   if (movecounter==0)
