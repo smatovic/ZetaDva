@@ -306,8 +306,6 @@ Score negamax(Bitboard *board,
   {
     if ((tt->flag==EXACTSCORE||tt->flag==FAILHIGH)&&!ISMATE(alpha))
       alpha = MAX(alpha, tt->score);
-    if ((tt->flag==EXACTSCORE||tt->flag==FAILLOW)&&!ISMATE(beta))
-      beta  = MIN(beta, tt->score);
     if (alpha >= beta) return alpha;
   }
   
