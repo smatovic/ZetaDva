@@ -116,6 +116,7 @@ typedef u64             Rank;
 #define BBEMPTY             0x0000000000000000ULL
 #define BBFULL              0xFFFFFFFFFFFFFFFFULL
 #define MOVENONE            0x0000000000000000ULL
+#define NULLMOVE            0x0000000000000041ULL
 #define HASHNONE            0x0000000000000000ULL
 #define CRNONE              0x0000000000000000ULL
 #define SCORENONE           0x0000000000000000ULL

@@ -254,8 +254,8 @@ Score negamax(Bitboard *board,
   */
 
   /* search extension, checks and pawn promo */
-  if(kic||
-     (GETPTYPE(GETPFROM(lastmove))==PAWN&&GETPTYPE(GETPTO(lastmove))==QUEEN))
+  if( kic
+     ||(GETPTYPE(GETPFROM(lastmove))==PAWN&&GETPTYPE(GETPTO(lastmove))==QUEEN))
   {
     depth++;
     ext = true;
@@ -282,10 +282,11 @@ Score negamax(Bitboard *board,
 
   /* null move pruning, Bruce Moreland style */
   rdepth = depth-2;
-  if (prune&&
-      !kic&&
-      !ext&&
-      JUSTMOVE(lastmove)!=MOVENONE)
+  if (prune
+      &&!kic
+      &&!ext
+      &&JUSTMOVE(lastmove)!=NULLMOVE
+      )
   {
     donullmove(board);
     score = -negamax(board, !stm, -beta, -beta+1, rdepth-1, ply+1, false);
@@ -298,11 +299,11 @@ Score negamax(Bitboard *board,
   tt = load_from_tt(hash);
 
   /* check transposition table score bounds */
-  if (tt&&
-      tt->hash==hash&&
-      tt->depth>depth&&
-      !ISINF(tt->score)&&
-      !ISMATE(tt->score)) 
+  if (tt
+      &&tt->hash==hash
+      &&(s32)tt->depth>depth
+      &&!ISINF(tt->score)
+      &&!ISMATE(tt->score)) 
   {
     if ((tt->flag==EXACTSCORE||tt->flag==FAILHIGH)&&!ISMATE(alpha))
       alpha = MAX(alpha, tt->score);
@@ -310,10 +311,10 @@ Score negamax(Bitboard *board,
   }
   
   /* get tt move */
-  if (tt&&
-      tt->hash==hash&&
-      tt->flag>FAILLOW&&
-      JUSTMOVE(tt->bestmove)!=MOVENONE) 
+  if (tt
+      &&tt->hash==hash
+      &&tt->flag>FAILLOW
+      &&JUSTMOVE(tt->bestmove)!=MOVENONE) 
   {
     ttmove = ((Move)tt->bestmove)|(lastmove&SMHMC);
   }
@@ -418,12 +419,13 @@ Score negamax(Bitboard *board,
 
     /* futility pruning */
     score = (stm)? -boardscore : boardscore;
-    if (depth==1&&
-        !kic&&
-        !ext&&
-        movesplayed>0&&
-        !childkic&&
-        score+EvalPieceValues[BISHOP]<alpha)
+    if (depth==1
+        &&!kic
+        &&!ext
+        &&movesplayed>0
+        &&!childkic
+        &&score+EvalPieceValues[QUEEN]<alpha
+       )
     {
       undomove(board, moves[i], lastmove, cr, boardscore, hash);
       continue;
@@ -431,11 +433,12 @@ Score negamax(Bitboard *board,
 
     /* late move reductions */
     rdepth = depth;
-    if (!kic&&
-        !ext&&
-        movesplayed>0&&
-        !childkic&&
-        popcount(board[QBBP1]|board[QBBP2]|board[QBBP3])>=4)
+    if (!kic
+        &&!ext
+        &&movesplayed>=3
+        &&!childkic
+        &&popcount(board[QBBP1]|board[QBBP2]|board[QBBP3])>=4
+       )
     {
       rdepth = depth-1;
     }
@@ -473,7 +476,8 @@ Score negamax(Bitboard *board,
   if (!kic&&legalmovecounter==0) 
     return STALEMATESCORE;
 
-  save_to_tt(hash, (TTMove)(bestmove&SMTTMOVE), alpha, type, depth);
+  if (type>FAILLOW)
+    save_to_tt(hash, (TTMove)(bestmove&SMTTMOVE), alpha, type, depth);
   return alpha;
 }
 Move rootsearch(Bitboard *board, bool stm, s32 depth)

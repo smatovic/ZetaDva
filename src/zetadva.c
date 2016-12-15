@@ -224,7 +224,7 @@ static void initTT(void)
     fprintf(stdout,"Error (Counters table memory allocation failed)");
 }
 /* save entry to hash transposition table */
-void save_to_tt(Hash hash, TTMove move, Score score, u8 flag, u8 depth)
+void save_to_tt(Hash hash, TTMove move, Score score, u8 flag, s32 depth)
 {
   struct TTE *tete;
 
@@ -232,13 +232,17 @@ void save_to_tt(Hash hash, TTMove move, Score score, u8 flag, u8 depth)
   if (TIMEOUT||!TT)
     return;
 
-  /* bucket one, always replace */
   tete = &TT[hash&(ttbits-1)];
-  tete->hash      = hash;
-  tete->bestmove  = move;
-  tete->score     = score;
-  tete->flag      = flag;
-  tete->depth     = depth;
+
+  /* depth replace */  
+  if ((u8)depth>tete->depth)
+  {
+    tete->hash      = hash;
+    tete->bestmove  = move;
+    tete->score     = score;
+    tete->flag      = flag;
+    tete->depth     = (u8)depth;
+  }
 }
 /* load entry from via zobrist hash from transposition table */
 struct TTE *load_from_tt(Hash hash)
@@ -360,7 +364,7 @@ void donullmove(Bitboard *board)
 {
   /* color flipping */
   board[QBBHASH] ^= 0x1ULL;
-  board[QBBLAST] = MOVENONE|(CMMOVE&board[QBBLAST]);
+  board[QBBLAST] = NULLMOVE|(CMMOVE&board[QBBLAST]);
 }
 /* restore board again after nullmove */
 void undonullmove(Bitboard *board, Move lastmove, Hash hash)
@@ -378,7 +382,7 @@ void domovequick(Bitboard *board, Move move)
   Bitboard bbTemp = BBEMPTY;
 
   /* check for edges */
-  if (move==MOVENONE)
+  if (move==MOVENONE||move==NULLMOVE)
     return;
 
   /* unset square from, square capture and square to */
@@ -405,7 +409,7 @@ void undomovequick(Bitboard *board, Move move)
   Bitboard bbTemp = BBEMPTY;
 
   /* check for edges */
-  if (move==MOVENONE)
+  if (move==MOVENONE||move==NULLMOVE)
     return;
 
   /* unset square capture, square to */
@@ -444,7 +448,7 @@ void domove(Bitboard *board, Move move)
   Hash zobrist;
 
   /* check for edges */
-  if (move==MOVENONE)
+  if (move==MOVENONE||move==NULLMOVE)
     return;
 
   /* increase half move clock */
@@ -606,7 +610,7 @@ void undomove(Bitboard *board,
   Piece pcastle   = PNONE;
 
   /* check for edges */
-  if (move==MOVENONE)
+  if (move==MOVENONE||move==NULLMOVE)
     return;
 
   /* restore lastmove with hmc, cr and score */
