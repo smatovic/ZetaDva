@@ -424,7 +424,7 @@ Score negamax(Bitboard *board,
         &&!ext
         &&movesplayed>0
         &&!childkic
-        &&score+EvalPieceValues[QUEEN]<alpha
+        &&score+EvalPieceValues[QUEEN]-EvalPieceValues[PAWN]<alpha
        )
     {
       undomove(board, moves[i], lastmove, cr, boardscore, hash);
@@ -435,7 +435,7 @@ Score negamax(Bitboard *board,
     rdepth = depth;
     if (!kic
         &&!ext
-        &&movesplayed>=3
+        &&i>0
         &&!childkic
         &&popcount(board[QBBP1]|board[QBBP2]|board[QBBP3])>=4
        )
