@@ -422,9 +422,10 @@ Score negamax(Bitboard *board,
     if (depth==1
         &&!kic
         &&!ext
-        &&movesplayed>=1
+        &&movesplayed>0
         &&!childkic
-        &&score+EvalPieceValues[QUEEN]*2<alpha
+        &&!(GETPTYPE(GETPFROM(moves[i]))==PAWN&&GETPTYPE(GETPTO(moves[i]))==QUEEN)
+        &&score+EvalPieceValues[BISHOP]<alpha
        )
     {
       undomove(board, moves[i], lastmove, cr, boardscore, hash);
@@ -435,7 +436,7 @@ Score negamax(Bitboard *board,
     rdepth = depth;
     if (!kic
         &&!ext
-        &&i>=1
+        &&movesplayed>0
         &&!childkic
         &&popcount(board[QBBBLACK])>=2
         &&popcount(board[QBBBLACK]^(board[QBBP1]|board[QBBP2]|board[QBBP3]))>=2
@@ -501,6 +502,7 @@ Move rootsearch(Bitboard *board, bool stm, s32 depth)
   struct TTE *tt = NULL;
   Move moves[MAXMOVES];
   Move pvmoves[MAXMOVES];
+  u64 nodecounts[MAXPLY];
 
   TIMEOUT   = false;
   NODECOUNT = 0;
@@ -591,6 +593,8 @@ Move rootsearch(Bitboard *board, bool stm, s32 depth)
       qsort(moves, movecounter, sizeof(Move), cmp_move_desc);
     }
 
+    nodecounts[idf] = NODECOUNT;
+
     /* gui output */
     if (!TIMEOUT&&(xboard_post||!xboard_mode))
     {
@@ -616,6 +620,14 @@ Move rootsearch(Bitboard *board, bool stm, s32 depth)
       if (LogFile)
         fprintf(LogFile, "\n");
     }
+/*
+    if (!TIMEOUT&&(xboard_debug||!xboard_mode)&&idf>=3)
+    {
+      fprintf(stdout, "#EBF: %lf \n", (double)nodecounts[idf]/(double)nodecounts[idf-1]);
+      if (LogFile)
+        fprintf(LogFile, "#EBF: %lf \n", (double)nodecounts[idf]/(double)nodecounts[idf-1]);
+    }
+*/
   } while (++idf<=depth&&elapsed*2<MaxTime&&!TIMEOUT&&idf<=MAXPLY);
 
   return rootmove;
