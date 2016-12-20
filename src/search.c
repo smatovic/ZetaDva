@@ -502,7 +502,7 @@ Move rootsearch(Bitboard *board, bool stm, s32 depth)
   struct TTE *tt = NULL;
   Move moves[MAXMOVES];
   Move pvmoves[MAXMOVES];
-  u64 nodecounts[MAXPLY];
+//  u64 nodecounts[MAXPLY];
 
   TIMEOUT   = false;
   NODECOUNT = 0;
