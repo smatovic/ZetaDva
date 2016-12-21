@@ -2032,7 +2032,6 @@ int main(int argc, char* argv[])
           if ((!xboard_mode)||xboard_debug)
           {
             printboard(BOARD);
-            fprintf(stdout,"#%" PRIu64 " searched nodes in %lf seconds, nps: %" PRIu64 " \n", NODECOUNT, elapsed/1000, (u64)(NODECOUNT/(elapsed/1000)));
           }
 
           PLY++;
@@ -2252,7 +2251,6 @@ int main(int argc, char* argv[])
           if (!xboard_mode||xboard_debug)
           {
             printboard(BOARD);
-            fprintf(stdout,"#%" PRIu64 " searched nodes in %lf seconds, nps: %" PRIu64 " \n", NODECOUNT, elapsed/1000, (u64)(NODECOUNT/(elapsed/1000)));
           }
 
           PLY++;

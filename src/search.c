@@ -21,6 +21,7 @@
 
 #include <stdio.h>      /* for print and scan */
 #include <stdlib.h>     /* for qsort */
+#include <math.h>       /* for pow */
 
 #include "bitboard.h"   /* for population count, pop_count */
 #include "book.h"       /* for polyglot book access */
@@ -502,7 +503,6 @@ Move rootsearch(Bitboard *board, bool stm, s32 depth)
   struct TTE *tt = NULL;
   Move moves[MAXMOVES];
   Move pvmoves[MAXMOVES];
-//  u64 nodecounts[MAXPLY];
 
   TIMEOUT   = false;
   NODECOUNT = 0;
@@ -593,8 +593,6 @@ Move rootsearch(Bitboard *board, bool stm, s32 depth)
       qsort(moves, movecounter, sizeof(Move), cmp_move_desc);
     }
 
-    nodecounts[idf] = NODECOUNT;
-
     /* gui output */
     if (!TIMEOUT&&(xboard_post||!xboard_mode))
     {
@@ -620,15 +618,14 @@ Move rootsearch(Bitboard *board, bool stm, s32 depth)
       if (LogFile)
         fprintf(LogFile, "\n");
     }
-/*
-    if (!TIMEOUT&&(xboard_debug||!xboard_mode)&&idf>=3)
-    {
-      fprintf(stdout, "#EBF: %lf \n", (double)nodecounts[idf]/(double)nodecounts[idf-1]);
-      if (LogFile)
-        fprintf(LogFile, "#EBF: %lf \n", (double)nodecounts[idf]/(double)nodecounts[idf-1]);
-    }
-*/
   } while (++idf<=depth&&elapsed*2<MaxTime&&!TIMEOUT&&idf<=MAXPLY);
+
+  if ((!xboard_mode)||xboard_debug)
+  {
+    fprintf(stdout,"#%" PRIu64 " searched nodes in %lf seconds, ebf: %lf, nps: %" PRIu64 " \n", NODECOUNT, elapsed/1000, (double)pow(NODECOUNT, (double)1/idf), (u64)(NODECOUNT/(elapsed/1000)));
+    if (LogFile)
+      fprintf(LogFile,"#%" PRIu64 " searched nodes in %lf seconds, ebf: %lf, nps: %" PRIu64 " \n", NODECOUNT, elapsed/1000, (double)pow(NODECOUNT, (double)1/idf), (u64)(NODECOUNT/(elapsed/1000)));
+  }
 
   return rootmove;
 }
