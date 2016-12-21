@@ -624,7 +624,10 @@ Move rootsearch(Bitboard *board, bool stm, s32 depth)
   {
     fprintf(stdout,"#%" PRIu64 " searched nodes in %lf seconds, ebf: %lf, nps: %" PRIu64 " \n", NODECOUNT, elapsed/1000, (double)pow(NODECOUNT, (double)1/idf), (u64)(NODECOUNT/(elapsed/1000)));
     if (LogFile)
+    {
+      fprintdate(LogFile);
       fprintf(LogFile,"#%" PRIu64 " searched nodes in %lf seconds, ebf: %lf, nps: %" PRIu64 " \n", NODECOUNT, elapsed/1000, (double)pow(NODECOUNT, (double)1/idf), (u64)(NODECOUNT/(elapsed/1000)));
+    }
   }
 
   return rootmove;
