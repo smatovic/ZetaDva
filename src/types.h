@@ -236,9 +236,9 @@ struct TTE {
 #define ISINF(val) \
 (((val)==INF||(val)==-INF)?true:false)
 /* node type flags */
-#define EXACTSCORE      2
-#define FAILHIGH        1
 #define FAILLOW         0
+#define EXACTSCORE      1
+#define FAILHIGH        2
 
 #endif /* TYPES_H_INCLUDED */
 

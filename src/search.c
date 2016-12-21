@@ -310,7 +310,7 @@ Score negamax(Bitboard *board,
       alpha = MAX(alpha, tt->score);
     if (alpha >= beta) return alpha;
   }
-  
+
   /* get tt move */
   if (tt
       &&tt->hash==hash
@@ -319,11 +319,13 @@ Score negamax(Bitboard *board,
   {
     ttmove = ((Move)tt->bestmove)|(lastmove&SMHMC);
   }
+
   /* internal iterative deepening, get a bestmove anyway */
   if (JUSTMOVE(ttmove)==MOVENONE&&depth>5)
   {
       ttmove = iid(board, stm, -INF, INF, depth/5, ply);
       ttmove = (ttmove&CMHMC)|(lastmove&SMHMC);
+      TTHITS--;
   }
 
   /* check tt move first */
@@ -332,6 +334,7 @@ Score negamax(Bitboard *board,
       &&GETPCPT(ttmove)==GETPIECE(board,(GETSQCPT(ttmove)))
     )
   {
+    TTHITS++;
     domove(board, ttmove);
     if (isvalid(board))
     {
@@ -445,6 +448,7 @@ Score negamax(Bitboard *board,
     {
       rdepth = depth-1;
     }
+
     score = -negamax(board, !stm, -beta, -alpha, rdepth-1, ply+1, prune);
 
     /* late move reductions, research */
@@ -507,6 +511,7 @@ Move rootsearch(Bitboard *board, bool stm, s32 depth)
   TIMEOUT   = false;
   NODECOUNT = 0;
   MOVECOUNT = 0;
+  TTHITS    = 0;
   COUNTERS1 = 0;
   COUNTERS2 = 0;
 
@@ -622,11 +627,11 @@ Move rootsearch(Bitboard *board, bool stm, s32 depth)
 
   if ((!xboard_mode)||xboard_debug)
   {
-    fprintf(stdout,"#%" PRIu64 " searched nodes in %lf seconds, ebf: %lf, nps: %" PRIu64 " \n", NODECOUNT, elapsed/1000, (double)pow(NODECOUNT, (double)1/idf), (u64)(NODECOUNT/(elapsed/1000)));
+    fprintf(stdout,"#%" PRIu64 " searched nodes in %lf seconds, with %" PRIu64 " tthits, ebf: %lf, nps: %" PRIu64 " \n", NODECOUNT, elapsed/1000, TTHITS, (double)pow(NODECOUNT, (double)1/idf), (u64)(NODECOUNT/(elapsed/1000)));
     if (LogFile)
     {
       fprintdate(LogFile);
-      fprintf(LogFile,"#%" PRIu64 " searched nodes in %lf seconds, ebf: %lf, nps: %" PRIu64 " \n", NODECOUNT, elapsed/1000, (double)pow(NODECOUNT, (double)1/idf), (u64)(NODECOUNT/(elapsed/1000)));
+      fprintf(LogFile,"#%" PRIu64 " searched nodes in %lf seconds, with %" PRIu64 " tthits, ebf: %lf, nps: %" PRIu64 " \n", NODECOUNT, elapsed/1000, TTHITS, (double)pow(NODECOUNT, (double)1/idf), (u64)(NODECOUNT/(elapsed/1000)));
     }
   }
 

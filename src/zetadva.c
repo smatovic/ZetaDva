@@ -39,6 +39,7 @@ char *Fen;                    /* for storing the fen chess baord string */
 /* counters */
 u64 NODECOUNT       = 0;
 u64 MOVECOUNT       = 0;
+u64 TTHITS          = 0;
 u64 COUNTERS1       = 0;
 u64 COUNTERS2       = 0;
 /* xboard flags */
@@ -235,8 +236,9 @@ void save_to_tt(Hash hash, TTMove move, Score score, u8 flag, s32 depth)
   tete = &TT[hash&(ttbits-1)];
 
   /* depth replace */  
-  if ((u8)depth>tete->depth)
+  if ((u8)depth>=tete->depth)
   {
+    /* always replace */  
     tete->hash      = hash;
     tete->bestmove  = move;
     tete->score     = score;

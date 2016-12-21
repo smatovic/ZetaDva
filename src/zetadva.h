@@ -27,6 +27,7 @@ extern FILE 	*LogFile;
 /* counters */
 extern u64 NODECOUNT;
 extern u64 MOVECOUNT;
+extern u64 TTHITS;
 extern u64 COUNTERS1;
 extern u64 COUNTERS2;
 
