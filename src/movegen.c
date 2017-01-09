@@ -530,18 +530,11 @@ int genmoves_noncaptures(Bitboard *board, Move *moves, int movecounter, bool stm
       move = MAKEMOVE(sqfrom, sqto, sqto, pfrom, pto, PNONE, sqep, (Move)GETHMC(lastmove), (Move)score);
 
       /* set killers and counters score */
-      if (JUSTMOVE(move)==JUSTMOVE(Killers[ply*2+0]))
-      {
-        score = INF-10;
-      }
-      else if (JUSTMOVE(move)==JUSTMOVE(Killers[ply*2+1]))
-      {
+      if (JUSTMOVE(move)==JUSTMOVE(Counters[GETSQFROM(lastmove)*64+GETSQTO(lastmove)]))
         score = INF-20;
-      }
-      else if (JUSTMOVE(move)==JUSTMOVE(Counters[GETSQFROM(lastmove)*64+GETSQTO(lastmove)]))
-      {
-        score = INF-30;
-      }
+      if (JUSTMOVE(move)==JUSTMOVE(Killers[ply]))
+        score = INF-10;
+
       move = SETSCORE(move,(Move)score);
 
       /* legal moves only */

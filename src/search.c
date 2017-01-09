@@ -342,12 +342,13 @@ Score negamax(Bitboard *board,
 
       if(score>=beta)
       {
-        if (GETPCPT(ttmove)==PNONE)
+        if (GETPCPT(ttmove)==PNONE&&prune)
         {
           Counters[GETSQFROM(lastmove)*64+GETSQTO(lastmove)] = JUSTMOVE(ttmove);
-          save_killer(JUSTMOVE(ttmove), score, ply);
+          Killers[ply] = JUSTMOVE(ttmove);
         }
-        save_to_tt(hash, (TTMove)(ttmove&SMTTMOVE), score, FAILHIGH, depth);
+        if (prune)
+          save_to_tt(hash, (TTMove)(ttmove&SMTTMOVE), score, FAILHIGH, depth);
         undomove(board, ttmove, lastmove, cr, boardscore, hash);
         return score;
       }
@@ -388,7 +389,8 @@ Score negamax(Bitboard *board,
 
     if(score>=beta)
     {
-      save_to_tt(hash, (TTMove)(moves[i]&SMTTMOVE), score, FAILHIGH, depth);
+      if (prune)
+        save_to_tt(hash, (TTMove)(moves[i]&SMTTMOVE), score, FAILHIGH, depth);
       return score;
     }
 
@@ -462,9 +464,12 @@ Score negamax(Bitboard *board,
 
     if(score>=beta)
     {
-      Counters[GETSQFROM(lastmove)*64+GETSQTO(lastmove)] = JUSTMOVE(moves[i]);
-      save_killer(JUSTMOVE(moves[i]), score, ply);
-      save_to_tt(hash, (TTMove)(moves[i]&SMTTMOVE), score, FAILHIGH, depth);
+      if (prune)
+      {
+        Counters[GETSQFROM(lastmove)*64+GETSQTO(lastmove)] = JUSTMOVE(moves[i]);
+        Killers[ply] = JUSTMOVE(moves[i]);
+        save_to_tt(hash, (TTMove)(moves[i]&SMTTMOVE), score, FAILHIGH, depth);
+      }
       return score;
     }
 
@@ -483,7 +488,7 @@ Score negamax(Bitboard *board,
   if (!kic&&legalmovecounter==0) 
     return STALEMATESCORE;
 
-  if (type>FAILLOW)
+  if (type>FAILLOW&&prune)
     save_to_tt(hash, (TTMove)(bestmove&SMTTMOVE), alpha, type, depth);
   return alpha;
 }

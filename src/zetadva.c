@@ -215,12 +215,12 @@ static void initTT(void)
     fprintf(stdout,"Error (hash table memory allocation, %u mb, failed): memory", xboardmb);
   if (Killers)
     free(Killers);
-  Killers = (Move*)calloc(MAXPLY*2,sizeof(Killers));
+  Killers = (Move*)calloc(MAXPLY,sizeof(Move));
   if (!Killers)
     fprintf(stdout,"Error (Killers table memory allocation failed)");
   if (Counters)
     free(Counters);
-  Counters = (Move*)calloc(64*64,sizeof(Killers));
+  Counters = (Move*)calloc(64*64,sizeof(Move));
   if (!Counters)
     fprintf(stdout,"Error (Counters table memory allocation failed)");
 }
@@ -260,13 +260,6 @@ struct TTE *load_from_tt(Hash hash)
     return tete;
 
   return NULL;
-}
-void save_killer(Move move, Score score, s32 ply)
-{
-  if(score>(Score)GETSCORE(Killers[ply*2+0]))
-    Killers[ply*2+0] = SETSCORE(move, (Move)score);
-  else
-    Killers[ply*2+1] = SETSCORE(move, (Move)score);
 }
 /* innitialize memory, files and tables */
 static bool inits(void)
