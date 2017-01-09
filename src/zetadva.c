@@ -238,7 +238,6 @@ void save_to_tt(Hash hash, TTMove move, Score score, u8 flag, s32 depth)
   /* depth replace */  
   if ((u8)depth>=tete->depth)
   {
-    /* always replace */  
     tete->hash      = hash;
     tete->bestmove  = move;
     tete->score     = score;
@@ -359,7 +358,7 @@ void donullmove(Bitboard *board)
 {
   /* color flipping */
   board[QBBHASH] ^= 0x1ULL;
-  board[QBBLAST] = NULLMOVE|(CMMOVE&board[QBBLAST]);
+  board[QBBLAST] = NULLMOVE|(SMHMC&board[QBBLAST]);
 }
 /* restore board again after nullmove */
 void undonullmove(Bitboard *board, Move lastmove, Hash hash)

@@ -287,6 +287,7 @@ Score negamax(Bitboard *board,
       &&!kic
       &&!ext
       &&JUSTMOVE(lastmove)!=NULLMOVE
+      &&depth>=4
       )
   {
     donullmove(board);
@@ -437,7 +438,6 @@ Score negamax(Bitboard *board,
       undomove(board, moves[i], lastmove, cr, boardscore, hash);
       continue;
     }
-
     /* late move reductions */
     rdepth = depth;
     if (!kic
@@ -450,10 +450,10 @@ Score negamax(Bitboard *board,
     {
       rdepth = depth-1;
     }
-
     score = -negamax(board, !stm, -beta, -alpha, rdepth-1, ply+1, prune);
 
     /* late move reductions, research */
+
     if (rdepth!=depth&&
         score>alpha)
     {
