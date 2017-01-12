@@ -3,10 +3,10 @@
   Description:  Amateur level chess engine
   Author:       Srdja Matovic <s.matovic@app26.de>
   Created at:   2011-01-15
-  Updated at:   2016-09
+  Updated at:   2017
   License:      GPL >= v2
 
-  Copyright (C) 2011-2016 Srdja Matovic
+  Copyright (C) 2011-2017 Srdja Matovic
 
   Zeta Dva is free software: you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -254,9 +254,10 @@ Score negamax(Bitboard *board,
     return alpha;
   */
 
-  /* search extension, checks and pawn promo */
+  /* depth extension */
   if( kic
-     ||(GETPTYPE(GETPFROM(lastmove))==PAWN&&GETPTYPE(GETPTO(lastmove))==QUEEN))
+     ||(GETPTYPE(GETPFROM(lastmove))==PAWN&&GETPTYPE(GETPTO(lastmove))==QUEEN)
+    )
   {
     depth++;
     ext = true;
@@ -287,7 +288,7 @@ Score negamax(Bitboard *board,
       &&!kic
       &&!ext
       &&JUSTMOVE(lastmove)!=NULLMOVE
-      &&depth>=4
+      &&depth>=4  // do not enter qsearch after nullmove
       )
   {
     donullmove(board);
@@ -451,10 +452,10 @@ Score negamax(Bitboard *board,
     {
       rdepth = depth-1;
     }
+
     score = -negamax(board, !stm, -beta, -alpha, rdepth-1, ply+1, prune);
 
     /* late move reductions, research */
-
     if (rdepth!=depth&&
         score>alpha)
     {

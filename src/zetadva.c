@@ -3,10 +3,10 @@
   Description:  Amateur level chess engine
   Author:       Srdja Matovic <s.matovic@app26.de>
   Created at:   2011-01-15
-  Updated at:   2016-09
+  Updated at:   2017
   License:      GPL >= v2
 
-  Copyright (C) 2011-2016 Srdja Matovic
+  Copyright (C) 2011-2017 Srdja Matovic
 
   Zeta Dva is free software: you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -358,7 +358,7 @@ void donullmove(Bitboard *board)
 {
   /* color flipping */
   board[QBBHASH] ^= 0x1ULL;
-  board[QBBLAST] = NULLMOVE|(SMHMC&board[QBBLAST]);
+  board[QBBLAST] = NULLMOVE;
 }
 /* restore board again after nullmove */
 void undonullmove(Bitboard *board, Move lastmove, Hash hash)
@@ -1659,7 +1659,7 @@ static void print_version(void)
 {
   fprintf(stdout,"Zeta Dva version: %s\n",VERSION);
   fprintf(stdout,"Yet another amateur level chess engine.\n");
-  fprintf(stdout,"Copyright (C) 2011-2016 Srdja Matovic, Montenegro\n");
+  fprintf(stdout,"Copyright (C) 2011-2017 Srdja Matovic, Montenegro\n");
   fprintf(stdout,"This is free software, licensed under GPL >= v2\n");
 }
 /* engine options and usage */
@@ -1781,7 +1781,7 @@ int main(int argc, char* argv[])
   /* print engine info to console */
   fprintf(stdout,"#> Zeta Dva %s\n",VERSION);
   fprintf(stdout,"#> Yet another amateur level chess engine.\n");
-  fprintf(stdout,"#> Copyright (C) 2011-2016 Srdja Matovic, Montenegro\n");
+  fprintf(stdout,"#> Copyright (C) 2011-2017 Srdja Matovic, Montenegro\n");
   fprintf(stdout,"#> This is free software, licensed under GPL >= v2\n");
 
   if (LogFile) 
@@ -1791,7 +1791,7 @@ int main(int argc, char* argv[])
     fprintdate(LogFile);
     fprintf(LogFile,"#> Yet another amateur level chess engine.\n");
     fprintdate(LogFile);
-    fprintf(LogFile,"#> Copyright (C) 2011-2016 Srdja Matovic, Montenegro\n");
+    fprintf(LogFile,"#> Copyright (C) 2011-2017 Srdja Matovic, Montenegro\n");
     fprintdate(LogFile);
     fprintf(LogFile,"#> This is free software, licensed under GPL >= v2\n");
   }
