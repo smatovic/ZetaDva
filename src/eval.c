@@ -3,10 +3,10 @@
   Description:  Amateur level chess engine
   Author:       Srdja Matovic <s.matovic@app26.de>
   Created at:   2011-01-15
-  Updated at:   2016-09
+  Updated at:   2017
   License:      GPL >= v2
 
-  Copyright (C) 2011-2016 Srdja Matovic
+  Copyright (C) 2011-2017 Srdja Matovic
 
   Zeta Dva is free software: you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -35,7 +35,7 @@ Score evalmove(Piece piece, Square sq)
   /* wood count */
   score+= EvalPieceValues[GETPTYPE(piece)];
   /* piece square tables */
-  sq = (GETCOLOR(piece))? sq:FLIPFLOP(sq);
+  sq = (GETCOLOR(piece))? sq:FLOP(sq);
   score+= EvalTable[GETPTYPE(piece)*64+sq];
   /* sqaure control */
   score+= EvalControl[sq];
@@ -68,9 +68,9 @@ Score evalstatic(Bitboard *board)
       /* wodd count */
       score+= (side)? -EvalPieceValues[piecetype]:EvalPieceValues[piecetype];
       /* piece square tables */
-      score+= (side)? -EvalTable[piecetype*64+sq]:EvalTable[piecetype*64+FLIPFLOP(sq)];
+      score+= (side)? -EvalTable[piecetype*64+sq]:EvalTable[piecetype*64+FLOP(sq)];
       /* square control table */
-      score+= (side)? -EvalControl[sq]:EvalControl[FLIPFLOP(sq)];
+      score+= (side)? -EvalControl[sq]:EvalControl[FLOP(sq)];
     }
   }
   return score;
@@ -106,9 +106,9 @@ Score eval(Bitboard *board)
       /* wodd count */
       score+= (side)?-EvalPieceValues[piecetype]:EvalPieceValues[piecetype];
       /* piece square tables */
-      score+= (side)?-EvalTable[piecetype*64+sq]:EvalTable[piecetype*64+FLIPFLOP(sq)];
+      score+= (side)?-EvalTable[piecetype*64+sq]:EvalTable[piecetype*64+FLOP(sq)];
       /* square control table */
-      score+= (side)?-EvalControl[sq]:EvalControl[FLIPFLOP(sq)];
+      score+= (side)?-EvalControl[sq]:EvalControl[FLOP(sq)];
 
       /* simple pawn structure white */
       /* blocked */
