@@ -446,9 +446,9 @@ Score negamax(Bitboard *board,
     /* late move reductions */
     rdepth = depth;
     if (!kic
-        &&depth>=2
         &&!ext
-        &&movesplayed>0
+        &&depth>=2
+        &&movesplayed>=2
         &&!childkic
         &&popcount(board[QBBBLACK])>=2
         &&popcount(board[QBBBLACK]^(board[QBBP1]|board[QBBP2]|board[QBBP3]))>=2
