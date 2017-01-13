@@ -205,6 +205,7 @@ Score negamax(Bitboard *board,
   u8 type = FAILLOW;
   Score score = 0;
   Score boardscore = (Score)board[QBBSCORE];
+  Score evalscore;
   s32 hmc = (s32)GETHMC(board[QBBLAST]);
   s32 i = 0;
   s32 rdepth;
@@ -267,20 +268,21 @@ Score negamax(Bitboard *board,
   if (depth<=0)
     return qsearch(board, stm, alpha, beta, depth, ply);
 
-  /* razoring 
+  NODECOUNT++;
+
+  /* razoring */
+/*
+  evalscore = (stm)? -eval(board): eval(board);
   if (!kic&&!ext&&depth==2)
   {
-    score = (stm)? -boardscore : boardscore;
-    if (score+EvalPieceValues[QUEEN]<alpha)
+    if (evalscore+EvalPieceValues[QUEEN]*2<alpha)
     {
       score = qsearch(board, stm, alpha, beta, 0, ply);
       if (score<=alpha)
         return score;
     }
   }
-  */
-
-  NODECOUNT++;
+*/
 
   /* null move pruning, Bruce Moreland style */
   rdepth = depth-2;
@@ -414,6 +416,8 @@ Score negamax(Bitboard *board,
   /* sort moves */
   qsort(moves, movecounter, sizeof(Move), cmp_move_desc);
 
+  evalscore = (stm)? -eval(board): eval(board);
+
   /* iterate through moves, noncaputres */
   for (i=0;i<movecounter;i++)
   {
@@ -426,19 +430,19 @@ Score negamax(Bitboard *board,
     childkic = kingincheck(board,!stm);
 
     /* futility pruning */
-    score = (stm)? -boardscore : boardscore;
     if (depth==1
         &&!kic
         &&!ext
         &&movesplayed>0
         &&!childkic
         &&!(GETPTYPE(GETPFROM(moves[i]))==PAWN&&GETPTYPE(GETPTO(moves[i]))==QUEEN)
-        &&score+EvalPieceValues[BISHOP]<alpha
+        &&evalscore+EvalPieceValues[QUEEN]<alpha
        )
     {
       undomove(board, moves[i], lastmove, cr, boardscore, hash);
       continue;
     }
+
     /* late move reductions */
     rdepth = depth;
     if (!kic
