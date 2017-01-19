@@ -229,6 +229,8 @@ struct TTE {
         u8 flag;
         u8 depth;
 };
+/* is score a draw, unprecise */
+#define ISDRAW(val) ((val==DRAWSCORE)?true:false)
 /* is score a mate in n */
 #define ISMATE(val) \
 ((((val)>MATESCORE&&(val)<INF)||((val)<-MATESCORE&&(val)>-INF))?true:false)

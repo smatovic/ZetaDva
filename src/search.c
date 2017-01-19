@@ -308,7 +308,9 @@ Score negamax(Bitboard *board,
       &&tt->hash==hash
       &&(s32)tt->depth>depth
       &&!ISINF(tt->score)
-      &&!ISMATE(tt->score)) 
+      &&!ISMATE(tt->score)
+//      &&!ISDRAW(tt->score)
+     ) 
   {
     if ((tt->flag==EXACTSCORE||tt->flag==FAILHIGH)&&!ISMATE(alpha))
       alpha = MAX(alpha, tt->score);
