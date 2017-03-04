@@ -433,6 +433,7 @@ Score negamax(Bitboard *board,
     childkic = kingincheck(board,!stm);
 
     /* futility pruning */
+/*
     if (depth==1
         &&!kic
         &&!ext
@@ -445,7 +446,7 @@ Score negamax(Bitboard *board,
       undomove(board, moves[i], lastmove, cr, boardscore, hash);
       continue;
     }
-
+*/
     /* late move reductions */
     rdepth = depth;
     if (!kic
