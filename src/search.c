@@ -205,7 +205,9 @@ Score negamax(Bitboard *board,
   u8 type = FAILLOW;
   Score score = 0;
   Score boardscore = (Score)board[QBBSCORE];
+/*
   Score evalscore;
+*/
   s32 hmc = (s32)GETHMC(board[QBBLAST]);
   s32 i = 0;
   s32 rdepth;
@@ -419,7 +421,9 @@ Score negamax(Bitboard *board,
   /* sort moves */
   qsort(moves, movecounter, sizeof(Move), cmp_move_desc);
 
+/*
   evalscore = (stm)? -eval(board): eval(board);
+*/
 
   /* iterate through moves, noncaputres */
   for (i=0;i<movecounter;i++)
