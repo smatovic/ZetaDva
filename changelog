@@ -1,3 +1,9 @@
+ZetaDva (0305) alpha; urgency=low
+
+  * remove unstable futility pruning
+
+ -- Srdja Matovic <s.matovic@app26.de>  Mar 2017
+
 ZetaDva (0304) alpha; urgency=low
 
   * cleanups
