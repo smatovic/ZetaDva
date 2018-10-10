@@ -927,7 +927,7 @@ static void move2can(Move move, char * movec)
 }
 void printmovecan(Move move)
 {
-  char movec[4];
+  char movec[6];
   move2can(move, movec);
   fprintf(stdout, "%s",movec);
   if (LogFile)
