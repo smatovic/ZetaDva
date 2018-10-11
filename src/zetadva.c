@@ -676,7 +676,7 @@ s32 collect_pv_from_hash(Bitboard *board, Hash hash, Move *moves, s32 ply)
 
   tt = load_from_tt(hash);
   while (tt&&tt->hash==hash&&
-         JUSTMOVE(tt->bestmove)!=MOVENONE&&i<MAXMOVES&&i<=ply)
+         JUSTMOVE(tt->bestmove)!=MOVENONE&&i<MAXMOVES&&i<=ply&&i<MAXPLY)
   {
     hashes[i] = hash;
     scores[i] = board[QBBSCORE];
