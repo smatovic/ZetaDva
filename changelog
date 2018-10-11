@@ -1,3 +1,10 @@
+ZetaDva (0306) alpha; urgency=low
+
+  * bugfix in print pv with pawn promotion
+  * added setvbuf for Windows OS
+
+ -- Srdja Matovic <s.matovic@app26.de>  Oct 2018
+
 ZetaDva (0305) alpha; urgency=low
 
   * remove unstable futility pruning
