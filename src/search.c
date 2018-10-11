@@ -642,7 +642,7 @@ Move rootsearch(Bitboard *board, bool stm, s32 depth)
       if (LogFile)
         fprintf(LogFile, "\n");
     }
-  } while (++idf<=depth&&elapsed*2<MaxTime&&!TIMEOUT&&idf<=MAXPLY);
+  } while (++idf<=depth&&elapsed*2<MaxTime&&!TIMEOUT&&idf<MAXPLY);
 
   if ((!xboard_mode)||xboard_debug)
   {
