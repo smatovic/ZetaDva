@@ -3,10 +3,10 @@
   Description:  Amateur level chess engine
   Author:       Srdja Matovic <s.matovic@app26.de>
   Created at:   2011-01-15
-  Updated at:   2017
+  Updated at:   2018
   License:      GPL >= v2
 
-  Copyright (C) 2011-2017 Srdja Matovic
+  Copyright (C) 2011-2018 Srdja Matovic
 
   Zeta Dva is free software: you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
