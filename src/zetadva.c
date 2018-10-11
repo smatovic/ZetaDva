@@ -896,7 +896,7 @@ static Move can2move(char *usermove, Bitboard *board, bool stm)
   e1c1 => when king, indicates castle queenside  
   e7e8q => indicates pawn promotion to queen
 */
-static void move2can(Move move, char * movec) 
+static void move2can(Move move, char *movec) 
 {
   char rankc[8] = "12345678";
   char filec[8] = "abcdefgh";
@@ -1719,6 +1719,8 @@ int main(int argc, char* argv[])
   /* no buffers */
   setbuf (stdout, NULL);
   setbuf (stdin, NULL);
+  setvbuf(stdout, NULL, _IONBF, 0);
+  setvbuf(stdin, NULL, _IONBF, 0);
 
   /* init memory, files and tables */
   if (!inits ())
