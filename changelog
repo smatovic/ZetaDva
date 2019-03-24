@@ -1,3 +1,12 @@
+ZetaDva (0307) alpha; urgency=medium
+
+  * bugfix in en passant zobrist hashing
+  * bugfix in do move castle from TT
+  * bugfix in timeout handling
+  * bugfix in collect pv
+
+ -- Srdja Matovic <s.matovic@app26.de>  Mar 2019
+
 ZetaDva (0306) alpha; urgency=low
 
   * bugfix in print pv with pawn promotion
