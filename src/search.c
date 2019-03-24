@@ -203,9 +203,6 @@ Score negamax(Bitboard *board,
   bool childkic;
   u8 type = FAILLOW;
   Score score = 0;
-/*
-  Score evalscore;
-*/
   s32 hmc = (s32)GETHMC(board[QBBLAST]);
   s32 i = 0;
   s32 rdepth;
