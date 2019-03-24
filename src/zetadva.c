@@ -49,7 +49,7 @@ bool xboard_post    = false;  /* post search thinking output */
 bool xboard_san     = false;  /* use san move notation instead of can */
 bool xboard_time    = false;  /* use xboards time command for time management */
 bool xboard_debug   = false;  /* print debug information */
-s32 xboardmb        = 64;     /* mega bytes for hash table */
+u64 xboardmb        = 64;     /* mega bytes for hash table */
 /* timers */
 double start        = 0;
 double end          = 0;
@@ -209,7 +209,7 @@ static void initTT(void)
     free(TT);
   TT = (struct TTE*)calloc(mem,sizeof(struct TTE));
   if (!TT)
-    fprintf(stdout,"Error (hash table memory allocation, %u mb, failed): memory", xboardmb);
+    fprintf(stdout,"Error (hash table memory allocation, %" PRIu64" mb, failed): memory", xboardmb);
   if (Killers)
     free(Killers);
   Killers = (Move*)calloc(MAXPLY,sizeof(Move));
@@ -2107,7 +2107,7 @@ int main(int argc, char* argv[])
     /* memory for hash size  */
 		if (!strcmp(Command, "memory"))
     {
-      sscanf(Line, "memory %d", &xboardmb);
+      sscanf(Line, "memory %" PRIu64"", &xboardmb);
       initTT();
       continue;
     }
