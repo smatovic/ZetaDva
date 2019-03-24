@@ -3,10 +3,10 @@
   Description:  Amateur level chess engine
   Author:       Srdja Matovic <s.matovic@app26.de>
   Created at:   2011-01-15
-  Updated at:   2018
+  Updated at:   2019
   License:      GPL >= v2
 
-  Copyright (C) 2011-2018 Srdja Matovic
+  Copyright (C) 2011-2019 Srdja Matovic
 
   Zeta Dva is free software: you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -98,6 +98,7 @@ Score qsearch(Bitboard *board,
   Move moves[MAXMOVES];
 
   /* time out? */
+/*
   end = get_time();
   elapsed = end-start;
   if (elapsed>=MaxTime-TIMESPARE)
@@ -105,6 +106,7 @@ Score qsearch(Bitboard *board,
     TIMEOUT=true;
     return 0;
   }
+*/
   /* check internal ply limit */
   if (ply>=MAXPLY)
   {
@@ -349,6 +351,12 @@ Score negamax(Bitboard *board,
     {
       score = -negamax(board, !stm, -beta, -alpha, depth-1, ply+1, prune);
 
+      if (TIMEOUT)
+      {
+        undomove(board, ttmove, lastmove, cr, boardscore, hash);
+        return 0;
+      }
+
       if(score>=beta)
       {
         if (GETPCPT(ttmove)==PNONE&&prune)
@@ -359,6 +367,7 @@ Score negamax(Bitboard *board,
         if (prune)
           save_to_tt(hash, (TTMove)(ttmove&SMTTMOVE), score, FAILHIGH, depth);
         undomove(board, ttmove, lastmove, cr, boardscore, hash);
+
         return score;
       }
       if(score>alpha)
@@ -395,6 +404,9 @@ Score negamax(Bitboard *board,
     score = -negamax(board, !stm, -beta, -alpha, depth-1, ply+1, prune);
 
     undomove(board, moves[i], lastmove, cr, boardscore, hash);
+
+    if (TIMEOUT)
+      return 0;
 
     if(score>=beta)
     {
@@ -475,6 +487,9 @@ Score negamax(Bitboard *board,
     }
 
     undomove(board, moves[i], lastmove, cr, boardscore, hash);
+
+    if (TIMEOUT)
+      return 0;
 
     if(score>=beta)
     {
