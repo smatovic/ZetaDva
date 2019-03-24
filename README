@@ -3,32 +3,21 @@
   Description:  Amateur level chess engine
   Author:       Srdja Matovic <s.matovic@app26.de>
   Created at:   2011-01-15
-  Updated at:   2018
+  Updated at:   2019
   License:      GPL >= v2
 
-  Copyright (C) 2011-2018 Srdja Matovic
-
-  Zeta Dva is free software: you can redistribute it and/or modify
-  it under the terms of the GNU General Public License as published by
-  the Free Software Foundation, either version 2 of the License, or
-  (at your option) any later version.
-
-  Zeta Dva is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  GNU General Public License for more details.
+  Copyright (C) 2011-2019 Srdja Matovic
 */
 
 ### Binaries ###
-Linux 64 bit and Windows 32/64 bit binaries are placed in bin folder, 
-they were build with the gcc resp. mingw compiler.
-Linux binary was tested with Xboard and Cutechess.
-Windows 64 bit binary was tested on Windows 7 64 bit with Arena and Winboard.
-Had no chance to test the Windows 32 bit executeable.
+Linux 64 bit and Windows 32/64 bit binaries are placed in bin folder, they were
+build with the gcc resp. mingw compiler. Linux binary was tested with Xboard and
+Cutechess. Windows 64 bit binary was tested on Windows 7 64 bit with Arena and 
+Winboard. Had no chance to test the Windows 32 bit executeable.
 
 ### Play ### 
-To play against the engine use an CECP v2 protocol capable chess GUI
-like Arena, Cutechess, Winboard or Xboard.
+To play against the engine use an CECP v2 protocol capable chess GUI like Arena,
+Cutechess, Winboard or Xboard.
 
 Alternatively you can use Xboard commmands directly on commmand Line,
 e.g.:
@@ -53,7 +42,7 @@ help           // print usage info
 log            // turn log on
 
 ### Compile from Source ###
-The source code and a GNU/Linux Makefile are placed in src folder.
+The source code and a Linux Makefile are placed in src folder.
 
 ### Code Origins ###
 - Kogge-Stone move generator based on work by Steffan Westcott,
