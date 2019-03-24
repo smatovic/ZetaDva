@@ -683,8 +683,7 @@ s32 collect_pv_from_hash(Bitboard *board, Hash hash, Move *moves, s32 ply)
     hash = board[QBBHASH];
     tt = load_from_tt(hash);
     /* check for repetition loop */
-    count = i-1;
-    for (count=i;count>=0;count--)
+    for (count=i-1;count>=0;count--)
     {
       if (hash==hashes[count])
         repcount++;
