@@ -1,3 +1,9 @@
+ZetaDva (0308) alpha; urgency=medium
+
+  * bugfix in hash memory allocation >= 2048 MB
+
+ -- Srdja Matovic <s.matovic@app26.de>  Mar 2019
+
 ZetaDva (0307) alpha; urgency=medium
 
   * bugfix in en passant zobrist hashing
