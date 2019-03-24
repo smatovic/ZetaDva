@@ -215,7 +215,6 @@ int genmoves_castles(Bitboard *board, Move *moves, int movecounter, bool stm)
   score   = INF-100;
   /* make move */
   move    = (bbTempA&&!bbTempB&&!bbTempC)?MAKEMOVE(sqfrom, (sqfrom-2), (sqfrom-2), pfrom, pfrom, PNONE, 0, (u64)GETHMC(lastmove), (u64)score):MOVENONE;
-  move   |= (bbTempA&&!bbTempB&&!bbTempC)?MOVEISCRQ:BBEMPTY;
   /* store move */
   moves[movecounter] = move;
   movecounter+=(bbTempA&&!bbTempB&&!bbTempC)?1:0;
@@ -234,7 +233,6 @@ int genmoves_castles(Bitboard *board, Move *moves, int movecounter, bool stm)
   score   = INF-90;
   /* make move */
   move    = (bbTempA&&!bbTempB&&!bbTempC)?MAKEMOVE(sqfrom, (sqfrom+2), (sqfrom+2), pfrom, pfrom, PNONE, 0, (u64)GETHMC(lastmove), (u64)score):MOVENONE;
-  move   |= (bbTempA&&!bbTempB&&!bbTempC)?MOVEISCRK:BBEMPTY;
   /* store move */
   moves[movecounter] = move;
   movecounter+=(bbTempA&&!bbTempB&&!bbTempC)?1:0;
@@ -270,7 +268,9 @@ int genmoves_enpassant(Bitboard *board, Move *moves, int movecounter, bool stm)
   bbWork        = bbBoth[stm];
 
   /* gen en passant moves */
-  sqep    = GETSQEP(board[QBBLAST]); 
+  sqep   = ( GETPTYPE(GETPFROM(lastmove))==PAWN
+             &&GETRRANK(GETSQTO(lastmove),GETCOLOR(GETPFROM(lastmove)))-GETRRANK(GETSQFROM(lastmove),GETCOLOR(GETPFROM(lastmove)))==2
+           )?GETSQTO(lastmove):0x0;
   bbWork  = bbBoth[stm]&(board[QBBP1]&~board[QBBP2]&~board[QBBP3]);
   bbWork &= (stm)? 0xFF000000 : 0xFF00000000;
   bbTempA = (sqep)? bbWork&(SETMASKBB(sqep+1)|SETMASKBB(sqep-1)):BBEMPTY;
@@ -710,7 +710,9 @@ int genmoves_general(Bitboard *board, Move *moves, int movecounter, bool stm, bo
   }
 
   /* gen en passant moves */
-  sqep    = GETSQEP(board[QBBLAST]); 
+  sqep   = ( GETPTYPE(GETPFROM(lastmove))==PAWN
+             &&GETRRANK(GETSQTO(lastmove),GETCOLOR(GETPFROM(lastmove)))-GETRRANK(GETSQFROM(lastmove),GETCOLOR(GETPFROM(lastmove)))==2
+           )?GETSQTO(lastmove):0x0;
   bbPro   = bbBoth[stm]&(board[QBBP1]&~board[QBBP2]&~board[QBBP3]);
   bbPro   &= (stm)? 0xFF000000 : 0xFF00000000;
   bbTemp  = (sqep)?bbPro&(SETMASKBB(sqep+1)|SETMASKBB(sqep-1)):BBEMPTY;
@@ -765,7 +767,6 @@ int genmoves_general(Bitboard *board, Move *moves, int movecounter, bool stm, bo
   score   = INF-100;
   /* make move */
   move    = (bbTemp&&!bbPro&&!bbGen)?MAKEMOVE(sqfrom, (sqfrom-2), (sqfrom-2), pfrom, pfrom, PNONE, 0, (u64)GETHMC(lastmove), (u64)score):MOVENONE;
-  move   |= (bbTemp&&!bbPro&&!bbGen)?MOVEISCRQ:BBEMPTY;
   /* store move */
   moves[movecounter] = move;
   movecounter+=(bbTemp&&!bbPro&&!bbGen)?1:0;
@@ -784,7 +785,6 @@ int genmoves_general(Bitboard *board, Move *moves, int movecounter, bool stm, bo
   score   = INF-90;
   /* make move */
   move    = (bbTemp&&!bbPro&&!bbGen)?MAKEMOVE(sqfrom, (sqfrom+2), (sqfrom+2), pfrom, pfrom, PNONE, 0, (u64)GETHMC(lastmove), (u64)score):MOVENONE;
-  move   |= (bbTemp&&!bbPro&&!bbGen)?MOVEISCRK:BBEMPTY;
   /* store move */
   moves[movecounter] = move;
   movecounter+=(bbTemp&&!bbPro&&!bbGen)?1:0;

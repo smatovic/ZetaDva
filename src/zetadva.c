@@ -886,16 +886,6 @@ static Move can2move(char *usermove, Bitboard *board, bool stm)
   move = MAKEMOVE(sqfrom, sqto, sqcpt, pfrom, pto , pcpt, sqep,
                   GETHMC(board[QBBLAST]), (u64)0);
 
-  /* set castle move flag */
-  if ((pfrom>>1)==KING&&!stm&&sqfrom==4&&sqto==2)
-    move |= MOVEISCRQ;
-  if ((pfrom>>1)==KING&&!stm&&sqfrom==4&&sqto==6)
-    move |= MOVEISCRK;
-  if ((pfrom>>1)==KING&&stm&&sqfrom==60&&sqto==58)
-    move |= MOVEISCRQ;
-  if ((pfrom>>1)==KING&&stm&&sqfrom==60&&sqto==62)
-    move |= MOVEISCRK;
- 
   return move;
 }
 /* packed move to move in coordinate algebraic notation,

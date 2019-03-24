@@ -75,9 +75,9 @@ typedef u64             Rank;
   18  - 21  piece from
   22  - 25  piece to
   26  - 29  piece capture
-  30  - 35  square en passant target
-  36        move is castle kingside
-  37        move is castle queenside
+  30  - 35  dep
+  36        dep
+  37        dep
   38  - 39  2 bit free
   40  - 47  halfmove clock for fity move rule, last capture/castle/pawn move
   48  - 63  move score, signed 16 bit
@@ -105,10 +105,6 @@ typedef u64             Rank;
 #define BISHOP              4
 #define ROOK                5
 #define QUEEN               6
-/* move is castle flag */
-#define MOVEISCR            0x0000003000000000ULL
-#define MOVEISCRK           0x0000001000000000ULL
-#define MOVEISCRQ           0x0000002000000000ULL
 /* bitboard masks, computation prefered over lookup */
 #define SETMASKBB(sq)       (1ULL<<(sq))
 #define CLRMASKBB(sq)       (~(1ULL<<(sq)))

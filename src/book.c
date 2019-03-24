@@ -441,7 +441,6 @@ Move book2zeta(Bitboard *board, uint16 bookmove){
     zetato = 2;
     /* pack move into 64 bits, considering castle rights and halfmovecounter and score */
     move  = MAKEMOVE(zetafrom, zetato, zetato, zetapfrom, zetapfrom, PNONE, (u64)0, (u64)GETHMC(board[QBBLAST]), (u64)0);
-    move |= MOVEISCRQ;
     return move;
   }
   /* check castling white kingside */
@@ -451,7 +450,6 @@ Move book2zeta(Bitboard *board, uint16 bookmove){
     zetato = 6;
     /* pack move into 64 bits, considering castle rights and halfmovecounter and score */
     move  = MAKEMOVE(zetafrom, zetato, zetato, zetapfrom, zetapfrom, PNONE, (u64)0, (u64)GETHMC(board[QBBLAST]), (u64)0);
-    move |= MOVEISCRK;
     return move;
   }
   /* check castling black queenside */
@@ -461,7 +459,6 @@ Move book2zeta(Bitboard *board, uint16 bookmove){
     zetato = 58;
     /* pack move into 64 bits, considering castle rights and halfmovecounter and score */
     move  = MAKEMOVE(zetafrom, zetato, zetato, zetapfrom, zetapfrom, PNONE, (u64)0, (u64)GETHMC(board[QBBLAST]), (u64)0);
-    move |= MOVEISCRQ;
     return move;
   }
   /* check castling black kingside */
@@ -471,7 +468,6 @@ Move book2zeta(Bitboard *board, uint16 bookmove){
     zetato = 62;
     /* pack move into 64 bits, considering castle rights and halfmovecounter and score */
     move  = MAKEMOVE(zetafrom, zetato, zetato, zetapfrom, zetapfrom, PNONE, (u64)0, (u64)GETHMC(board[QBBLAST]), (u64)0);
-    move |= MOVEISCRK;
     return move;
   }
 
