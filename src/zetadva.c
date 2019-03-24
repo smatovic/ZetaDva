@@ -421,9 +421,11 @@ void domove(Bitboard *board, Move move)
   Square sqfrom   = GETSQFROM(move);
   Square sqto     = GETSQTO(move);
   Square sqcpt    = GETSQCPT(move);
+  Square sqep;
   Piece pfrom     = GETPFROM(move);
   Piece pto       = GETPTO(move);
   Piece pcpt      = GETPCPT(move);
+  Move lastmove   = board[QBBLAST];
   Bitboard bbTemp = BBEMPTY;
   Bitboard pcastle= PNONE;
   u64 hmc         = GETHMC(board[QBBLAST]);
@@ -446,12 +448,18 @@ void domove(Bitboard *board, Move move)
     board[QBBHASH] ^= Zobrist[14];
   if(((~board[QBBPMVD])&SMCRBLACKQ)==SMCRBLACKQ)
     board[QBBHASH] ^= Zobrist[15];
+
+  /* get en passant target square from lastmove */
+  sqep   = ( GETPTYPE(GETPFROM(lastmove))==PAWN
+             &&GETRRANK(GETSQTO(lastmove),GETCOLOR(GETPFROM(lastmove)))-GETRRANK(GETSQFROM(lastmove),GETCOLOR(GETPFROM(lastmove)))==2
+           )?GETSQTO(lastmove):0x0;
+
   /* file en passant */
-  if (GETSQEP(board[QBBLAST]))
+  if (sqep)
   {
     zobrist = Zobrist[16];
-    board[QBBHASH] ^= ((zobrist<<GETFILE(GETSQEP(board[QBBLAST])))
-                      |(zobrist>>(64-GETFILE(GETSQEP(board[QBBLAST])))));
+    board[QBBHASH] ^= ((zobrist<<GETFILE(sqep))
+                      |(zobrist>>(64-GETFILE(sqep))));
   }
 
 
@@ -559,13 +567,19 @@ void domove(Bitboard *board, Move move)
     board[QBBHASH] ^= Zobrist[14];
   if(((~board[QBBPMVD])&SMCRBLACKQ)==SMCRBLACKQ)
     board[QBBHASH] ^= Zobrist[15];
+  /* get en passant target square from lastmove */
+  sqep   = ( GETPTYPE(GETPFROM(move))==PAWN
+             &&GETRRANK(GETSQTO(move),GETCOLOR(GETPFROM(move)))-GETRRANK(GETSQFROM(move),GETCOLOR(GETPFROM(move)))==2
+           )?GETSQTO(move):0x0;
+
   /* file en passant */
-  if (GETSQEP(move))
+  if (sqep)
   {
     zobrist = Zobrist[16];
-    board[QBBHASH] ^= ((zobrist<<GETFILE(GETSQEP(move)))|
-                      (zobrist>>(64-GETFILE(GETSQEP(move))))); /* rotl64 */
+    board[QBBHASH] ^= ((zobrist<<GETFILE(sqep))
+                      |(zobrist>>(64-GETFILE(sqep))));
   }
+
   /* color flipping */
   board[QBBHASH] ^= 0x1ULL;
 
