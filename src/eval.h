@@ -28,7 +28,6 @@ extern const Score EvalPieceValues[7];
 extern const Score EvalControl[64];
 extern const Score EvalTable[7*64];
 
-Score evalstatic(Bitboard *board);
 Score evalmove(PieceType piece, Square sq);
 Score eval(Bitboard *board);
 

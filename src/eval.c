@@ -42,39 +42,6 @@ Score evalmove(Piece piece, Square sq)
 
   return score;
 }
-/* evaluate board position with static values no checkmates or stalemates */
-Score evalstatic(Bitboard *board)
-{
-  u32 side;
-  Score score = 0;
-  Square sq;
-  PieceType piecetype;
-  Bitboard bbWork;
-  Bitboard bbBoth[2];
-
-  bbBoth[WHITE] = board[QBBBLACK]^(board[QBBP1]|board[QBBP2]|board[QBBP3]);
-  bbBoth[BLACK] = board[QBBBLACK];
-
-  /* for each side */
-  for(side=WHITE;side<=BLACK;side++) 
-  {
-    bbWork = bbBoth[side];
-
-    while (bbWork) 
-    {
-      sq = popfirst1(&bbWork);
-      piecetype = GETPTYPE(GETPIECE(board,sq));
-
-      /* wodd count */
-      score+= (side)? -EvalPieceValues[piecetype]:EvalPieceValues[piecetype];
-      /* piece square tables */
-      score+= (side)? -EvalTable[piecetype*64+sq]:EvalTable[piecetype*64+FLIPFLOP(sq)];
-      /* square control table */
-      score+= (side)? -EvalControl[sq]:EvalControl[FLIPFLOP(sq)];
-    }
-  }
-  return score;
-}
 /* evaluate board position, no checkmates or stalemates */
 Score eval(Bitboard *board)
 {
