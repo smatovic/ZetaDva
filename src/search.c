@@ -127,8 +127,7 @@ Score qsearch(Bitboard *board,
 
   movecounter = genmoves_promo(board, moves, movecounter, stm);
   movecounter = genmoves_captures(board, moves, movecounter, stm);
-  if(GETSQEP(lastmove))
-    movecounter = genmoves_enpassant(board, moves, movecounter, stm);
+  movecounter = genmoves_enpassant(board, moves, movecounter, stm);
 
   /* quiet leaf node, return evaluation board score */
   if (movecounter==0)
@@ -378,8 +377,7 @@ Score negamax(Bitboard *board,
   /* generate capturing moves and pawn promotion */
   movecounter = genmoves_promo(board, moves, 0, stm);
   movecounter = genmoves_captures(board, moves, movecounter, stm);
-  if(GETSQEP(lastmove))
-    movecounter = genmoves_enpassant(board, moves, movecounter, stm);
+  movecounter = genmoves_enpassant(board, moves, movecounter, stm);
   legalmovecounter+= movecounter;
 
   /* sort moves */
