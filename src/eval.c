@@ -58,6 +58,10 @@ Score eval(Bitboard *board)
   bbBoth[WHITE] = board[QBBBLACK]^(board[QBBP1]|board[QBBP2]|board[QBBP3]);
   bbBoth[BLACK] = board[QBBBLACK];
 
+  /* K n k draw */
+  if (popcount(bbBoth[WHITE]|bbBoth[BLACK])<=2)
+    return DRAWSCORE;
+
   /* for each side */
   for(side=WHITE;side<=BLACK;side++) 
   {
