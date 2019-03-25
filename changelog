@@ -1,3 +1,10 @@
+ZetaDva (0310) alpha; urgency=medium
+
+  * switch from 75 move rule to 50 move rule
+  * added drawscore for K n k draw
+
+ -- Srdja Matovic <s.matovic@app26.de>  Mar 2019
+
 ZetaDva (0309) alpha; urgency=medium
 
   * bugfix in en passant move gen from TT move
