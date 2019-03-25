@@ -114,6 +114,10 @@ Score qsearch(Bitboard *board,
 
   NODECOUNT++;
 
+  /* check for K n k draw */
+  if (popcount(board[QBBP1]|board[QBBP2]|board[QBBP3])<=2)
+    return DRAWSCORE;
+
   kic = kingincheck(board, stm);
 
   /* get full eval score */
@@ -226,6 +230,7 @@ Score negamax(Bitboard *board,
     TIMEOUT=true;
     return 0;
   }
+
   /* check internal ply limit */
   if (ply>=MAXPLY)
   {
@@ -233,11 +238,15 @@ Score negamax(Bitboard *board,
     return 0;
   }
 
-  HashHistory[PLY+ply] = hash;
-
   /* check for 75 move rule */
   if (hmc>=150)
     return DRAWSCORE;
+
+  /* check for K n k draw */
+  if (popcount(board[QBBP1]|board[QBBP2]|board[QBBP3])<=2)
+    return DRAWSCORE;
+
+  HashHistory[PLY+ply] = hash;
 
   /* check for repetition */
   for (i=PLY+ply-2;i>=0&&i>=PLY+ply-hmc;i-=2)
