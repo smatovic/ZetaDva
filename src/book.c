@@ -353,9 +353,9 @@ Hash computebookhash(Bitboard *board, bool stm)
   sq  = GETSQEP(board[QBBLAST]); 
   bbWork = (stm)?board[QBBBLACK]:(board[QBBBLACK]^(board[QBBP1]|board[QBBP2]|board[QBBP3]));
   bbWork &= (board[QBBP1]&~board[QBBP2]&~board[QBBP3]); /* get pawns */
-  if (sq&&stm&&(bbWork&BBRANK4))
+  if (sq&&stm&&(bbWork&BBRANK4)&(SETMASKBB(sq+1)|SETMASKBB(sq-1)))
     hash ^= RandomEnPassant[GETFILE(sq)]; 
-  if (sq&&!stm&&(bbWork&BBRANK5))
+  if (sq&&!stm&&(bbWork&BBRANK5)&(SETMASKBB(sq+1)|SETMASKBB(sq-1)))
     hash ^= RandomEnPassant[GETFILE(sq)]; 
 
   /* side to move */
@@ -386,7 +386,6 @@ Move book2zeta(Bitboard *board, uint16 bookmove){
   Square zetafrom;
   Square zetato;
   Square zetacpt;
-  Square zetasqep = 0;
   Piece zetapfrom;
   Piece zetapto;
   Piece zetapcpt;
@@ -430,10 +429,6 @@ Move book2zeta(Bitboard *board, uint16 bookmove){
 
   zetapcpt  = GETPIECE(board,zetacpt);
 
-  /* pawn double square move, set en passant target square */
-  if ((zetapfrom>>1)==PAWN&&GETRRANK(zetafrom,stm)==1&&GETRRANK(zetato,stm)==3)
-    zetasqep = zetato;
-
   /* check castling white queenside */
   if (GETPTYPE(zetapfrom)==KING&&stm==WHITE&&((zetafrom==4&&zetato==0)||(zetafrom==4&&zetato==2)))
   {
@@ -472,7 +467,7 @@ Move book2zeta(Bitboard *board, uint16 bookmove){
   }
 
   /* pack move into 64 bits, considering castle rights and halfmovecounter and score */
-  move = MAKEMOVE(zetafrom, zetato, zetato, zetapfrom, zetapto, zetapcpt, zetasqep, (u64)GETHMC(board[QBBLAST]), (u64)0);
+  move = MAKEMOVE(zetafrom, zetato, zetato, zetapfrom, zetapto, zetapcpt, 0, (u64)GETHMC(board[QBBLAST]), (u64)0);
 
   return move;
 }

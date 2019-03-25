@@ -258,9 +258,6 @@ int genmoves_enpassant(Bitboard *board, Move *moves, int movecounter, bool stm)
   Bitboard bbBlockers;
   Bitboard bbBoth[2];
 
-  if(!GETSQEP(board[QBBLAST]))
-    return movecounter;
-
   lastmove      = board[QBBLAST];
   bbBlockers    = board[QBBP1]|board[QBBP2]|board[QBBP3];
   bbBoth[WHITE] = bbBlockers^board[QBBBLACK];
@@ -268,9 +265,11 @@ int genmoves_enpassant(Bitboard *board, Move *moves, int movecounter, bool stm)
   bbWork        = bbBoth[stm];
 
   /* gen en passant moves */
-  sqep   = ( GETPTYPE(GETPFROM(lastmove))==PAWN
-             &&GETRRANK(GETSQTO(lastmove),GETCOLOR(GETPFROM(lastmove)))-GETRRANK(GETSQFROM(lastmove),GETCOLOR(GETPFROM(lastmove)))==2
-           )?GETSQTO(lastmove):0x0;
+  sqep = GETSQEP(lastmove);
+
+  if (!sqep)
+    return movecounter;
+
   bbWork  = bbBoth[stm]&(board[QBBP1]&~board[QBBP2]&~board[QBBP3]);
   bbWork &= (stm)? 0xFF000000 : 0xFF00000000;
   bbTempA = (sqep)? bbWork&(SETMASKBB(sqep+1)|SETMASKBB(sqep-1)):BBEMPTY;
@@ -437,7 +436,6 @@ int genmoves_noncaptures(Bitboard *board, Move *moves, int movecounter, bool stm
   Piece pto;
   Square sqfrom;
   Square sqto;
-  Square sqep; 
   Move move;
   Move lastmove;
   Bitboard bbTemp;
@@ -521,13 +519,10 @@ int genmoves_noncaptures(Bitboard *board, Move *moves, int movecounter, bool stm
       sqto    = popfirst1(&bbMoves);
       pto     = pfrom;
 
-      /* set en passant target square */
-      sqep    = (GETPTYPE(pfrom)==PAWN&&GETRRANK(sqto,stm)-GETRRANK(sqfrom,stm)==2)?(stm)?sqto:sqto:0x0; 
-
       /* get score, non captures via static values, capture via MVV-LVA */
       score = (evalmove (pto, sqto)-evalmove(pfrom, sqfrom));
       /* pack move into 64 bits, considering castle rights and halfmovecounter and score */
-      move = MAKEMOVE(sqfrom, sqto, sqto, pfrom, pto, PNONE, sqep, (Move)GETHMC(lastmove), (Move)score);
+      move = MAKEMOVE(sqfrom, sqto, sqto, pfrom, pto, PNONE, 0, (Move)GETHMC(lastmove), (Move)score);
 
       /* set killers and counters score */
       if (JUSTMOVE(move)==JUSTMOVE(Counters[GETSQFROM(lastmove)*64+GETSQTO(lastmove)]))
@@ -650,15 +645,12 @@ int genmoves_general(Bitboard *board, Move *moves, int movecounter, bool stm, bo
       sqcpt   = sqto;
       pcpt    = GETPIECE(board, sqcpt);
 
-      /* set en passant target square */
-      sqep      = (GETPTYPE(pfrom)==PAWN&&GETRRANK(sqto,stm)-GETRRANK(sqfrom,stm)==2)?(stm)?sqto:sqto:0x0; 
-
       /* handle pawn promo: knight */
       pto = (GETPTYPE(pfrom)==PAWN&&GETRRANK(sqto,stm)==RANK_8)?MAKEPIECE(KNIGHT, GETCOLOR(pfrom)):pfrom;
       /* get score, non captures via static values, capture via MVV-LVA */
       score = (pcpt==PNONE)? (evalmove (pto, sqto)-evalmove(pfrom, sqfrom)):(EvalPieceValues[GETPTYPE(pcpt)]*16-EvalPieceValues[GETPTYPE(pto)]);
       /* pack move into 64 bits, considering castle rights and halfmovecounter and score */
-      move = MAKEMOVE(sqfrom, sqto, sqcpt, pfrom, pto, pcpt, sqep, (u64)GETHMC(lastmove), (u64)score);
+      move = MAKEMOVE(sqfrom, sqto, sqcpt, pfrom, pto, pcpt, 0, (u64)GETHMC(lastmove), (u64)score);
 
       /* legal moves only */
       domovequick(board, move);
@@ -710,9 +702,8 @@ int genmoves_general(Bitboard *board, Move *moves, int movecounter, bool stm, bo
   }
 
   /* gen en passant moves */
-  sqep   = ( GETPTYPE(GETPFROM(lastmove))==PAWN
-             &&GETRRANK(GETSQTO(lastmove),GETCOLOR(GETPFROM(lastmove)))-GETRRANK(GETSQFROM(lastmove),GETCOLOR(GETPFROM(lastmove)))==2
-           )?GETSQTO(lastmove):0x0;
+  sqep = GETSQEP(lastmove);
+
   bbPro   = bbBoth[stm]&(board[QBBP1]&~board[QBBP2]&~board[QBBP3]);
   bbPro   &= (stm)? 0xFF000000 : 0xFF00000000;
   bbTemp  = (sqep)?bbPro&(SETMASKBB(sqep+1)|SETMASKBB(sqep-1)):BBEMPTY;
@@ -801,8 +792,7 @@ int genmoves(Bitboard *board, Move *moves, int movecounter, bool stm, bool qs, s
 
   movecounter = genmoves_promo(board, moves, movecounter, stm);
 
-  if(GETSQEP(board[QBBLAST]))
-    movecounter = genmoves_enpassant(board, moves, movecounter, stm);
+  movecounter = genmoves_enpassant(board, moves, movecounter, stm);
 
   if (!qs&&(board[QBBPMVD]&SMCRALL))
     movecounter = genmoves_castles(board, moves, movecounter, stm);

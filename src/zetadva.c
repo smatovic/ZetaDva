@@ -450,9 +450,7 @@ void domove(Bitboard *board, Move move)
     board[QBBHASH] ^= Zobrist[15];
 
   /* get en passant target square from lastmove */
-  sqep   = ( GETPTYPE(GETPFROM(lastmove))==PAWN
-             &&GETRRANK(GETSQTO(lastmove),GETCOLOR(GETPFROM(lastmove)))-GETRRANK(GETSQFROM(lastmove),GETCOLOR(GETPFROM(lastmove)))==2
-           )?GETSQTO(lastmove):0x0;
+  sqep = GETSQEP(lastmove);
 
   /* file en passant */
   if (sqep)
@@ -461,7 +459,6 @@ void domove(Bitboard *board, Move move)
     board[QBBHASH] ^= ((zobrist<<GETFILE(sqep))
                       |(zobrist>>(64-GETFILE(sqep))));
   }
-
 
   /* unset square from, square capture and square to */
   bbTemp = CLRMASKBB(sqfrom)&CLRMASKBB(sqcpt)&CLRMASKBB(sqto);
@@ -536,6 +533,7 @@ void domove(Bitboard *board, Move move)
     /* reset halfmoveclok */
     hmc = (pcastle)?0:hmc;  /* castle move */
     /* do hash increment, clear old rook */
+    zobrist = Zobrist[GETCOLOR(pcastle)*6+ROOK-1];
     board[QBBHASH] ^= (pcastle)?
                       ((zobrist<<(sqfrom+3))|(zobrist>>(64-(sqfrom+3)))):BBEMPTY;
     /* do hash increment, set new rook */
@@ -568,9 +566,7 @@ void domove(Bitboard *board, Move move)
   if(((~board[QBBPMVD])&SMCRBLACKQ)==SMCRBLACKQ)
     board[QBBHASH] ^= Zobrist[15];
   /* get en passant target square from lastmove */
-  sqep   = ( GETPTYPE(GETPFROM(move))==PAWN
-             &&GETRRANK(GETSQTO(move),GETCOLOR(GETPFROM(move)))-GETRRANK(GETSQFROM(move),GETCOLOR(GETPFROM(move)))==2
-           )?GETSQTO(move):0x0;
+  sqep = GETSQEP(move);
 
   /* file en passant */
   if (sqep)
@@ -844,7 +840,6 @@ static Move can2move(char *usermove, Bitboard *board, bool stm)
   Piece pcpt;
   Move move;
   char promopiece;
-  Square sqep = 0;
 
   file    = (int)usermove[0] -97;
   rank    = (int)usermove[1] -49;
@@ -867,10 +862,6 @@ static Move can2move(char *usermove, Bitboard *board, bool stm)
 
   pcpt = GETPIECE(board, sqcpt);
 
-  /* pawn double square move, set en passant target square */
-  if ((pfrom>>1)==PAWN&&GETRRANK(sqfrom,stm)==1&&GETRRANK(sqto,stm)==3)
-    sqep = sqto;
-
   /* pawn promo piece */
   promopiece = usermove[4];
   if (promopiece == 'q' || promopiece == 'Q' )
@@ -883,7 +874,7 @@ static Move can2move(char *usermove, Bitboard *board, bool stm)
       pto = MAKEPIECE(ROOK,stm);
 
   /* pack move, considering hmc, cr and score */
-  move = MAKEMOVE(sqfrom, sqto, sqcpt, pfrom, pto , pcpt, sqep,
+  move = MAKEMOVE(sqfrom, sqto, sqcpt, pfrom, pto , pcpt, 0,
                   GETHMC(board[QBBLAST]), (u64)0);
 
   return move;
@@ -1253,18 +1244,6 @@ static bool setboard(Bitboard *board, char *fenstring)
   board[QBBPMVD]  ^= bbCr;
   /* store halfmovecounter into lastmove */
   lastmove = SETHMC(lastmove, hmc);
-
-  /* set en passant target square */
-  tempchar = cep[0];
-  file  = 0;
-  rank  = 0;
-  if (tempchar != '-' && tempchar != '\0' && tempchar != '\n')
-  {
-    file  = cep[0] - 97;
-    rank  = cep[1] - 49;
-  }
-  sq    = MAKESQ(file, rank);
-  lastmove = SETSQEP(lastmove, sq);
 
   /* ply starts at zero */
   PLY = 0;

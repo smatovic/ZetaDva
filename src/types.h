@@ -58,7 +58,7 @@ typedef u64             Move;
 typedef u64             File;
 typedef u64             Rank;
 
-#define VERSION         "0308"
+#define VERSION         "0309"
 /* quad bitboard array index definition */
 #define QBBBLACK  0     /* pieces white */
 #define QBBP1     1     /* piece type first bit */
@@ -78,7 +78,7 @@ typedef u64             Rank;
   30  - 35  dep
   36        dep
   37        dep
-  38  - 39  2 bit free
+  38  - 39  dep
   40  - 47  halfmove clock for fity move rule, last capture/castle/pawn move
   48  - 63  move score, signed 16 bit
 */
@@ -148,8 +148,6 @@ typedef u64             Rank;
 #define GETPFROM(mv)       (((mv)>>18)&0xF)    /* 4 bit piece encoding */
 #define GETPTO(mv)         (((mv)>>22)&0xF)    /* 4 bit piece encoding */
 #define GETPCPT(mv)        (((mv)>>26)&0xF)    /* 4 bit piece encodinge */
-#define GETSQEP(mv)        (((mv)>>30)&0x3F)   /* 6 bit square */
-#define SETSQEP(mv,sq)     (((mv)&CMSQEP)|(((sq)&0x3F)<<30))
 #define GETHMC(mv)         (((mv)>>40)&0xFF)   /* 8 bit halfmove clock */
 #define SETHMC(mv,hmc)     (((mv)&CMHMC)|(((hmc)&0xFF)<<40))
 #define GETSCORE(mv)       (((mv)>>48)&0xFFFF) /* signed 16 bit move score */
@@ -169,6 +167,10 @@ typedef u64             Rank;
 #define FLIP(sq)            ((sq)^7)
 #define FLOP(sq)            ((sq)^56)
 #define FLIPFLOP(sq)        (((sq)^56)^7)
+#define GETSQEP(move)       ((GETPTYPE(GETPFROM(move))==PAWN \
+                             &&GETRRANK(GETSQFROM(move),GETCOLOR(GETPFROM(move)))==1 \
+                             &&GETRRANK(GETSQTO(move),GETCOLOR(GETPFROM(move)))==3 \
+                            )?GETSQTO(move):0x0)
 /* piece helpers */
 #define GETPIECE(board,sq)  ( \
                                ((board[0]>>(sq))&0x1)\
