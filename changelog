@@ -1,11 +1,7 @@
-ZetaDva (0308) alpha; urgency=medium
+ZetaDva (0309) alpha; urgency=medium
 
+  * bugfix in en passant move gen from TT move
   * bugfix in hash memory allocation >= 2048 MB
-
- -- Srdja Matovic <s.matovic@app26.de>  Mar 2019
-
-ZetaDva (0307) alpha; urgency=medium
-
   * bugfix in en passant zobrist hashing
   * bugfix in do move castle from TT
   * bugfix in timeout handling
